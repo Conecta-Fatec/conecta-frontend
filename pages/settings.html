@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conecta Fatec | Mural</title>
+  <title>Conecta Fatec | Configurações</title>
 
   <script>
     if (!localStorage.getItem('access_token')) {
@@ -53,7 +53,6 @@
   </script>
   <main class="feed-page">
     <div class="feed-layout">
-
       <aside class="sidebar desktop-sidebar">
         <a href="feed.html" class="sidebar-logo">
           <img src="../assets/img/logo-light.png" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light" />
@@ -61,26 +60,22 @@
         </a>
 
         <nav class="sidebar-nav">
-          <a href="feed.html" class="sidebar-link active">Feed</a>
+          <a href="feed.html" class="sidebar-link">Feed</a>
           <a href="profile.html" class="sidebar-link">Perfil</a>
           <a href="communities.html" class="sidebar-link">Comunidades</a>
           <a href="friends.html" class="sidebar-link">Amizades</a>
           <a href="#" class="sidebar-link">Notificações</a>
-          <a href="settings.html" class="sidebar-link">Configurações</a>
+          <a href="settings.html" class="sidebar-link active">Configurações</a>
         </nav>
-
-        <button class="new-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newPostModal">
-          Novo post
-        </button>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
-          <div class="user-avatar" id="sidebar-avatar">U</div>
-          <div>
-            <strong id="sidebar-name">Carregando...</strong>
-            <span id="sidebar-username">@usuario</span>
-          </div>
-        </a>
+            <div class="user-avatar" id="sidebar-avatar">--</div>
+            <div>
+              <strong id="sidebar-name">Carregando...</strong>
+              <span id="sidebar-username">@usuario</span>
+            </div>
+          </a>
           <button class="logout-btn" type="button" data-logout>Sair</button>
         </div>
       </aside>
@@ -88,60 +83,68 @@
       <section class="feed-content">
         <header class="feed-header feed-hero">
           <div>
-            <span class="feed-kicker">Conecta Fatec</span>
-            <h1>Feed acadêmico</h1>
-            <p>Acompanhe publicações e atualizações dos alunos.</p>
+            <span class="feed-kicker">Preferências</span>
+            <h1>Configurações</h1>
+            <p>Personalize o tema, o estilo e o tamanho da fonte do Conecta Fatec.</p>
           </div>
         </header>
 
-        <section class="feed-control-card">
-          <div class="feed-control-text">
-            <h2>Publicações</h2>
-          </div>
-          <div class="feed-tabs" role="tablist">
-            <button class="feed-tab active" id="general-tab" type="button">Geral</button>
-            <button class="feed-tab" id="friends-tab" type="button">Amigos</button>
-          </div>
-        </section>
+        <section class="settings-layout">
+          <article class="settings-card">
+            <h2>Aparência do site</h2>
+            <p>
+              Escolha manualmente entre o tema claro ou escuro. O site não acompanha mais o tema do navegador.
+            </p>
 
-        <div class="tab-content feed-tab-content">
-          <div class="tab-pane fade show active" id="general-posts">
-            <div class="posts-list" id="posts-container">
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label for="themeMode">Tema</label>
+                <select id="themeMode">
+                  <option value="light">Claro</option>
+                  <option value="dark">Escuro</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="fontFamilyMode">Estilo da fonte</label>
+                <select id="fontFamilyMode">
+                  <option value="inter">Inter / padrão</option>
+                  <option value="system">Sistema</option>
+                  <option value="rounded">Arredondada</option>
+                  <option value="serif">Serifada</option>
+                  <option value="mono">Monoespaçada</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="fontSizeMode">Tamanho da fonte</label>
+                <select id="fontSizeMode">
+                  <option value="small">Pequena</option>
+                  <option value="normal">Normal</option>
+                  <option value="large">Grande</option>
+                  <option value="xlarge">Muito grande</option>
+                </select>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
+            <div class="settings-preview">
+              <strong>Prévia</strong>
+              <p id="themeModePreview" class="mb-2">Tema claro selecionado.</p>
+              <p class="mb-0">
+                Este texto mostra como publicações, comentários e menus ficarão com a fonte escolhida.
+              </p>
+            </div>
+
+            <button id="resetAppearancePreferences" class="settings-reset-btn mt-3" type="button">
+              Restaurar padrão
+            </button>
+          </article>
+        </section>
+      </section>
     </div>
   </main>
 
-  <div class="modal fade" id="newPostModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content post-modal-content">
-        <div class="modal-header post-modal-header">
-          <h2 class="modal-title fs-5">Criar novo post</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body post-modal-body">
-          <div class="create-post-modal-area">
-            <div class="user-avatar" id="modal-avatar">M</div>
-            <textarea id="postContent" rows="5" maxlength="280" placeholder="O que você está pensando?"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer post-modal-footer">
-          <button type="button" class="modal-cancel-btn" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="modal-publish-btn" id="publishBtn">Publicar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-  </script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/feed.js"></script>
 </body>
 </html>

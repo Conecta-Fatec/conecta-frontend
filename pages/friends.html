@@ -12,9 +12,39 @@
 </head>
 
 <body class="theme-light">
-  <button id="themeToggle" class="theme-toggle-btn page-theme-toggle" type="button"
-    aria-label="Alternar tema">☽</button>
+  <script>
+    (function () {
+      const themeKey = 'conecta_theme_mode';
+      const fontFamilyKey = 'conecta_font_family';
+      const fontSizeKey = 'conecta_font_size';
+      const fontFamilies = {
+        inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        serif: 'Georgia, "Times New Roman", serif',
+        mono: '"Cascadia Code", "Fira Code", Consolas, monospace',
+        rounded: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif'
+      };
+      const fontSizes = { small: '14px', normal: '16px', large: '18px', xlarge: '20px' };
+      const savedTheme = localStorage.getItem(themeKey);
+      const resolvedTheme = savedTheme === 'dark' ? 'dark' : 'light';
+      const fontFamily = fontFamilies[localStorage.getItem(fontFamilyKey)] || fontFamilies.inter;
+      const fontSize = fontSizes[localStorage.getItem(fontSizeKey)] || fontSizes.normal;
 
+      document.documentElement.classList.remove('theme-light', 'theme-dark');
+      document.documentElement.classList.add('theme-' + resolvedTheme);
+
+      function applyBodyPreferences() {
+        if (!document.body) return;
+        document.body.classList.remove('theme-light', 'theme-dark');
+        document.body.classList.add('theme-' + resolvedTheme);
+        document.body.style.setProperty('--app-font-family', fontFamily);
+        document.body.style.setProperty('--app-font-size', fontSize);
+      }
+
+      applyBodyPreferences();
+      document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
+    })();
+  </script>
   <main class="feed-page">
     <div class="feed-layout">
 
@@ -30,7 +60,7 @@
           <a href="communities.html" class="sidebar-link">Comunidades</a>
           <a href="friends.html" class="sidebar-link active">Amizades</a>
           <a href="#" class="sidebar-link">Notificações</a>
-          <a href="#" class="sidebar-link">Configurações</a>
+          <a href="settings.html" class="sidebar-link">Configurações</a>
         </nav>
 
         <button class="new-post-btn" type="button" onclick="window.location.href='feed.html'">Novo post</button>
@@ -59,16 +89,14 @@
         <div class="communities-layout">
 
           <section class="communities-section mb-4">
-            <div class="community-create-box" style="flex-direction: row; flex-wrap: wrap;">
+            <div class="community-create-box friend-request-card">
               <div class="community-create-box-text flex-grow-1">
                 <strong>Adicionar nova amizade</strong>
                 <span>Digite o nickname (ex: kevin.dev) do aluno que deseja adicionar.</span>
               </div>
-              <div class="d-flex gap-2">
-                <input type="text" id="targetNickname" class="form-control custom-input"
-                  placeholder="Nickname do usuário" style="min-width: 200px;">
-                <button type="button" class="community-create-box-btn" onclick="sendFriendRequest()">Enviar
-                  Solicitação</button>
+              <div class="friend-request-form">
+                <input type="text" id="targetNickname" class="form-control custom-input" placeholder="Nickname do usuário">
+                <button type="button" class="community-create-box-btn" onclick="sendFriendRequest()">Enviar Solicitação</button>
               </div>
             </div>
             <p id="friendError" class="text-danger mt-2 small" style="display:none;"></p>

@@ -27,7 +27,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveCommunityBtn = document.getElementById('saveCommunityBtn');
   const createPostCard = document.getElementById('community-create-post-card');
 
+  function getCommentReplies(comment = {}) {
+    const replies = comment.replies || comment.children || comment.answers || [];
+    return Array.isArray(replies) ? replies : [];
+  }
+
+  function getPostComments(post = {}) {
+    const topLevel = Array.isArray(post.top_level_comments) ? post.top_level_comments : [];
+    const comments = Array.isArray(post.comments) ? post.comments : [];
+    const source = topLevel.length ? topLevel : comments;
+
+    if (!source.some((comment) => comment.parent)) return source;
+
+    const byId = new Map();
+    source.forEach((comment) => {
+      byId.set(comment.id, { ...comment, replies: getCommentReplies(comment).slice() });
+    });
+
+    const roots = [];
+    byId.forEach((comment) => {
+      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : comment.parent;
+      if (parentId && byId.has(parentId)) {
+        byId.get(parentId).replies.push(comment);
+      } else {
+        roots.push(comment);
+      }
+    });
+
+    return roots;
+  }
+
   function renderMembers(members) {
+
     if (!members || members.length === 0) {
       membersContainer.innerHTML = '<div class="api-empty-state">Nenhum participante ainda.</div>';
       return;
@@ -88,6 +119,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPosts(data.posts || [], data.is_member);
   }
 
+  function renderComments(comments = [], isMember = false, level = 0) {
+    if (!comments.length) return '';
+
+    return comments.map((comment) => {
+      const author = comment.author || {};
+      const commentAuthor = userDisplayName(author);
+      const isMyComment = currentUser && author.nickname === currentUser.nickname;
+      const replies = getCommentReplies(comment);
+      const replyLabel = replies.length || comment.replies_count || 0;
+
+      return `
+        <div class="post-comment ${level > 0 ? 'comment-reply' : ''} align-items-start">
+          <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author, 'comment-avatar')}</a>
+          <div class="comment-body">
+            <p class="comment-text-line">
+              <span class="comment-meta">
+                ${userLinkHTML(author, commentAuthor, 'comment-author')}
+                <span class="comment-username">@${escapeHTML(author.nickname || 'usuario')}</span>
+              </span>
+              <span id="comment-text-content-${comment.id}" class="comment-content" data-raw="${escapeHTML(comment.content)}">${escapeHTML(comment.content)}</span>
+              ${comment.edited ? '<small class="text-muted">(editado)</small>' : ''}
+            </p>
+            <div class="comment-actions">
+              <button type="button" class="comment-action ${comment.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleCommentLike(${comment.id})">
+                Curtir (${comment.total_likes ?? 0})
+              </button>
+              ${isMember ? `<button type="button" class="comment-action" onclick="toggleReplyInput(${comment.id})">Responder (${replyLabel})</button>` : ''}
+              ${isMyComment ? `
+                <button type="button" class="comment-action" onclick="enableCommentEdit(${comment.id})">Editar</button>
+                <button type="button" class="comment-action text-danger" onclick="deleteComment(${comment.id})">Excluir</button>
+              ` : ''}
+            </div>
+            ${isMember ? `
+              <div id="reply-box-${comment.id}" class="reply-box d-none">
+                <input type="text" id="reply-input-${comment.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Responda a ${escapeHTML(commentAuthor)}...">
+                <button class="btn login-btn py-1 px-2" type="button" onclick="addReply(${comment.id})">Enviar</button>
+              </div>
+            ` : ''}
+            ${replies.length ? `<div class="comment-replies">${renderComments(replies, isMember, level + 1)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function renderPosts(posts, isMember) {
     if (!posts.length) {
       postsContainer.innerHTML = '<div class="api-empty-state text-center">Nenhum post nesta comunidade ainda.</div>';
@@ -95,31 +171,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     postsContainer.innerHTML = posts.map((post) => {
-      const authorName = post.author.full_name || post.author.nickname;
-      const isMyPost = currentUser && post.author.nickname === currentUser.nickname;
+      const author = post.author || {};
+      const authorName = userDisplayName(author);
+      const isMyPost = currentUser && author.nickname === currentUser.nickname;
       const date = new Date(post.created_at).toLocaleDateString('pt-BR');
-      const comments = post.top_level_comments || [];
-
-      const commentsHTML = comments.map((comment) => {
-        const commentAuthor = comment.author.full_name || comment.author.nickname;
-        const isMyComment = currentUser && comment.author.nickname === currentUser.nickname;
-        return `
-          <div class="post-comment align-items-start">
-            <div class="comment-avatar">${getInitials(commentAuthor)}</div>
-            <div class="w-100" style="min-width:0;">
-              <p>
-                <strong>${escapeHTML(commentAuthor)}</strong>
-                <span id="comment-text-content-${comment.id}" data-raw="${escapeHTML(comment.content)}">${escapeHTML(comment.content)}</span>
-                ${comment.edited ? '<small class="text-muted">(editado)</small>' : ''}
-              </p>
-              <div class="d-flex gap-3 mt-1" style="font-size:0.8rem;color:#64748b;font-weight:600;">
-                <span role="button" class="comment-action ${comment.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleCommentLike(${comment.id})">Curtir (${comment.total_likes})</span>
-                ${isMyComment ? `<span role="button" onclick="enableCommentEdit(${comment.id})">Editar</span><span role="button" class="text-danger" onclick="deleteComment(${comment.id})">Excluir</span>` : ''}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+      const comments = getPostComments(post);
+      const commentsHTML = renderComments(comments, isMember);
 
       const commentInput = isMember ? `
         <div class="mt-3 d-flex gap-2">
@@ -130,18 +187,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       return `
         <article class="post-card">
-          <div class="user-avatar">${getInitials(authorName)}</div>
+          <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author)}</a>
           <div class="post-body" style="min-width:0;">
             <div class="post-header">
               <div class="text-truncate">
-                <strong class="post-author">${escapeHTML(authorName)}</strong>
-                <span>@${escapeHTML(post.author.nickname)} · ${date} ${post.edited ? '· (editado)' : ''}</span>
+                ${userLinkHTML(author, authorName, 'post-author')}
+                <span>@${escapeHTML(author.nickname || 'usuario')} · ${date} ${post.edited ? '· (editado)' : ''}</span>
               </div>
             </div>
             <div id="post-text-content-${post.id}" data-raw="${escapeHTML(post.content)}"><p class="post-text">${escapeHTML(post.content)}</p></div>
             <div class="post-actions">
-              <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id})">${post.liked_by_me ? '❤️' : '🤍'} ${post.total_likes}</button>
-              <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()">💬 ${post.comments_count}</button>
+              <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id})">${post.liked_by_me ? '❤️' : '♡'} ${post.total_likes ?? 0}</button>
+              <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()">💬 ${post.comments_count ?? 0}</button>
               ${isMyPost ? `<button class="post-action-btn owner-action" onclick="enablePostEdit(${post.id})">Editar</button><button class="post-action-btn owner-action delete-action text-danger" onclick="deletePost(${post.id})">Excluir</button>` : ''}
             </div>
             <div class="comments-section mt-2">${commentsHTML}${commentInput}</div>
@@ -346,6 +403,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
     const response = await apiFetch(`/api/posts/comment/${commentId}/delete/`, { method: 'DELETE' });
     if (response.ok) await loadCommunityDetails();
+  };
+
+  window.toggleReplyInput = (commentId) => {
+    const box = document.getElementById(`reply-box-${commentId}`);
+    box?.classList.toggle('d-none');
+    if (box && !box.classList.contains('d-none')) document.getElementById(`reply-input-${commentId}`)?.focus();
+  };
+
+  window.addReply = async (commentId) => {
+    const input = document.getElementById(`reply-input-${commentId}`);
+    const content = input?.value.trim();
+    if (!content) return;
+    const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+    if (response.ok) await loadCommunityDetails();
+    else alert('Erro ao responder.');
   };
 
   window.loadCommunityDetailsFromButton = loadCommunityDetails;

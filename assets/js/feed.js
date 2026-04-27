@@ -64,7 +64,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  function getCommentReplies(comment = {}) {
+    const replies = comment.replies || comment.children || comment.answers || [];
+    return Array.isArray(replies) ? replies : [];
+  }
+
+  function getPostComments(post = {}) {
+    const topLevel = Array.isArray(post.top_level_comments) ? post.top_level_comments : [];
+    const comments = Array.isArray(post.comments) ? post.comments : [];
+    const source = topLevel.length ? topLevel : comments;
+
+    if (!source.some((comment) => comment.parent)) return source;
+
+    const byId = new Map();
+    source.forEach((comment) => {
+      byId.set(comment.id, { ...comment, replies: getCommentReplies(comment).slice() });
+    });
+
+    const roots = [];
+    byId.forEach((comment) => {
+      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : comment.parent;
+      if (parentId && byId.has(parentId)) {
+        byId.get(parentId).replies.push(comment);
+      } else {
+        roots.push(comment);
+      }
+    });
+
+    return roots;
+  }
+
   function renderPostActions(post, isOwner) {
+
     return `
       <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id}, this)">
         <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
@@ -85,22 +116,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
+  function commentHeaderHTML(author) {
+    const nickname = author.nickname || 'usuario';
+    return `
+      <span class="comment-meta">
+        ${userLinkHTML(author, userDisplayName(author), 'comment-author')}
+        <span class="comment-username">@${escapeHTML(nickname)}</span>
+      </span>
+    `;
+  }
+
   function renderComments(comments = [], level = 0) {
     if (!comments.length) return '';
 
     return comments.map((comment) => {
       const author = comment.author || {};
       const isOwner = author.nickname === currentUser?.nickname;
-      const replies = comment.replies || comment.children || comment.answers || comment.comments || [];
+      const replies = getCommentReplies(comment);
       const replyLabel = replies.length || comment.replies_count || 0;
 
       return `
         <div class="post-comment ${level > 0 ? 'comment-reply' : ''}">
           <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author, 'comment-avatar')}</a>
           <div class="comment-body">
-            <p>
-              ${userLinkHTML(author, userDisplayName(author), 'comment-author')}
-              <span id="comment-text-content-${comment.id}" data-raw="${escapeHTML(comment.content)}">${escapeHTML(comment.content)}</span>
+            <p class="comment-text-line">
+              ${commentHeaderHTML(author)}
+              <span id="comment-text-content-${comment.id}" class="comment-content" data-raw="${escapeHTML(comment.content)}">${escapeHTML(comment.content)}</span>
               ${comment.edited ? '<small class="text-muted">(editado)</small>' : ''}
             </p>
             <div class="comment-actions">
@@ -120,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <input type="text" id="reply-input-${comment.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Responda a ${escapeHTML(userDisplayName(author))}...">
               <button class="btn login-btn py-1 px-2" type="button" onclick="addReply(${comment.id})">Enviar</button>
             </div>
-            <div class="comment-replies">${renderComments(replies, level + 1)}</div>
+            ${replies.length ? `<div class="comment-replies">${renderComments(replies, level + 1)}</div>` : ''}
           </div>
         </div>
       `;
@@ -140,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const author = post.author || {};
       const isOwner = author.nickname === currentUser?.nickname;
       const authorName = userDisplayName(author);
-      const comments = post.top_level_comments || post.comments || [];
+      const comments = getPostComments(post);
 
       postsContainer.insertAdjacentHTML('beforeend', `
         <article class="post-card">

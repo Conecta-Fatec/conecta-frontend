@@ -135,34 +135,151 @@ function requireAuth() {
 }
 
 const body = document.body;
-const themeToggle = document.getElementById('themeToggle');
-const mobileThemeToggle = document.getElementById('mobileThemeToggle');
 
-function updateThemeButtons() {
-  const isDark = body.classList.contains('theme-dark');
+const PREFERENCE_KEYS = {
+  theme: 'conecta_theme_mode',
+  fontFamily: 'conecta_font_family',
+  fontSize: 'conecta_font_size',
+};
 
-  if (themeToggle) themeToggle.textContent = isDark ? '☼' : '☽';
+const FONT_FAMILIES = {
+  inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  serif: 'Georgia, "Times New Roman", serif',
+  mono: '"Cascadia Code", "Fira Code", Consolas, monospace',
+  rounded: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif',
+};
 
-  if (mobileThemeToggle) {
-    const icon = mobileThemeToggle.querySelector('span');
-    if (icon) icon.textContent = isDark ? '☼' : '☽';
+const FONT_SIZES = {
+  small: '14px',
+  normal: '16px',
+  large: '18px',
+  xlarge: '20px',
+};
+
+function getThemeMode() {
+  const saved = localStorage.getItem(PREFERENCE_KEYS.theme);
+  return ['light', 'dark'].includes(saved) ? saved : 'light';
+}
+
+function getResolvedTheme(mode = getThemeMode()) {
+  return mode === 'dark' ? 'dark' : 'light';
+}
+
+function applyTheme(mode = getThemeMode()) {
+  const resolved = getResolvedTheme(mode);
+  document.documentElement.classList.remove('theme-light', 'theme-dark');
+  document.documentElement.classList.add(`theme-${resolved}`);
+  body.classList.remove('theme-light', 'theme-dark');
+  body.classList.add(`theme-${resolved}`);
+  updatePreferenceControls();
+}
+
+function setThemeMode(mode) {
+  const safeMode = mode === 'dark' ? 'dark' : 'light';
+  localStorage.setItem(PREFERENCE_KEYS.theme, safeMode);
+  applyTheme(safeMode);
+}
+
+function getFontFamilyMode() {
+  const saved = localStorage.getItem(PREFERENCE_KEYS.fontFamily);
+  return Object.prototype.hasOwnProperty.call(FONT_FAMILIES, saved) ? saved : 'inter';
+}
+
+function getFontSizeMode() {
+  const saved = localStorage.getItem(PREFERENCE_KEYS.fontSize);
+  return Object.prototype.hasOwnProperty.call(FONT_SIZES, saved) ? saved : 'normal';
+}
+
+function applyFontPreferences() {
+  const familyMode = getFontFamilyMode();
+  const sizeMode = getFontSizeMode();
+  body.style.setProperty('--app-font-family', FONT_FAMILIES[familyMode]);
+  body.style.setProperty('--app-font-size', FONT_SIZES[sizeMode]);
+  updatePreferenceControls();
+}
+
+function setFontFamilyMode(mode) {
+  const safeMode = Object.prototype.hasOwnProperty.call(FONT_FAMILIES, mode) ? mode : 'inter';
+  localStorage.setItem(PREFERENCE_KEYS.fontFamily, safeMode);
+  applyFontPreferences();
+}
+
+function setFontSizeMode(mode) {
+  const safeMode = Object.prototype.hasOwnProperty.call(FONT_SIZES, mode) ? mode : 'normal';
+  localStorage.setItem(PREFERENCE_KEYS.fontSize, safeMode);
+  applyFontPreferences();
+}
+
+function resetAppearancePreferences() {
+  localStorage.removeItem(PREFERENCE_KEYS.theme);
+  localStorage.removeItem(PREFERENCE_KEYS.fontFamily);
+  localStorage.removeItem(PREFERENCE_KEYS.fontSize);
+  applyTheme('light');
+  applyFontPreferences();
+}
+
+function updatePreferenceControls() {
+  const themeSelect = document.getElementById('themeMode');
+  const fontSelect = document.getElementById('fontFamilyMode');
+  const sizeSelect = document.getElementById('fontSizeMode');
+  const themePreview = document.getElementById('themeModePreview');
+
+  if (themeSelect) themeSelect.value = getThemeMode();
+  if (fontSelect) fontSelect.value = getFontFamilyMode();
+  if (sizeSelect) sizeSelect.value = getFontSizeMode();
+  if (themePreview) {
+    const resolved = getResolvedTheme() === 'dark' ? 'escuro' : 'claro';
+    themePreview.textContent = `Tema ${resolved} selecionado.`;
   }
 }
 
-function toggleTheme() {
-  body.classList.toggle('theme-light');
-  body.classList.toggle('theme-dark');
-  updateThemeButtons();
+function initSettingsControls() {
+  const themeSelect = document.getElementById('themeMode');
+  const fontSelect = document.getElementById('fontFamilyMode');
+  const sizeSelect = document.getElementById('fontSizeMode');
+  const resetBtn = document.getElementById('resetAppearancePreferences');
+
+  themeSelect?.addEventListener('change', (event) => setThemeMode(event.target.value));
+  fontSelect?.addEventListener('change', (event) => setFontFamilyMode(event.target.value));
+  sizeSelect?.addEventListener('change', (event) => setFontSizeMode(event.target.value));
+  resetBtn?.addEventListener('click', resetAppearancePreferences);
+  updatePreferenceControls();
 }
 
-if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
-updateThemeButtons();
+function setupMobileBottomNav() {
+  if (!window.location.pathname.includes('/pages/')) return;
+  if (document.querySelector('.mobile-bottom-nav')) return;
+
+  const currentPage = window.location.pathname.split('/').pop() || 'feed.html';
+  const items = [
+    { href: 'feed.html', label: 'Início', icon: '<svg viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8V21h-6v-6H9v6H3Z" /></svg>', pages: ['feed.html'] },
+    { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2 21a6 6 0 0 1 12 0Zm10 0a6 6 0 0 1 10 0" /></svg>', pages: ['communities.html', 'community.html'] },
+    { href: 'friends.html', label: 'Amigos', icon: '<svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 9a6 6 0 0 0-12 0Zm0 0a5 5 0 0 1 6-4.9" /></svg>', pages: ['friends.html'] },
+    { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm-8 9a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
+    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm8.5-3.5a7.7 7.7 0 0 0-.1-1.1l2-1.5-2-3.5-2.4 1a8.7 8.7 0 0 0-1.9-1.1L15.8 3h-4l-.4 2.8a8.7 8.7 0 0 0-1.9 1.1l-2.4-1-2 3.5 2 1.5A7.7 7.7 0 0 0 7 12c0 .4 0 .8.1 1.1l-2 1.5 2 3.5 2.4-1c.6.5 1.2.8 1.9 1.1l.4 2.8h4l.4-2.8c.7-.3 1.3-.6 1.9-1.1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1.1Z" /></svg>', pages: ['settings.html'] },
+  ];
+
+  const nav = document.createElement('nav');
+  nav.className = 'mobile-bottom-nav';
+  nav.setAttribute('aria-label', 'Menu principal');
+  nav.innerHTML = items.map((item) => {
+    const active = item.pages.includes(currentPage) ? 'active' : '';
+    return `<a href="${item.href}" class="${active}" aria-label="${item.label}">${item.icon}<span>${item.label}</span></a>`;
+  }).join('');
+  document.body.appendChild(nav);
+}
+
+applyTheme();
+applyFontPreferences();
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-logout], #logoutBtn').forEach((button) => {
     button.addEventListener('click', logout);
   });
+
+  setupMobileBottomNav();
+  initSettingsControls();
 
   if (window.location.pathname.includes('/pages/') && getAccessToken()) {
     const storedUser = getLoggedUserFromStorage();
