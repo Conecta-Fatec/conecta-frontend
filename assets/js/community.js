@@ -33,11 +33,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getPostComments(post = {}) {
-    const topLevel = Array.isArray(post.top_level_comments) ? post.top_level_comments : [];
-    const comments = Array.isArray(post.comments) ? post.comments : [];
+    const topLevel = normalizeArray(post.top_level_comments, 'results');
+    const comments = normalizeArray(post.comments, 'results');
     const source = topLevel.length ? topLevel : comments;
 
-    if (!source.some((comment) => comment.parent)) return source;
+    if (!source.some((comment) => comment.parent || comment.parent_id)) return source;
 
     const byId = new Map();
     source.forEach((comment) => {
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const roots = [];
     byId.forEach((comment) => {
-      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : comment.parent;
+      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : (comment.parent || comment.parent_id);
       if (parentId && byId.has(parentId)) {
         byId.get(parentId).replies.push(comment);
       } else {
@@ -58,54 +58,69 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderMembers(members) {
-
     if (!members || members.length === 0) {
       membersContainer.innerHTML = '<div class="api-empty-state">Nenhum participante ainda.</div>';
       return;
     }
 
     membersContainer.innerHTML = members.map((member) => {
-      const name = `${member.first_name || ''} ${member.last_name || ''}`.trim() || member.nickname;
+      const name = userDisplayName(member);
       return `
-        <a href="profileuser.html?nickname=${encodeURIComponent(member.nickname)}" class="side-community-item">
-          <div class="side-community-avatar">${getInitials(name)}</div>
+        <a href="${profileUrlFor(member)}" class="side-community-item">
+          ${avatarHTML(member, 'side-community-avatar')}
           <div>
             <strong>${escapeHTML(name)}</strong>
-            <span>@${escapeHTML(member.nickname)}</span>
+            <span>@${escapeHTML(member.nickname || 'usuario')}</span>
           </div>
         </a>
       `;
     }).join('');
   }
 
-  function renderCommunityDetails(data) {
-    const comm = data.community;
-    currentCommunity = comm;
-    currentSlug = comm.slug;
+  function normalizeCommunityDetails(data = {}) {
+    const community = normalizeCommunity(data.community || data, data.members_count);
+    const members = normalizeArray(data.members, 'results').length
+      ? normalizeArray(data.members, 'results')
+      : normalizeArray(community.members, 'results');
+    const posts = normalizeArray(data.posts, 'results', 'items');
+    const isMember = Boolean(data.is_member ?? community.is_member ?? community.member ?? community.is_creator);
+    return {
+      community,
+      members,
+      posts,
+      isMember,
+      membersCount: getCommunityMemberCount(community, data.members_count || members.length),
+    };
+  }
 
-    const creatorName = comm.creator?.full_name || comm.creator?.nickname || 'Usuário';
-    commName.textContent = comm.name;
-    commDesc.textContent = comm.description || 'Sem descrição.';
-    commMembersCount.textContent = `${data.members_count || comm.total_members || 0} participante(s)`;
+  function renderCommunityDetails(data) {
+    const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
+    currentCommunity = community;
+    currentSlug = community.slug || currentSlug;
+
+    const creatorName = community.creator?.full_name || community.creator?.nickname || community.creator_name || 'Usuário';
+    commName.textContent = community.name;
+    commDesc.textContent = community.description || 'Sem descrição.';
+    commMembersCount.textContent = `${membersCount} participante(s)`;
     commCreator.textContent = `Criada por ${creatorName}`;
 
-    if (comm.photo_url) {
-      commAvatar.innerHTML = `<img src="${escapeHTML(comm.photo_url)}" alt="Foto da comunidade ${escapeHTML(comm.name)}">`;
+    commAvatar.classList.remove('has-image');
+    if (communityPhoto(community)) {
+      commAvatar.innerHTML = `<img src="${escapeHTML(toApiUrl(communityPhoto(community)))}" alt="Foto da comunidade ${escapeHTML(community.name)}">`;
       commAvatar.classList.add('has-image');
     } else {
-      commAvatar.textContent = getInitials(comm.name);
-      commAvatar.classList.remove('has-image');
+      commAvatar.textContent = getInitials(community.name);
     }
 
-    commActionBtn.style.display = 'inline-block';
-    deleteCommunityBtn.style.display = comm.is_creator ? 'inline-block' : 'none';
-    createPostCard.style.display = data.is_member ? 'block' : 'none';
+    commActionBtn.style.display = 'inline-flex';
+    deleteCommunityBtn.style.display = community.is_creator ? 'inline-flex' : 'none';
+    createPostCard.style.display = isMember ? 'block' : 'none';
 
-    if (comm.is_creator) {
+    if (community.is_creator) {
       commActionBtn.textContent = 'Editar comunidade';
       commActionBtn.className = 'btn btn-outline-primary fw-bold';
       commActionBtn.onclick = openEditCommunityModal;
-    } else if (data.is_member) {
+    } else if (isMember) {
       commActionBtn.textContent = 'Sair da comunidade';
       commActionBtn.className = 'btn btn-outline-danger fw-bold';
       commActionBtn.onclick = leaveCommunity;
@@ -115,8 +130,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       commActionBtn.onclick = joinCommunity;
     }
 
-    renderMembers(data.members || []);
-    renderPosts(data.posts || [], data.is_member);
+    renderMembers(members);
+    renderPosts(posts, isMember);
+  }
+
+  function renderCommentLikeButton(comment) {
+    return `
+      <button type="button" class="comment-action ${comment.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleCommentLike(${comment.id}, this)">
+        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${comment.liked_by_me ? 'currentColor' : 'none'};">
+          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
+        </svg>
+        <span class="comment-like-count">${comment.total_likes ?? comment.likes_count ?? 0}</span>
+      </button>
+    `;
   }
 
   function renderComments(comments = [], isMember = false, level = 0) {
@@ -130,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const replyLabel = replies.length || comment.replies_count || 0;
 
       return `
-        <div class="post-comment ${level > 0 ? 'comment-reply' : ''} align-items-start">
+        <div class="post-comment ${level > 0 ? 'comment-reply' : ''}">
           <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author, 'comment-avatar')}</a>
           <div class="comment-body">
             <p class="comment-text-line">
@@ -142,9 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               ${comment.edited ? '<small class="text-muted">(editado)</small>' : ''}
             </p>
             <div class="comment-actions">
-              <button type="button" class="comment-action ${comment.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleCommentLike(${comment.id})">
-                Curtir (${comment.total_likes ?? 0})
-              </button>
+              ${renderCommentLikeButton(comment)}
               ${isMember ? `<button type="button" class="comment-action" onclick="toggleReplyInput(${comment.id})">Responder (${replyLabel})</button>` : ''}
               ${isMyComment ? `
                 <button type="button" class="comment-action" onclick="enableCommentEdit(${comment.id})">Editar</button>
@@ -164,6 +188,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
+  function renderPostActions(post, isMyPost, isMember) {
+    return `
+      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id}, this)" type="button" ${!isMember ? 'disabled title="Participe da comunidade para interagir"' : ''}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
+          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
+        </svg>
+        <span class="like-count">${postLikesCount(post)}</span>
+      </button>
+      <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()" type="button" ${!isMember ? 'disabled title="Participe da comunidade para comentar"' : ''}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
+        </svg>
+        <span>${postCommentsCount(post)}</span>
+      </button>
+      ${isMyPost ? `<button class="post-action-btn owner-action" onclick="enablePostEdit(${post.id})" type="button">Editar</button><button class="post-action-btn owner-action delete-action text-danger" onclick="deletePost(${post.id})" type="button">Excluir</button>` : ''}
+    `;
+  }
+
   function renderPosts(posts, isMember) {
     if (!posts.length) {
       postsContainer.innerHTML = '<div class="api-empty-state text-center">Nenhum post nesta comunidade ainda.</div>';
@@ -174,14 +216,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const author = post.author || {};
       const authorName = userDisplayName(author);
       const isMyPost = currentUser && author.nickname === currentUser.nickname;
-      const date = new Date(post.created_at).toLocaleDateString('pt-BR');
+      const when = relativeTime(post.created_at || post.updated_at, 'feito');
       const comments = getPostComments(post);
       const commentsHTML = renderComments(comments, isMember);
 
       const commentInput = isMember ? `
-        <div class="mt-3 d-flex gap-2">
+        <div class="comment-input-row mt-3">
           <input type="text" id="comment-input-${post.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Escreva um comentário...">
-          <button class="btn login-btn py-1 px-3" style="border-radius:10px;" onclick="addComment(${post.id})">Enviar</button>
+          <button class="btn login-btn py-1 px-3" type="button" onclick="addComment(${post.id})">Enviar</button>
         </div>
       ` : '';
 
@@ -192,15 +234,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="post-header">
               <div class="text-truncate">
                 ${userLinkHTML(author, authorName, 'post-author')}
-                <span>@${escapeHTML(author.nickname || 'usuario')} · ${date} ${post.edited ? '· (editado)' : ''}</span>
+                <span>@${escapeHTML(author.nickname || 'usuario')} ${when ? `· ${escapeHTML(when)}` : ''} ${post.edited ? '· (editado)' : ''}</span>
               </div>
             </div>
             <div id="post-text-content-${post.id}" data-raw="${escapeHTML(post.content)}"><p class="post-text">${escapeHTML(post.content)}</p></div>
-            <div class="post-actions">
-              <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id})">${post.liked_by_me ? '❤️' : '♡'} ${post.total_likes ?? 0}</button>
-              <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()">💬 ${post.comments_count ?? 0}</button>
-              ${isMyPost ? `<button class="post-action-btn owner-action" onclick="enablePostEdit(${post.id})">Editar</button><button class="post-action-btn owner-action delete-action text-danger" onclick="deletePost(${post.id})">Excluir</button>` : ''}
-            </div>
+            <div class="post-actions">${renderPostActions(post, isMyPost, isMember)}</div>
             <div class="comments-section mt-2">${commentsHTML}${commentInput}</div>
           </div>
         </article>
@@ -221,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      renderCommunityDetails(data);
+      renderCommunityDetails(data || {});
     } catch (error) {
       console.error(error);
       commDesc.textContent = 'Erro ao conectar com o servidor.';
@@ -242,6 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function openEditCommunityModal() {
     document.getElementById('editCommunityName').value = currentCommunity.name || '';
     document.getElementById('editCommunityBio').value = currentCommunity.description || '';
+    if (document.getElementById('editCommunityPhoto')) document.getElementById('editCommunityPhoto').value = '';
     document.getElementById('editCommunityError').style.display = 'none';
     editCommunityModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editCommunityModal'));
     editCommunityModal.show();
@@ -250,6 +289,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   saveCommunityBtn.addEventListener('click', async () => {
     const name = document.getElementById('editCommunityName').value.trim();
     const description = document.getElementById('editCommunityBio').value.trim();
+    const photo = document.getElementById('editCommunityPhoto')?.files?.[0];
     const error = document.getElementById('editCommunityError');
 
     error.style.display = 'none';
@@ -257,9 +297,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveCommunityBtn.textContent = 'Salvando...';
 
     try {
+      let body;
+      if (photo) {
+        body = new FormData();
+        body.append('name', name);
+        body.append('description', description);
+        body.append('photo', photo);
+      } else {
+        body = JSON.stringify({ name, description });
+      }
+
       const response = await apiFetch(`/api/posts/communities/${currentSlug}/update/`, {
         method: 'PATCH',
-        body: JSON.stringify({ name, description }),
+        body,
       });
       const data = await response.json().catch(() => null);
 
@@ -270,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       editCommunityModal.hide();
-      if (data.community?.slug && data.community.slug !== currentSlug) {
+      if (data?.community?.slug && data.community.slug !== currentSlug) {
         window.history.replaceState({}, '', `community.html?slug=${encodeURIComponent(data.community.slug)}`);
         currentSlug = data.community.slug;
       }
@@ -291,6 +341,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (response.ok) window.location.href = 'communities.html';
   });
 
+  async function createCommunityPost(content) {
+    const payloadWithCommunity = buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug });
+    const attempts = [
+      {
+        path: `/api/posts/communities/${currentSlug}/post/create/`,
+        body: payloadWithCommunity,
+      },
+      {
+        path: `/api/posts/community/${currentSlug}/post/create/`,
+        body: payloadWithCommunity,
+      },
+      {
+        path: '/api/posts/feed/create/',
+        body: payloadWithCommunity,
+      },
+      {
+        path: `/api/posts/communities/${currentSlug}/post/create/`,
+        body: { content },
+      },
+    ];
+
+    let lastData = null;
+    let lastResponse = null;
+
+    for (const attempt of attempts) {
+      const response = await apiFetch(attempt.path, {
+        method: 'POST',
+        body: JSON.stringify(attempt.body),
+      });
+      const data = await response.json().catch(() => null);
+      lastData = data;
+      lastResponse = response;
+
+      if (response.ok) return { response, data };
+      if (![400, 404, 405].includes(response.status)) break;
+    }
+
+    const error = new Error(getApiError(lastData, 'Erro ao publicar.'));
+    error.response = lastResponse;
+    error.data = lastData;
+    throw error;
+  }
+
   publishBtn.addEventListener('click', async () => {
     const contentEl = document.getElementById('communityPostContent');
     const error = document.getElementById('communityPostError');
@@ -303,24 +396,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     publishBtn.textContent = 'Publicando...';
 
     try {
-      const response = await apiFetch(`/api/posts/communities/${currentSlug}/post/create/`, {
-        method: 'POST',
-        body: JSON.stringify({ content }),
-      });
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        error.textContent = getApiError(data, 'Erro ao publicar.');
-        error.style.display = 'block';
-        return;
-      }
-
+      await createCommunityPost(content);
       contentEl.value = '';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).hide();
       await loadCommunityDetails();
     } catch (err) {
       console.error(err);
-      error.textContent = 'Erro de conexão com o servidor.';
+      error.textContent = err.message || 'Erro de conexão com o servidor.';
       error.style.display = 'block';
     } finally {
       publishBtn.disabled = false;
@@ -328,9 +410,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  window.toggleLike = async (postId) => {
+  window.toggleLike = async (postId, btnElement = null) => {
     const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
-    if (response.ok) await loadCommunityDetails();
+    if (!response.ok) return;
+    if (!btnElement) return loadCommunityDetails();
+    const data = await response.json().catch(() => null);
+    const svg = btnElement.querySelector('svg');
+    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
   };
 
   window.addComment = async (postId) => {
@@ -344,9 +432,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (response.ok) await loadCommunityDetails();
   };
 
-  window.toggleCommentLike = async (commentId) => {
+  window.toggleCommentLike = async (commentId, btnElement = null) => {
     const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
-    if (response.ok) await loadCommunityDetails();
+    if (!response.ok) return;
+    if (!btnElement) return loadCommunityDetails();
+    const data = await response.json().catch(() => null);
+    const svg = btnElement.querySelector('svg');
+    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+    btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
   };
 
   window.deletePost = async (postId) => {
@@ -382,11 +476,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const textSpan = document.getElementById(`comment-text-content-${commentId}`);
     const originalText = textSpan.dataset.raw;
     textSpan.innerHTML = `
-      <div class="d-flex gap-2 mt-1 w-100">
-        <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input w-100" maxlength="200" value="${originalText}">
+      <span class="comment-edit-inline">
+        <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200" value="${originalText}">
         <button class="btn btn-sm btn-primary py-0 px-2" onclick="saveCommentEdit(${commentId})">Salvar</button>
         <button class="btn btn-sm btn-secondary py-0 px-2" onclick="loadCommunityDetailsFromButton()">✕</button>
-      </div>`;
+      </span>`;
   };
 
   window.saveCommentEdit = async (commentId) => {

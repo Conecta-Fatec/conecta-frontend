@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const friendsTab = document.getElementById('friends-tab');
   const publishBtn = document.getElementById('publishBtn');
   const postInput = document.getElementById('postContent');
+  const inlineComposer = document.getElementById('feed-create-post-card');
   let currentUser = getLoggedUserFromStorage();
   let currentMode = 'general';
-  let cachedFriends = [];
+  let cachedFriends = { ids: new Set(), nicknames: new Set() };
 
   try {
     currentUser = await loadLoggedUser() || currentUser;
@@ -22,35 +23,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     friendsTab?.classList.toggle('active', mode === 'friends');
   }
 
-  async function loadFriendsNicknames() {
-    if (cachedFriends.length) return cachedFriends;
+  function normalizePostsPayload(data) {
+    return normalizeArray(data, 'posts', 'results', 'feed', 'items');
+  }
+
+  async function loadFriendsIndex() {
+    if (cachedFriends.ids?.size || cachedFriends.nicknames?.size) return cachedFriends;
+
     try {
       const data = await apiJSON('/api/users/friends/');
-      cachedFriends = (data.friends || data.results || data || []).map((friend) => friend.nickname).filter(Boolean);
+      const friends = normalizeArray(data, 'friends', 'results');
+      cachedFriends = {
+        ids: new Set(friends.map((friend) => Number(friend.id)).filter(Number.isFinite)),
+        nicknames: new Set(friends.map((friend) => friend.nickname).filter(Boolean)),
+      };
     } catch (error) {
-      cachedFriends = [];
+      console.error('Erro ao carregar amigos para filtrar o feed:', error);
+      cachedFriends = { ids: new Set(), nicknames: new Set() };
     }
+
     return cachedFriends;
   }
 
-  async function fetchPosts(mode) {
-    if (mode === 'friends') {
-      try {
-        return await tryApiJSON([
-          '/api/posts/feed/friends/',
-          '/api/posts/feed/?scope=friends',
-          '/api/posts/feed/?filter=friends',
-        ]);
-      } catch (error) {
-        const allPosts = await apiJSON('/api/posts/feed/');
-        const friends = await loadFriendsNicknames();
-        const posts = Array.isArray(allPosts) ? allPosts : allPosts.results || [];
-        return posts.filter((post) => friends.includes(post.author?.nickname));
-      }
-    }
+  function isPostFromFriend(post = {}, friendsIndex = { ids: new Set(), nicknames: new Set() }) {
+    const author = post.author || {};
+    const authorId = Number(author.id ?? post.author_id);
+    const authorNickname = author.nickname || post.author_nickname || post.nickname;
 
-    const data = await apiJSON('/api/posts/feed/');
-    return Array.isArray(data) ? data : data.results || [];
+    return (Number.isFinite(authorId) && friendsIndex.ids.has(authorId))
+      || (authorNickname && friendsIndex.nicknames.has(authorNickname));
+  }
+
+  async function fetchFriendsPostsWithFallback() {
+    // O backend atualizado deve responder esta rota. Se ela ainda não existir no deploy,
+    // filtramos no front usando a lista oficial de amigos do usuário.
+    try {
+      const data = await apiJSON('/api/posts/feed/friends/');
+      return normalizePostsPayload(data);
+    } catch (error) {
+      if (!error.response || ![404, 405].includes(error.response.status)) {
+        console.error('Erro ao buscar feed de amigos no backend:', error);
+      }
+
+      const [allPosts, friendsIndex] = await Promise.all([
+        apiJSON('/api/posts/feed/').then(normalizePostsPayload),
+        loadFriendsIndex(),
+      ]);
+
+      return allPosts.filter((post) => isPostFromFriend(post, friendsIndex));
+    }
+  }
+
+  async function fetchPosts(mode) {
+    if (mode === 'friends') return fetchFriendsPostsWithFallback();
+    return normalizePostsPayload(await apiJSON('/api/posts/feed/'));
   }
 
   window.loadPosts = async function loadPosts(silent = false) {
@@ -70,11 +96,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getPostComments(post = {}) {
-    const topLevel = Array.isArray(post.top_level_comments) ? post.top_level_comments : [];
-    const comments = Array.isArray(post.comments) ? post.comments : [];
+    const topLevel = normalizeArray(post.top_level_comments, 'results');
+    const comments = normalizeArray(post.comments, 'results');
     const source = topLevel.length ? topLevel : comments;
 
-    if (!source.some((comment) => comment.parent)) return source;
+    if (!source.some((comment) => comment.parent || comment.parent_id)) return source;
 
     const byId = new Map();
     source.forEach((comment) => {
@@ -83,7 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const roots = [];
     byId.forEach((comment) => {
-      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : comment.parent;
+      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : (comment.parent || comment.parent_id);
       if (parentId && byId.has(parentId)) {
         byId.get(parentId).replies.push(comment);
       } else {
@@ -95,23 +121,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderPostActions(post, isOwner) {
-
     return `
-      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id}, this)">
+      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id}, this)" type="button" aria-label="Curtir publicação">
         <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
           <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
         </svg>
-        <span class="like-count">${post.total_likes ?? 0}</span>
+        <span class="like-count">${postLikesCount(post)}</span>
       </button>
-      <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()">
+      <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()" type="button" aria-label="Comentar publicação">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 20.25c4.97 0 9-3.36 9-7.5s-4.03-7.5-9-7.5-9 3.36-9 7.5c0 1.64.64 3.15 1.72 4.38L3.75 21l4.2-1.35c1.22.38 2.59.6 4.05.6Z" />
+          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
         </svg>
-        <span>${post.comments_count ?? 0}</span>
+        <span>${postCommentsCount(post)}</span>
       </button>
       ${isOwner ? `
-        <button class="post-action-btn owner-action" onclick="enablePostEdit(${post.id})">Editar</button>
-        <button class="post-action-btn owner-action delete-action text-danger" onclick="deletePost(${post.id})">Excluir</button>
+        <button class="post-action-btn owner-action" onclick="enablePostEdit(${post.id})" type="button">Editar</button>
+        <button class="post-action-btn owner-action delete-action text-danger" onclick="deletePost(${post.id})" type="button">Excluir</button>
       ` : ''}
     `;
   }
@@ -149,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${comment.liked_by_me ? 'currentColor' : 'none'};">
                   <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
                 </svg>
-                <span class="comment-like-count">${comment.total_likes ?? 0}</span>
+                <span class="comment-like-count">${comment.total_likes ?? comment.likes_count ?? 0}</span>
               </button>
               <button class="comment-action" onclick="toggleReplyInput(${comment.id})" type="button">Responder (${replyLabel})</button>
               ${isOwner ? `
@@ -168,6 +193,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
+  function renderPostCommunityLabel(post) {
+    const community = post.community || post.community_data || null;
+    if (!community) return '';
+    const slug = community.slug || post.community_slug;
+    const name = community.name || post.community_name || 'comunidade';
+    if (!slug) return `<span class="post-community-chip">Publicado em ${escapeHTML(name)}</span>`;
+    return `<a href="community.html?slug=${encodeURIComponent(slug)}" class="post-community-chip">Publicado em ${escapeHTML(name)}</a>`;
+  }
+
   function renderPosts(posts) {
     postsContainer.innerHTML = '';
     if (!posts || posts.length === 0) {
@@ -182,6 +216,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isOwner = author.nickname === currentUser?.nickname;
       const authorName = userDisplayName(author);
       const comments = getPostComments(post);
+      const when = relativeTime(post.created_at || post.updated_at, 'feito');
+      const communityLabel = renderPostCommunityLabel(post);
 
       postsContainer.insertAdjacentHTML('beforeend', `
         <article class="post-card">
@@ -190,16 +226,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="post-header">
               <div class="text-truncate">
                 ${userLinkHTML(author, authorName, 'post-author')}
-                <span>@${escapeHTML(author.nickname || 'usuario')} ${post.edited ? '· <small>(editado)</small>' : ''}</span>
+                <span>@${escapeHTML(author.nickname || 'usuario')} ${when ? `· ${escapeHTML(when)}` : ''} ${post.edited ? '· <small>(editado)</small>' : ''}</span>
               </div>
             </div>
+            ${communityLabel}
             <div id="post-text-content-${post.id}" data-raw="${escapeHTML(post.content)}">
               <p class="post-text">${escapeHTML(post.content)}</p>
             </div>
             <div class="post-actions">${renderPostActions(post, isOwner)}</div>
             <div class="comments-section mt-2">
               ${renderComments(comments)}
-              <div class="mt-3 d-flex gap-2">
+              <div class="comment-input-row mt-3">
                 <input type="text" id="comment-input-${post.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Escreva um comentário...">
                 <button class="btn login-btn py-1 px-3" type="button" onclick="addComment(${post.id})">Enviar</button>
               </div>
@@ -286,30 +323,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  if (publishBtn) {
-    publishBtn.addEventListener('click', async () => {
-      const content = postInput.value.trim();
-      if (!content) return;
-      publishBtn.disabled = true;
-      publishBtn.textContent = 'Publicando...';
-      try {
-        const response = await apiFetch('/api/posts/feed/create/', {
-          method: 'POST',
-          body: JSON.stringify({ content }),
-        });
-        if (!response.ok) throw new Error('Erro ao publicar.');
-        postInput.value = '';
-        bootstrap.Modal.getInstance(document.getElementById('newPostModal'))?.hide();
-        setActiveTab('general');
-        loadPosts(true);
-      } catch (error) {
-        alert('Erro ao publicar.');
-      } finally {
-        publishBtn.disabled = false;
-        publishBtn.textContent = 'Publicar';
-      }
-    });
+  async function publishFeedPost() {
+    const content = postInput.value.trim();
+    if (!content) return;
+    publishBtn.disabled = true;
+    publishBtn.textContent = 'Publicando...';
+    try {
+      const response = await apiFetch('/api/posts/feed/create/', {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      });
+      if (!response.ok) throw new Error('Erro ao publicar.');
+      postInput.value = '';
+      bootstrap.Modal.getInstance(document.getElementById('newPostModal'))?.hide();
+      setActiveTab('general');
+      loadPosts(true);
+    } catch (error) {
+      alert('Erro ao publicar.');
+    } finally {
+      publishBtn.disabled = false;
+      publishBtn.textContent = 'Publicar';
+    }
   }
+
+  if (publishBtn) publishBtn.addEventListener('click', publishFeedPost);
+
+  inlineComposer?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('newPostModal')).show();
+    }
+  });
+
+  function setupMobileComposeButton() {
+    if (!document.body || document.querySelector('.mobile-compose-fab')) return;
+    const button = document.createElement('button');
+    button.className = 'mobile-compose-fab';
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Criar post');
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>';
+    button.addEventListener('click', () => bootstrap.Modal.getOrCreateInstance(document.getElementById('newPostModal')).show());
+    document.body.appendChild(button);
+  }
+
+  setupMobileComposeButton();
 
   window.toggleLike = async function toggleLike(postId, btnElement) {
     const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
@@ -318,7 +375,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const svg = btnElement.querySelector('svg');
     btnElement.classList.toggle('text-primary-custom', !!data.liked);
     if (svg) svg.style.fill = data.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.like-count').textContent = data.total_likes;
+    btnElement.querySelector('.like-count').textContent = data.total_likes ?? data.likes_count ?? 0;
   };
 
   window.addComment = async function addComment(postId) {
@@ -344,13 +401,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const svg = btnElement.querySelector('svg');
     btnElement.classList.toggle('text-primary-custom', !!data.liked);
     if (svg) svg.style.fill = data.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.comment-like-count').textContent = data.total_likes;
+    btnElement.querySelector('.comment-like-count').textContent = data.total_likes ?? data.likes_count ?? 0;
   };
 
   window.toggleReplyInput = function toggleReplyInput(commentId) {
     const box = document.getElementById(`reply-box-${commentId}`);
-    box.classList.toggle('d-none');
-    if (!box.classList.contains('d-none')) document.getElementById(`reply-input-${commentId}`)?.focus();
+    box?.classList.toggle('d-none');
+    if (box && !box.classList.contains('d-none')) document.getElementById(`reply-input-${commentId}`)?.focus();
   };
 
   window.addReply = async function addReply(commentId) {

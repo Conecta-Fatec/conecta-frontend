@@ -253,11 +253,11 @@ function setupMobileBottomNav() {
 
   const currentPage = window.location.pathname.split('/').pop() || 'feed.html';
   const items = [
-    { href: 'feed.html', label: 'Início', icon: '<svg viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8V21h-6v-6H9v6H3Z" /></svg>', pages: ['feed.html'] },
-    { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2 21a6 6 0 0 1 12 0Zm10 0a6 6 0 0 1 10 0" /></svg>', pages: ['communities.html', 'community.html'] },
-    { href: 'friends.html', label: 'Amigos', icon: '<svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 9a6 6 0 0 0-12 0Zm0 0a5 5 0 0 1 6-4.9" /></svg>', pages: ['friends.html'] },
-    { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm-8 9a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
-    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm8.5-3.5a7.7 7.7 0 0 0-.1-1.1l2-1.5-2-3.5-2.4 1a8.7 8.7 0 0 0-1.9-1.1L15.8 3h-4l-.4 2.8a8.7 8.7 0 0 0-1.9 1.1l-2.4-1-2 3.5 2 1.5A7.7 7.7 0 0 0 7 12c0 .4 0 .8.1 1.1l-2 1.5 2 3.5 2.4-1c.6.5 1.2.8 1.9 1.1l.4 2.8h4l.4-2.8c.7-.3 1.3-.6 1.9-1.1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1.1Z" /></svg>', pages: ['settings.html'] },
+    { href: 'feed.html', label: 'Início', icon: '<svg viewBox="0 0 24 24"><path d="M3.5 10.8 12 3.5l8.5 7.3V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1v-9.2Z" /></svg>', pages: ['feed.html'] },
+    { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M7.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20.5a4.5 4.5 0 0 1 9 0m0 0a4.5 4.5 0 0 1 9 0" /></svg>', pages: ['communities.html', 'community.html'] },
+    { href: 'friends.html', label: 'Amigos', icon: '<svg viewBox="0 0 24 24"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-5.5 9a5.5 5.5 0 0 1 11 0m4-9v6m-3-3h6" /></svg>', pages: ['friends.html'] },
+    { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM4 21a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
+    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12v2m0 13v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M3 12h2m14 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>', pages: ['settings.html'] },
   ];
 
   const nav = document.createElement('nav');
@@ -449,6 +449,110 @@ function profileUrlFor(user = {}) {
 function userLinkHTML(user = {}, label = null, className = '') {
   const text = label || userDisplayName(user);
   return `<a href="${profileUrlFor(user)}" class="${className}">${escapeHTML(text)}</a>`;
+}
+
+
+function normalizeArray(data, ...keys) {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return [];
+  for (const key of keys) {
+    if (Array.isArray(data[key])) return data[key];
+  }
+  for (const key of ['results', 'items', 'data', 'posts', 'communities', 'members', 'friends', 'requests']) {
+    if (Array.isArray(data[key])) return data[key];
+  }
+  return [];
+}
+
+function getCommunityMemberCount(community = {}, fallback = 0) {
+  const candidates = [
+    community.total_members,
+    community.members_count,
+    community.member_count,
+    community.participants_count,
+    community.total_participants,
+    community.users_count,
+    fallback,
+  ];
+
+  for (const value of candidates) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+
+  if (Array.isArray(community.members)) return community.members.length;
+  if (Array.isArray(community.participants)) return community.participants.length;
+  return 0;
+}
+
+function communityPhoto(community = {}) {
+  return community.photo_url || community.photo || community.image_url || community.image || community.avatar_url || community.cover_url || '';
+}
+
+function communityAvatarHTML(community = {}, sizeClass = 'community-card-avatar') {
+  const name = community.name || 'Comunidade';
+  const photo = toApiUrl(communityPhoto(community));
+  if (photo) {
+    return `<div class="${sizeClass} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy"></div>`;
+  }
+  return `<div class="${sizeClass} static-avatar ${avatarColorClass(community.slug || name)}">${escapeHTML(getInitials(name))}</div>`;
+}
+
+function normalizeCommunity(community = {}, fallbackMemberCount = 0) {
+  return {
+    ...community,
+    total_members: getCommunityMemberCount(community, fallbackMemberCount),
+    photo_url: communityPhoto(community),
+  };
+}
+
+function relativeTime(value, prefix = 'feito') {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const diffMs = Date.now() - date.getTime();
+  if (diffMs < 0) return `${prefix} agora`;
+
+  const seconds = Math.floor(diffMs / 1000);
+  if (seconds < 45) return `${prefix} agora`;
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${prefix} há ${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${prefix} há ${hours}h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${prefix} há ${days} ${days === 1 ? 'dia' : 'dias'}`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${prefix} há ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+
+  return date.toLocaleDateString('pt-BR');
+}
+
+function postLikesCount(post = {}) {
+  return post.total_likes ?? post.likes_count ?? post.likes ?? 0;
+}
+
+function postCommentsCount(post = {}) {
+  if (Number.isFinite(Number(post.comments_count))) return Number(post.comments_count);
+  if (Number.isFinite(Number(post.total_comments))) return Number(post.total_comments);
+  const comments = normalizeArray(post.top_level_comments, 'results').length
+    ? normalizeArray(post.top_level_comments, 'results')
+    : normalizeArray(post.comments, 'results');
+  return comments.length;
+}
+
+function buildCommunityPostPayload(content, community = {}) {
+  const communityId = community.id || community.pk;
+  return {
+    content,
+    community: communityId || community.slug || undefined,
+    community_id: communityId || undefined,
+    community_slug: community.slug || undefined,
+  };
 }
 
 async function apiJSON(path, options = {}) {

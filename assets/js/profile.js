@@ -51,15 +51,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    container.innerHTML = communities.map((community) => `
-      <a href="community.html?slug=${encodeURIComponent(community.slug)}" class="side-community-item">
-        ${community.photo_url ? `<div class="side-community-avatar has-image"><img src="${escapeHTML(toApiUrl(community.photo_url))}" alt="${escapeHTML(community.name)}"></div>` : `<div class="side-community-avatar static-avatar ${avatarColorClass(community.slug || community.name)}">${getInitials(community.name)}</div>`}
-        <div>
-          <strong>${escapeHTML(community.name)}</strong>
-          <span>${community.total_members ?? 0} participante(s)</span>
-        </div>
-      </a>
-    `).join('');
+    container.innerHTML = communities.map((community) => {
+      const comm = normalizeCommunity(community);
+      return `
+        <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item">
+          ${communityAvatarHTML(comm, 'side-community-avatar')}
+          <div>
+            <strong>${escapeHTML(comm.name)}</strong>
+            <span>${getCommunityMemberCount(comm)} participante(s)</span>
+          </div>
+        </a>
+      `;
+    }).join('');
   }
 
   function renderFriends(friends) {
@@ -80,6 +83,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     `).join('');
   }
 
+  function renderProfilePostActions(post) {
+    return `
+      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleProfilePostLike(${post.id}, this)" type="button" aria-label="Curtir publicação">
+        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
+          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
+        </svg>
+        <span class="like-count">${postLikesCount(post)}</span>
+      </button>
+      <span class="post-action-btn" aria-label="Comentários">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
+        </svg>
+        <span>${postCommentsCount(post)}</span>
+      </span>
+    `;
+  }
+
   function renderPosts(posts) {
     if (!posts || posts.length === 0) {
       postsContainer.innerHTML = '<div class="api-empty-state">Você ainda não publicou nada.</div>';
@@ -87,23 +107,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     postsContainer.innerHTML = posts.map((post) => {
-      const date = post.created_at ? new Date(post.created_at).toLocaleDateString('pt-BR') : '';
+      const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
       const communityLabel = post.community
-        ? `<span class="text-muted">Publicado em <a href="community.html?slug=${encodeURIComponent(post.community.slug)}">${escapeHTML(post.community.name)}</a></span>`
-        : '<span class="text-muted">Publicado no feed</span>';
+        ? `<a class="post-community-chip" href="community.html?slug=${encodeURIComponent(post.community.slug)}">Publicado em ${escapeHTML(post.community.name)}</a>`
+        : '<span class="post-community-chip">Publicado no feed</span>';
 
       return `
-        <article class="post-card">
-          ${avatarHTML(currentUser)}
+        <article class="post-card profile-post-item">
+          <a href="profile.html" class="avatar-link">${avatarHTML(currentUser)}</a>
           <div class="post-body">
             <div class="post-header">
               <div>
                 <strong class="post-author">${escapeHTML(userDisplayName(currentUser))}</strong>
-                <span>@${escapeHTML(currentUser.nickname)} ${date ? `· ${date}` : ''}</span>
+                <span>@${escapeHTML(currentUser.nickname)} ${when ? `· ${escapeHTML(when)}` : ''}</span>
               </div>
             </div>
+            ${communityLabel}
             <p class="post-text">${escapeHTML(post.content)}</p>
-            <div class="post-actions">${communityLabel}</div>
+            <div class="post-actions">${renderProfilePostActions(post)}</div>
           </div>
         </article>
       `;
@@ -197,7 +218,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       editProfileModal.hide();
-      await loadProfile();
+      window.toggleProfilePostLike = async function toggleProfilePostLike(postId, btnElement) {
+    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
+    if (!response.ok) return;
+    const data = await response.json().catch(() => null);
+    const svg = btnElement.querySelector('svg');
+    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+  };
+
+  await loadProfile();
     } catch (err) {
       console.error(err);
       error.textContent = 'Erro de conexão com o servidor.';
@@ -207,6 +238,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveProfileBtn.textContent = 'Salvar';
     }
   });
+
+  window.toggleProfilePostLike = async function toggleProfilePostLike(postId, btnElement) {
+    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
+    if (!response.ok) return;
+    const data = await response.json().catch(() => null);
+    const svg = btnElement.querySelector('svg');
+    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+  };
 
   await loadProfile();
 });
