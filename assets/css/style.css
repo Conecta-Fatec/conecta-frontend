@@ -3548,6 +3548,54 @@ body.theme-dark .community-modal-textarea {
   text-align: center;
 }
 
+/* =========================================================
+   Correção do tema escuro: cookies e notificações
+========================================================= */
+
+body.theme-dark {
+  --card-bg-soft: #111827;
+  --card-border-soft: #263244;
+  --border-color: #263244;
+}
+
+/* Banner de cookies no modo escuro */
+body.theme-dark .cookie-banner {
+  background: rgba(17, 24, 39, 0.96);
+  border-color: #263244;
+  color: #f8fafc;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+body.theme-dark .cookie-banner p {
+  color: #cbd5e1;
+}
+
+body.theme-dark .cookie-banner strong {
+  color: #f8fafc;
+}
+
+body.theme-dark .cookie-accept-btn {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* Botão de notificações no topo do feed */
+body.theme-dark .notification-home-btn {
+  background: rgba(17, 24, 39, 0.96);
+  border-color: #263244;
+  color: #f8fafc;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
+}
+
+body.theme-dark .notification-home-btn span {
+  color: #f8fafc;
+}
+
+body.theme-dark .notification-home-btn strong {
+  background: #2563eb;
+  color: #ffffff;
+}
+
 /* Responsividade mantida com ajustes pontuais */
 @media (max-width: 992px) {
   .login-feature-grid {
