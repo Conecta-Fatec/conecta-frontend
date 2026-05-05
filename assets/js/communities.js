@@ -1,3 +1,6 @@
+/* =========================================================
+   Comunidades: listagem, busca, criação e paginação leve
+========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
 
@@ -6,19 +9,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   const memberCountEl = document.getElementById('member-count');
   const creatorCountEl = document.getElementById('creator-count');
   const totalPlatformEl = document.getElementById('total-platform-comm');
+  const searchInput = document.getElementById('communitySearch');
   const createBtn = document.getElementById('createCommunityBtn');
   const errorP = document.getElementById('communityError');
 
+  const state = {
+    myCommunities: [],
+    otherCommunities: [],
+    createdCount: 0,
+    totalVisible: 0,
+    query: '',
+    myVisible: 4,
+    exploreVisible: 4,
+  };
+
   function normalizeCommunitiesData(data = {}) {
-    const myCommunities = normalizeArray(data.my_communities, 'results')
-      .concat(normalizeArray(data.joined_communities, 'results'))
+    const mineRaw = normalizeArray(data.my_communities, 'results')
+      .concat(normalizeArray(data.joined_communities, 'results'));
+
+    const myCommunities = mineRaw
       .filter((community, index, list) => list.findIndex((item) => item.slug === community.slug) === index)
-      .map(normalizeCommunity);
+      .map(normalizeCommunity)
+      .sort((a, b) => Number(Boolean(b.is_creator)) - Number(Boolean(a.is_creator)) || getCommunityMemberCount(b) - getCommunityMemberCount(a));
 
     const otherCommunities = normalizeArray(data.other_communities, 'results')
       .concat(normalizeArray(data.communities, 'results'))
       .filter((community) => !myCommunities.some((mine) => mine.slug === community.slug))
-      .map(normalizeCommunity);
+      .map(normalizeCommunity)
+      .filter((community, index, list) => list.findIndex((item) => item.slug === community.slug) === index)
+      .sort((a, b) => getCommunityMemberCount(b) - getCommunityMemberCount(a));
 
     const createdCount = Number(data.created_communities_count ?? data.created_count ?? myCommunities.filter((comm) => comm.is_creator).length) || 0;
     const totalVisible = Number(data.total_communities ?? data.total_count ?? data.count ?? (myCommunities.length + otherCommunities.length)) || 0;
@@ -26,13 +45,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { myCommunities, otherCommunities, createdCount, totalVisible };
   }
 
+  function matchesSearch(community = {}) {
+    if (!state.query) return true;
+    const haystack = `${community.name || ''} ${community.description || ''}`.toLowerCase();
+    return haystack.includes(state.query);
+  }
+
   function renderCommunityCard(community, type) {
     const comm = normalizeCommunity(community);
-    const name = escapeHTML(comm.name);
-    const description = escapeHTML(comm.description || 'Sem descrição.');
-    const members = getCommunityMemberCount(comm);
     const badge = comm.is_creator ? 'Criada por você' : type === 'mine' ? 'Participante' : 'Aberta';
-
     const action = type === 'mine'
       ? `<a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="community-card-btn">Ver comunidade</a>`
       : `<button class="community-card-btn" type="button" data-join-community="${escapeHTML(comm.slug)}">Entrar</button>`;
@@ -42,29 +63,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${communityAvatarHTML(comm, 'community-card-avatar')}
         <div class="community-card-body">
           <span class="community-card-tag">${badge}</span>
-          <h3>${name}</h3>
-          <p>${description}</p>
-          <div class="community-card-meta"><span>${members} participante(s)</span></div>
+          <h3>${escapeHTML(comm.name)}</h3>
+          <p>${escapeHTML(comm.description || 'Sem descrição.')}</p>
+          <div class="community-card-meta"><span>${getCommunityMemberCount(comm)} participante(s)</span></div>
           ${action}
         </div>
       </article>
     `;
   }
 
-  function renderCommunities(data) {
-    const { myCommunities, otherCommunities, createdCount, totalVisible } = normalizeCommunitiesData(data);
+  function renderLimitedList(container, items, visible, type, emptyText, moreAction) {
+    if (!items.length) {
+      container.innerHTML = `<div class="api-empty-state">${emptyText}</div>`;
+      return;
+    }
 
-    myCommunitiesContainer.innerHTML = myCommunities.length
-      ? myCommunities.map((comm) => renderCommunityCard(comm, 'mine')).join('')
-      : '<div class="api-empty-state">Você ainda não participa de nenhuma comunidade.</div>';
+    const shown = items.slice(0, visible);
+    container.innerHTML = shown.map((item) => renderCommunityCard(item, type)).join('');
 
-    exploreCommunitiesContainer.innerHTML = otherCommunities.length
-      ? otherCommunities.map((comm) => renderCommunityCard(comm, 'explore')).join('')
-      : '<div class="api-empty-state">Não há novas comunidades no momento.</div>';
+    if (items.length > shown.length) {
+      container.insertAdjacentHTML('beforeend', `
+        <div class="load-more-wrap">
+          <button class="load-more-btn" type="button" data-more="${moreAction}">Ver mais</button>
+        </div>
+      `);
+    }
+  }
 
-    memberCountEl.textContent = myCommunities.length;
-    creatorCountEl.textContent = createdCount;
-    totalPlatformEl.textContent = totalVisible;
+  function renderCommunities() {
+    const filteredMine = state.myCommunities.filter(matchesSearch);
+    const filteredExplore = state.otherCommunities.filter(matchesSearch);
+
+    renderLimitedList(
+      myCommunitiesContainer,
+      filteredMine,
+      state.myVisible,
+      'mine',
+      'Você ainda não participa de nenhuma comunidade.',
+      'my-communities'
+    );
+
+    renderLimitedList(
+      exploreCommunitiesContainer,
+      filteredExplore,
+      state.exploreVisible,
+      'explore',
+      'Não há novas comunidades no momento.',
+      'explore-communities'
+    );
+
+    memberCountEl.textContent = state.myCommunities.length;
+    creatorCountEl.textContent = state.createdCount;
+    totalPlatformEl.textContent = state.totalVisible;
   }
 
   async function loadCommunities() {
@@ -72,11 +122,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const response = await apiFetch('/api/posts/communities/');
       const data = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        throw new Error(getApiError(data, 'Erro ao carregar comunidades.'));
-      }
+      if (!response.ok) throw new Error(getApiError(data, 'Erro ao carregar comunidades.'));
 
-      renderCommunities(data || {});
+      const normalized = normalizeCommunitiesData(data || {});
+      Object.assign(state, normalized);
+      renderCommunities();
     } catch (error) {
       console.error(error);
       myCommunitiesContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar comunidades.</div>';
@@ -99,10 +149,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  exploreCommunitiesContainer.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-join-community]');
-    if (!button) return;
-    joinCommunity(button.dataset.joinCommunity);
+  document.addEventListener('click', (event) => {
+    const joinButton = event.target.closest('[data-join-community]');
+    if (joinButton) {
+      joinCommunity(joinButton.dataset.joinCommunity);
+      return;
+    }
+
+    const moreButton = event.target.closest('[data-more]');
+    if (!moreButton) return;
+
+    if (moreButton.dataset.more === 'my-communities') state.myVisible += 4;
+    if (moreButton.dataset.more === 'explore-communities') state.exploreVisible += 4;
+    renderCommunities();
+  });
+
+  searchInput?.addEventListener('input', (event) => {
+    state.query = event.target.value.trim().toLowerCase();
+    state.myVisible = 4;
+    state.exploreVisible = 4;
+    renderCommunities();
   });
 
   if (createBtn) {

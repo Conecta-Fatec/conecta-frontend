@@ -55,11 +55,9 @@
           <a href="profile.html" class="sidebar-link">Perfil</a>
           <a href="communities.html" class="sidebar-link active">Comunidades</a>
           <a href="friends.html" class="sidebar-link">Amizades</a>
-          <a href="#" class="sidebar-link">Notificações</a>
+          <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
         </nav>
-
-        <button class="new-post-btn" type="button" onclick="window.location.href='feed.html'">Novo post</button>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
@@ -69,7 +67,7 @@
               <span id="sidebar-username">@usuario</span>
             </div>
           </a>
-          <button class="logout-btn" type="button" data-logout>Sair</button>
+          <a href="about.html" class="logout-btn about-btn">Sobre</a>
         </div>
       </aside>
 
@@ -80,6 +78,18 @@
             <h1>Comunidades</h1>
             <p>Participe de espaços criados por alunos para trocar ideias, projetos e materiais.</p>
 
+            <section class="communities-summary-card hero-summary-card">
+              <div>
+                <h2>Status de comunidades</h2>
+                <div class="communities-summary-text">
+                  <p>Você participa de <strong id="member-count">0</strong> comunidade(s).</p>
+                  <p>Você criou <strong id="creator-count">0</strong> comunidade(s).</p>
+                  <p>Limite de criação: <strong>3 comunidades</strong>.</p>
+                  <p>Total visível: <strong id="total-platform-comm">0</strong> comunidade(s).</p>
+                </div>
+              </div>
+            </section>
+
             <div class="community-create-box" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#newCommunityModal">
               <div class="community-create-box-text">
                 <strong>Criar nova comunidade</strong>
@@ -87,22 +97,14 @@
               </div>
               <button class="community-create-box-btn" type="button">Criar comunidade</button>
             </div>
+
+            <div class="search-box-row">
+              <input type="search" id="communitySearch" class="form-control custom-input" placeholder="Pesquisar comunidades pelo nome..." aria-label="Pesquisar comunidades" />
+            </div>
           </div>
         </header>
 
         <div class="communities-layout">
-          <section class="communities-summary-card">
-            <div>
-              <h2>Status de comunidades</h2>
-              <div class="communities-summary-text">
-                <p>Você participa de <strong id="member-count">0</strong> comunidade(s).</p>
-                <p>Você criou <strong id="creator-count">0</strong> comunidade(s).</p>
-                <p>Limite de criação: <strong>3 comunidades</strong>.</p>
-                <p>Total visível: <strong id="total-platform-comm">0</strong> comunidade(s).</p>
-              </div>
-            </div>
-          </section>
-
           <section class="communities-section">
             <div class="communities-section-header">
               <h2>Minhas comunidades</h2>

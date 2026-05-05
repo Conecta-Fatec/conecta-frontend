@@ -1,3 +1,6 @@
+/* =========================================================
+   Perfil público: mesmo layout do perfil próprio
+========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
 
@@ -19,73 +22,130 @@ document.addEventListener('DOMContentLoaded', async () => {
   const nicknameEl = document.getElementById('public-nickname');
   const courseEl = document.getElementById('public-course');
   const friendsCountEl = document.getElementById('public-friends-count');
+  const postsCountEl = document.getElementById('public-posts-count');
   const actionBtn = document.getElementById('friendActionBtn');
   const postsContainer = document.getElementById('public-posts-container');
-  const createdContainer = document.getElementById('public-created-communities');
-  const joinedContainer = document.getElementById('public-joined-communities');
+  const communitiesContainer = document.getElementById('public-communities-container');
+  const friendsContainer = document.getElementById('public-friends-container');
 
-  function renderCommunities(container, communities) {
-    if (!communities || communities.length === 0) {
-      container.innerHTML = '<div class="api-empty-state">Nenhuma comunidade.</div>';
+  const state = {
+    communitiesVisible: 3,
+    friendsVisible: 3,
+    communities: [],
+    friends: [],
+  };
+
+  function mergeCommunities(user = {}) {
+    const created = normalizeArray(user.created_communities, 'results').map((community) => ({ ...community, __created: true }));
+    const joined = normalizeArray(user.joined_communities, 'results').map((community) => ({ ...community, __created: Boolean(community.is_creator) }));
+
+    return created.concat(joined)
+      .filter((community, index, list) => list.findIndex((item) => item.slug === community.slug) === index)
+      .map(normalizeCommunity)
+      .sort((a, b) => Number(Boolean(b.__created || b.is_creator)) - Number(Boolean(a.__created || a.is_creator)) || getCommunityMemberCount(b) - getCommunityMemberCount(a));
+  }
+
+  function renderAvatar(user = {}) {
+    const name = userDisplayName(user);
+    avatar.classList.remove('has-image');
+    avatar.setAttribute('data-photo-viewer', 'public-profile');
+    avatar.dataset.photoTitle = name;
+
+    if (userPhoto(user)) {
+      avatar.innerHTML = `<img src="${escapeHTML(toApiUrl(userPhoto(user)))}" alt="Foto de ${escapeHTML(name)}">`;
+      avatar.classList.add('has-image');
+    } else {
+      avatar.textContent = getInitials(name);
+    }
+  }
+
+  function renderCommunities() {
+    const communities = state.communities;
+    if (!communities.length) {
+      communitiesContainer.innerHTML = '<div class="api-empty-state">Nenhuma comunidade.</div>';
       return;
     }
 
-    container.innerHTML = communities.map((community) => {
+    const shown = communities.slice(0, state.communitiesVisible);
+    communitiesContainer.innerHTML = shown.map((community) => {
       const comm = normalizeCommunity(community);
+      const isCreated = Boolean(community.__created || community.is_creator);
       return `
         <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item">
           ${communityAvatarHTML(comm, 'side-community-avatar')}
           <div>
             <strong>${escapeHTML(comm.name)}</strong>
-            <span>${getCommunityMemberCount(comm)} participante(s)</span>
+            <span>${getCommunityMemberCount(comm)} participante(s)${isCreated ? ` · criada por @${escapeHTML(publicUser.nickname)}` : ''}</span>
           </div>
         </a>
       `;
     }).join('');
+
+    if (communities.length > shown.length) {
+      communitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="publicMoreCommunities">Ver mais</button>');
+      document.getElementById('publicMoreCommunities').addEventListener('click', () => {
+        state.communitiesVisible += 3;
+        renderCommunities();
+      });
+    }
   }
 
-  function renderPublicPostActions(post) {
-    return `
-      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="togglePublicPostLike(${post.id}, this)" type="button" aria-label="Curtir publicação">
-        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
-          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
-        </svg>
-        <span class="like-count">${postLikesCount(post)}</span>
-      </button>
-      <span class="post-action-btn" aria-label="Comentários">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
-        </svg>
-        <span>${postCommentsCount(post)}</span>
-      </span>
-    `;
+  function renderFriends() {
+    const friends = state.friends;
+    if (!friendsContainer) return;
+    if (!friends.length) {
+      friendsContainer.innerHTML = '<div class="api-empty-state">Nenhuma amizade visível.</div>';
+      return;
+    }
+
+    const shown = friends.slice(0, state.friendsVisible);
+    friendsContainer.innerHTML = shown.map((friend) => `
+      <a href="${profileUrlFor(friend)}" class="side-community-item">
+        ${avatarHTML(friend, 'side-community-avatar')}
+        <div>
+          <strong>${escapeHTML(userDisplayName(friend))}</strong>
+          <span>@${escapeHTML(friend.nickname || 'usuario')}</span>
+        </div>
+      </a>
+    `).join('');
+
+    if (friends.length > shown.length) {
+      friendsContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="publicMoreFriends">Ver mais</button>');
+      document.getElementById('publicMoreFriends').addEventListener('click', () => {
+        state.friendsVisible += 3;
+        renderFriends();
+      });
+    }
   }
 
-  function renderPosts(posts) {
-    if (!posts || posts.length === 0) {
+  function renderPosts(posts = []) {
+    if (!posts.length) {
       postsContainer.innerHTML = '<div class="api-empty-state">Nenhuma publicação ainda.</div>';
       return;
     }
 
     postsContainer.innerHTML = posts.map((post) => {
       const when = relativeTime(post.created_at, 'feito');
-      const communityLabel = post.community
-        ? `<a class="post-community-chip" href="community.html?slug=${encodeURIComponent(post.community.slug)}">Publicado em ${escapeHTML(post.community.name)}</a>`
-        : '<span class="post-community-chip">Publicado no feed</span>';
+      const communityLabel = ConectaPosts?.renderCommunityChip ? ConectaPosts.renderCommunityChip(post) : '';
+      const destination = postDestinationUrl(post);
 
       return `
-        <article class="post-card profile-post-item">
-          <a href="${profileUrlFor(publicUser)}" class="avatar-link">${avatarHTML(publicUser)}</a>
+        <article class="post-card profile-post-item clickable-post" data-post-url="${escapeHTML(destination)}">
+          <a href="${profileUrlFor(publicUser)}" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(publicUser)}</a>
           <div class="post-body">
             <div class="post-header">
               <div>
                 <strong class="post-author">${escapeHTML(userDisplayName(publicUser))}</strong>
-                <span>@${escapeHTML(publicUser.nickname)} ${when ? `· ${escapeHTML(when)}` : ''}</span>
+                <span class="post-username">@${escapeHTML(publicUser.nickname || 'usuario')}</span>
+                ${when ? `<span> · ${escapeHTML(when)}</span>` : ''}
               </div>
             </div>
             ${communityLabel}
             <p class="post-text">${escapeHTML(post.content)}</p>
-            <div class="post-actions">${renderPublicPostActions(post)}</div>
+            <div class="post-actions post-summary-actions">
+              <span class="post-summary-metric">♡ ${postLikesCount(post)}</span>
+              <span class="post-summary-metric">▱ ${postCommentsCount(post)}</span>
+            </div>
           </div>
         </article>
       `;
@@ -98,6 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (user.friendship_status === 'self') {
       actionBtn.textContent = 'Meu perfil';
+      actionBtn.className = 'btn btn-outline-primary fw-bold';
       actionBtn.onclick = () => window.location.href = 'profile.html';
       return;
     }
@@ -143,26 +204,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderProfile(user) {
     publicUser = user;
-    const name = user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.nickname;
+    const posts = normalizeArray(user.posts, 'results');
+    const name = userDisplayName(user);
 
-    if (userPhoto(user)) {
-      avatar.innerHTML = `<img src="${escapeHTML(toApiUrl(userPhoto(user)))}" alt="Foto de ${escapeHTML(name)}">`;
-      avatar.classList.add('has-image');
-    } else {
-      avatar.textContent = getInitials(name);
-      avatar.classList.remove('has-image');
-    }
-
+    renderAvatar(user);
     nameEl.textContent = name;
-    bioEl.textContent = user.bio || 'Sem bio.';
-    nicknameEl.textContent = `@${user.nickname}`;
-    courseEl.textContent = user.course || 'Curso não informado';
+    nicknameEl.textContent = `@${user.nickname || 'usuario'}`;
     friendsCountEl.textContent = `${user.friends_count || 0} amigo(s)`;
+    postsCountEl.textContent = `${user.posts_count ?? posts.length} post(s)`;
+    courseEl.textContent = user.course || 'Curso não informado';
+    bioEl.textContent = user.bio || 'Sem bio.';
 
     configureFriendButton(user);
-    renderCommunities(createdContainer, user.created_communities || []);
-    renderCommunities(joinedContainer, user.joined_communities || []);
-    renderPosts(user.posts || []);
+    state.communities = mergeCommunities(user);
+    state.friends = normalizeArray(user.friends || user.friends_list, 'results');
+    renderCommunities();
+    renderFriends();
+    renderPosts(posts);
   }
 
   async function loadPublicProfile() {
@@ -174,8 +232,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         nameEl.textContent = 'Perfil não encontrado';
         bioEl.textContent = getApiError(data, 'Este usuário não existe.');
         postsContainer.innerHTML = '';
-        createdContainer.innerHTML = '';
-        joinedContainer.innerHTML = '';
+        communitiesContainer.innerHTML = '';
+        friendsContainer.innerHTML = '';
         actionBtn.style.display = 'none';
         return;
       }
@@ -187,15 +245,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  window.togglePublicPostLike = async function togglePublicPostLike(postId, btnElement) {
-    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
-  };
+  postsContainer.addEventListener('click', (event) => {
+    const card = event.target.closest('[data-post-url]');
+    if (!card || event.target.closest('a,button')) return;
+    window.location.href = card.dataset.postUrl;
+  });
 
   await loadPublicProfile();
 });

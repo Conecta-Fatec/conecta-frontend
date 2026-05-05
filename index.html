@@ -49,28 +49,31 @@
       <div class="row align-items-center justify-content-between">
         
         <div class="col-lg-6 mb-5 mb-lg-0 text-center text-lg-start">
-          <img src="assets/img/logo-light.png" alt="Logo Conecta Fatec" class="logo-light mb-4" width="220" />
-          <img src="assets/img/logo-dark.png" alt="Logo Conecta Fatec" class="logo-dark mb-4" width="220" />
+          <img src="assets/img/logo-light.png" alt="Logo Conecta Fatec" class="logo-light mb-4 login-brand-logo" width="300" />
+          <img src="assets/img/logo-dark.png" alt="Logo Conecta Fatec" class="logo-dark mb-4 login-brand-logo" width="300" />
           
           <h1 class="display-5 fw-bold mb-3" style="color: var(--text-color);">
-            Conecte-se com a sua Fatec
+            Conecte-se com nossos usuários fatecanos.
           </h1>
           <p class="lead mb-4" style="color: var(--text-muted); font-size: 1.15rem;">
-            A rede social exclusiva para alunos da <strong>Fatec Itaquera</strong>. Compartilhe projetos, participe de comunidades e expanda o seu networking acadêmico.
+            A rede social acadêmica feita para alunos da <strong>Faculdade de Tecnologia de São Paulo</strong>. Compartilhe posts, participe de comunidades e fortaleça conexões dentro da Fatec.
           </p>
-          
-          <div class="d-flex flex-column flex-lg-row gap-3 justify-content-center justify-content-lg-start mt-4">
-             <div class="d-flex align-items-center gap-2 text-muted">
-                <span class="fs-4">🎓</span>
-                <span class="small fw-semibold">Foco Acadêmico</span>
+
+          <div class="login-feature-grid mt-4">
+             <div class="login-feature-card">
+                <span class="feature-dot"></span>
+                <strong>Foco acadêmico</strong>
+                <small>Conteúdo feito por estudantes e para estudantes.</small>
              </div>
-             <div class="d-flex align-items-center gap-2 text-muted">
-                <span class="fs-4">🤝</span>
-                <span class="small fw-semibold">Comunidades Ativas</span>
+             <div class="login-feature-card">
+                <span class="feature-dot"></span>
+                <strong>Comunidades ativas</strong>
+                <small>Espaços para cursos, grupos de estudo e interesses.</small>
              </div>
-             <div class="d-flex align-items-center gap-2 text-muted">
-                <span class="fs-4">🚀</span>
-                <span class="small fw-semibold">Projetos em Grupo</span>
+             <div class="login-feature-card">
+                <span class="feature-dot"></span>
+                <strong>Projetos em grupo</strong>
+                <small>Encontre colegas para trocar ideias e evoluir trabalhos.</small>
              </div>
           </div>
         </div>
@@ -162,6 +165,19 @@
               <input type="password" id="regPasswordConfirm" class="w-100" placeholder="Digite novamente" required />
             </div>
 
+            <div class="register-rules-box mb-3">
+              <strong>Regras para participar</strong>
+              <ul>
+                <li>Usar informações verdadeiras e respeitar outros alunos.</li>
+                <li>Não publicar spam, ofensas, dados sensíveis ou conteúdo comercial.</li>
+                <li>Manter o foco acadêmico e comunitário do Conecta Fatec.</li>
+              </ul>
+              <label class="register-rules-check">
+                <input type="checkbox" id="registerRulesAccepted" required />
+                <span>Li e aceito as regras de convivência da comunidade.</span>
+              </label>
+            </div>
+
             <div id="registerError" class="text-danger small mt-2" style="display: none;"></div>
             <div id="registerSuccess" class="text-success small mt-2" style="display: none;">
               Conta criada com sucesso!
@@ -175,6 +191,14 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div id="cookieBanner" class="cookie-banner d-none" role="region" aria-label="Aviso de cookies">
+    <div>
+      <strong>Uso de cookies</strong>
+      <p>Usamos cookies e armazenamento local para manter seu login, tema e preferências do Conecta Fatec.</p>
+    </div>
+    <button type="button" id="acceptCookiesBtn" class="cookie-accept-btn">Entendi</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

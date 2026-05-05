@@ -55,11 +55,9 @@
           <a href="profile.html" class="sidebar-link active">Perfil</a>
           <a href="communities.html" class="sidebar-link">Comunidades</a>
           <a href="friends.html" class="sidebar-link">Amizades</a>
-          <a href="#" class="sidebar-link">Notificações</a>
+          <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
         </nav>
-
-        <button class="new-post-btn" type="button" onclick="window.location.href='feed.html'">Novo post</button>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
@@ -69,33 +67,35 @@
               <span id="sidebar-username">@usuario</span>
             </div>
           </a>
-          <button class="logout-btn" type="button" data-logout>Sair</button>
+          <a href="about.html" class="logout-btn about-btn">Sobre</a>
         </div>
       </aside>
 
       <section class="feed-content community-page-content">
-        <header class="community-page-hero">
-          <div class="community-page-header">
-            <div class="community-page-avatar" id="profile-avatar">--</div>
-            <div class="community-page-info">
+        <header class="community-page-hero profile-hero-card">
+          <div class="profile-hero-layout">
+            <button class="community-page-avatar profile-main-avatar" id="profile-avatar" type="button" data-photo-viewer="profile" aria-label="Abrir foto de perfil">--</button>
+            <div class="community-page-info profile-main-info">
               <span class="feed-kicker">Meu perfil</span>
               <h1 id="profile-name">Carregando...</h1>
-              <p id="profile-bio">Buscando informações do perfil...</p>
-              <div class="community-page-meta">
-                <span id="profile-nickname">@usuario</span>
-                <span id="profile-course">Curso não informado</span>
-                <span id="profile-friends-count">0 amigos</span>
+              <span id="profile-nickname" class="nickname-badge">@usuario</span>
+              <div class="profile-stat-row">
+                <span id="profile-friends-count">0 amigo(s)</span>
+                <span id="profile-posts-count">0 post(s)</span>
               </div>
+              <p id="profile-course" class="profile-course-text">Curso não informado</p>
+              <p id="profile-bio" class="profile-bio-text">Buscando informações do perfil...</p>
             </div>
             <button type="button" class="btn btn-outline-primary fw-bold" id="openEditProfileBtn">Editar perfil</button>
           </div>
         </header>
 
-        <div class="community-page-layout">
+        <div class="community-page-layout profile-page-layout">
           <section class="community-main profile-api-grid">
             <article class="profile-api-card">
-              <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
                 <h2 class="h5 fw-bold mb-0">Publicações</h2>
+                <small class="text-muted">Clique em um post para abrir no feed ou na comunidade.</small>
               </div>
               <div id="profile-posts-container" class="d-flex flex-column gap-3">
                 <p class="text-muted">Carregando posts...</p>
@@ -103,20 +103,15 @@
             </article>
           </section>
 
-          <aside class="community-side">
+          <aside class="community-side profile-side-stack">
             <section class="profile-api-card mb-3">
-              <h2 class="h5 fw-bold mb-3">Comunidades criadas</h2>
-              <div id="created-communities-container" class="d-flex flex-column gap-2"></div>
-            </section>
-
-            <section class="profile-api-card mb-3">
-              <h2 class="h5 fw-bold mb-3">Amizades</h2>
-              <div id="profile-friends-container" class="profile-friends-list"></div>
+              <h2 class="h5 fw-bold mb-3">Comunidades</h2>
+              <div id="profile-communities-container" class="d-flex flex-column gap-2"></div>
             </section>
 
             <section class="profile-api-card">
-              <h2 class="h5 fw-bold mb-3">Comunidades que participo</h2>
-              <div id="joined-communities-container" class="d-flex flex-column gap-2"></div>
+              <h2 class="h5 fw-bold mb-3">Amizades</h2>
+              <div id="profile-friends-container" class="profile-friends-list"></div>
             </section>
           </aside>
         </div>
@@ -171,6 +166,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/profile.js"></script>
 </body>
 </html>

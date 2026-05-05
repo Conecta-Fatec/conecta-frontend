@@ -65,7 +65,7 @@
           <a href="profile.html" class="sidebar-link">Perfil</a>
           <a href="communities.html" class="sidebar-link">Comunidades</a>
           <a href="friends.html" class="sidebar-link">Amizades</a>
-          <a href="#" class="sidebar-link">Notificações</a>
+          <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
         </nav>
 
@@ -81,17 +81,21 @@
             <span id="sidebar-username">@usuario</span>
           </div>
         </a>
-          <button class="logout-btn" type="button" data-logout>Sair</button>
+          <a href="about.html" class="logout-btn about-btn">Sobre</a>
         </div>
       </aside>
 
       <section class="feed-content">
-        <header class="feed-header feed-hero">
+        <header class="feed-header feed-hero feed-hero-actions">
           <div>
             <span class="feed-kicker">Conecta Fatec</span>
             <h1>Feed acadêmico</h1>
             <p>Acompanhe publicações e atualizações dos alunos.</p>
           </div>
+          <a href="notifications.html" class="notification-home-btn" aria-label="Notificações">
+            <span>Notificações</span>
+            <strong>0</strong>
+          </a>
         </header>
 
         <article class="feed-create-card" id="feed-create-post-card" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#newPostModal">
@@ -151,6 +155,7 @@
   </script>
 
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/feed.js"></script>
 </body>
 </html>

@@ -59,11 +59,9 @@
           <a href="profile.html" class="sidebar-link">Perfil</a>
           <a href="communities.html" class="sidebar-link">Comunidades</a>
           <a href="friends.html" class="sidebar-link active">Amizades</a>
-          <a href="#" class="sidebar-link">Notificações</a>
+          <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
         </nav>
-
-        <button class="new-post-btn" type="button" onclick="window.location.href='feed.html'">Novo post</button>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
@@ -73,7 +71,7 @@
             <span id="sidebar-username">@usuario</span>
           </div>
         </a>
-          <button class="logout-btn" type="button" data-logout>Sair</button>
+          <a href="about.html" class="logout-btn about-btn">Sobre</a>
         </div>
       </aside>
 
@@ -83,49 +81,35 @@
             <span class="feed-kicker">Amizades</span>
             <h1>Conexões acadêmicas</h1>
             <p>Gerencie sua rede de contatos, aceite solicitações e encontre novos colegas.</p>
-          </div>
-        </header>
 
-        <div class="communities-layout">
+            <section class="communities-summary-card hero-summary-card">
+              <div>
+                <h2>Status de amizades</h2>
+                <div class="communities-summary-text">
+                  <p>Você possui <strong id="friends-count">0</strong> amizade(s) ativa(s).</p>
+                  <p>Você tem <strong id="received-count">0</strong> solicitação(ões) pendente(s).</p>
+                  <p>Você enviou <strong id="sent-count">0</strong> solicitação(ões).</p>
+                  <p>Usuários registrados: <strong id="users-count">—</strong>.</p>
+                </div>
+              </div>
+            </section>
 
-          <section class="communities-section mb-4">
             <div class="community-create-box friend-request-card">
               <div class="community-create-box-text flex-grow-1">
-                <strong>Adicionar nova amizade</strong>
-                <span>Digite o nickname (ex: kevin.dev) do aluno que deseja adicionar.</span>
+                <strong>Pesquisar ou adicionar amizade</strong>
+                <span>Digite o nickname do aluno para buscar ou enviar uma solicitação.</span>
               </div>
               <div class="friend-request-form">
-                <input type="text" id="targetNickname" class="form-control custom-input" placeholder="Nickname do usuário">
-                <button type="button" class="community-create-box-btn" onclick="sendFriendRequest()">Enviar Solicitação</button>
+                <input type="search" id="targetNickname" class="form-control custom-input" placeholder="Nickname ou nome do usuário">
+                <button type="button" class="community-create-box-btn" onclick="sendFriendRequest()">Enviar solicitação</button>
               </div>
             </div>
             <p id="friendError" class="text-danger mt-2 small" style="display:none;"></p>
             <p id="friendSuccess" class="text-success mt-2 small" style="display:none;"></p>
-          </section>
+          </div>
+        </header>
 
-          <section class="communities-summary-card">
-            <div>
-              <h2>Status de amizades</h2>
-              <div class="communities-summary-text">
-                <p>Você possui <strong id="friends-count">0</strong> amizade(s) ativa(s).</p>
-                <p>Você tem <strong id="received-count">0</strong> solicitação(ões) pendente(s) para responder.</p>
-                <p>Você enviou <strong id="sent-count">0</strong> solicitação(ões).</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="communities-section">
-            <div class="communities-section-header">
-              <div>
-                <h2>Solicitações Recebidas</h2>
-                <p>Pessoas que querem se conectar com você.</p>
-              </div>
-            </div>
-            <div class="friends-grid" id="received-requests-container">
-              <p class="text-muted py-3">Carregando solicitações...</p>
-            </div>
-          </section>
-
+        <div class="communities-layout">
           <section class="communities-section">
             <div class="communities-section-header">
               <div>
@@ -133,23 +117,41 @@
                 <p>Usuários que já fazem parte da sua rede.</p>
               </div>
             </div>
-            <div class="friends-grid" id="my-friends-container">
+            <div class="friends-grid communities-grid" id="my-friends-container">
               <p class="text-muted py-3">Carregando amigos...</p>
+            </div>
+          </section>
+
+          <section class="communities-section requests-mini-section">
+            <div class="communities-section-header requests-header-row">
+              <div>
+                <h2>Solicitações</h2>
+                <p>Acompanhe pedidos recebidos e enviados.</p>
+              </div>
+              <div class="feed-tabs" role="tablist">
+                <button class="feed-tab active" id="requests-received-tab" type="button">Recebidas</button>
+                <button class="feed-tab" id="requests-sent-tab" type="button">Enviadas</button>
+              </div>
+            </div>
+            <div class="friends-grid communities-grid requests-grid" id="received-requests-container">
+              <p class="text-muted py-3">Carregando solicitações...</p>
+            </div>
+            <div class="friends-grid communities-grid requests-grid d-none" id="sent-requests-container">
+              <p class="text-muted py-3">Carregando solicitações enviadas...</p>
             </div>
           </section>
 
           <section class="communities-section">
             <div class="communities-section-header">
               <div>
-                <h2>Solicitações enviadas</h2>
-                <p>Pedidos de amizade aguardando resposta.</p>
+                <h2>Explorar amizades</h2>
+                <p>Encontre novos alunos para se conectar.</p>
               </div>
             </div>
-            <div class="friends-grid" id="sent-requests-container">
-              <p class="text-muted py-3">Carregando solicitações enviadas...</p>
+            <div class="friends-grid communities-grid" id="explore-friends-container">
+              <p class="text-muted py-3">Digite um nickname para encontrar alunos.</p>
             </div>
           </section>
-
         </div>
       </section>
     </div>

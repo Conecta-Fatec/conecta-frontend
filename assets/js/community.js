@@ -1,8 +1,12 @@
+/* =========================================================
+   Comunidade: detalhes, membros e posts internos
+========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
 
   const urlParams = new URLSearchParams(window.location.search);
   const slug = urlParams.get('slug');
+  const highlightedPostId = urlParams.get('post');
 
   if (!slug) {
     window.location.href = 'communities.html';
@@ -13,6 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentCommunity = null;
   let currentSlug = slug;
   let editCommunityModal = null;
+
+  if (window.ConectaPosts) ConectaPosts.currentUserNickname = currentUser?.nickname || '';
 
   const commName = document.getElementById('comm-name');
   const commDesc = document.getElementById('comm-desc');
@@ -27,54 +33,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveCommunityBtn = document.getElementById('saveCommunityBtn');
   const createPostCard = document.getElementById('community-create-post-card');
 
-  function getCommentReplies(comment = {}) {
-    const replies = comment.replies || comment.children || comment.answers || [];
-    return Array.isArray(replies) ? replies : [];
+  function creatorFromCommunity(community = {}) {
+    return community.creator || community.created_by || community.owner || {
+      nickname: community.creator_nickname,
+      full_name: community.creator_name,
+      first_name: community.creator_first_name,
+      last_name: community.creator_last_name,
+      photo_url: community.creator_photo,
+    };
   }
 
-  function getPostComments(post = {}) {
-    const topLevel = normalizeArray(post.top_level_comments, 'results');
-    const comments = normalizeArray(post.comments, 'results');
-    const source = topLevel.length ? topLevel : comments;
-
-    if (!source.some((comment) => comment.parent || comment.parent_id)) return source;
-
-    const byId = new Map();
-    source.forEach((comment) => {
-      byId.set(comment.id, { ...comment, replies: getCommentReplies(comment).slice() });
-    });
-
-    const roots = [];
-    byId.forEach((comment) => {
-      const parentId = typeof comment.parent === 'object' ? comment.parent?.id : (comment.parent || comment.parent_id);
-      if (parentId && byId.has(parentId)) {
-        byId.get(parentId).replies.push(comment);
-      } else {
-        roots.push(comment);
-      }
-    });
-
-    return roots;
+  function isSameUser(a = {}, b = {}) {
+    return Boolean((a.id && b.id && Number(a.id) === Number(b.id)) || (a.nickname && b.nickname && a.nickname === b.nickname));
   }
 
-  function renderMembers(members) {
-    if (!members || members.length === 0) {
-      membersContainer.innerHTML = '<div class="api-empty-state">Nenhum participante ainda.</div>';
-      return;
-    }
-
-    membersContainer.innerHTML = members.map((member) => {
-      const name = userDisplayName(member);
-      return `
-        <a href="${profileUrlFor(member)}" class="side-community-item">
-          ${avatarHTML(member, 'side-community-avatar')}
-          <div>
-            <strong>${escapeHTML(name)}</strong>
-            <span>@${escapeHTML(member.nickname || 'usuario')}</span>
-          </div>
-        </a>
-      `;
-    }).join('');
+  function memberJoinedDate(member = {}) {
+    const raw = member.joined_at || member.membership_created_at || member.created_at || member.date_joined || '';
+    const time = raw ? new Date(raw).getTime() : Number.POSITIVE_INFINITY;
+    return Number.isFinite(time) ? time : Number.POSITIVE_INFINITY;
   }
 
   function normalizeCommunityDetails(data = {}) {
@@ -93,24 +69,71 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
-  function renderCommunityDetails(data) {
-    const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
-    currentCommunity = community;
-    currentSlug = community.slug || currentSlug;
-
-    const creatorName = community.creator?.full_name || community.creator?.nickname || community.creator_name || 'Usuário';
-    commName.textContent = community.name;
-    commDesc.textContent = community.description || 'Sem descrição.';
-    commMembersCount.textContent = `${membersCount} participante(s)`;
-    commCreator.textContent = `Criada por ${creatorName}`;
-
+  function renderCommunityAvatar(community = {}) {
     commAvatar.classList.remove('has-image');
+    commAvatar.setAttribute('data-photo-viewer', 'community');
+    commAvatar.dataset.photoTitle = community.name || 'Comunidade';
+
     if (communityPhoto(community)) {
       commAvatar.innerHTML = `<img src="${escapeHTML(toApiUrl(communityPhoto(community)))}" alt="Foto da comunidade ${escapeHTML(community.name)}">`;
       commAvatar.classList.add('has-image');
     } else {
       commAvatar.textContent = getInitials(community.name);
     }
+  }
+
+  function renderMembers(members = [], community = {}) {
+    const creator = creatorFromCommunity(community);
+    const unique = [];
+
+    if (creator?.nickname || creator?.id) unique.push({ ...creator, __creator: true });
+
+    members.forEach((member) => {
+      if (!unique.some((item) => isSameUser(item, member))) unique.push(member);
+    });
+
+    const sorted = unique.sort((a, b) => {
+      if (a.__creator) return -1;
+      if (b.__creator) return 1;
+      return memberJoinedDate(a) - memberJoinedDate(b);
+    });
+
+    if (!sorted.length) {
+      membersContainer.innerHTML = '<div class="api-empty-state">Nenhum participante ainda.</div>';
+      return;
+    }
+
+    membersContainer.innerHTML = sorted.map((member) => {
+      const name = userDisplayName(member);
+      return `
+        <a href="${profileUrlFor(member)}" class="side-community-item member-item ${member.__creator ? 'member-creator' : ''}">
+          ${avatarHTML(member, 'side-community-avatar')}
+          <div>
+            <strong>${escapeHTML(name)} ${member.__creator ? '<span class="creator-crown" title="Criador da comunidade">♛</span>' : ''}</strong>
+            <span>@${escapeHTML(member.nickname || 'usuario')}${member.__creator ? ' · criador' : ''}</span>
+          </div>
+        </a>
+      `;
+    }).join('');
+  }
+
+  function renderCommunityDetails(data) {
+    const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
+    currentCommunity = community;
+    currentSlug = community.slug || currentSlug;
+
+    const creator = creatorFromCommunity(community);
+    const creatorName = userDisplayName(creator);
+    const creatorNickname = creator.nickname || community.creator_nickname || '';
+
+    commName.textContent = community.name || 'Comunidade';
+    commDesc.textContent = community.description || 'Sem descrição.';
+    commMembersCount.textContent = `${membersCount} participante(s)`;
+    commCreator.innerHTML = creatorNickname
+      ? `Criada por ${userLinkHTML({ ...creator, nickname: creatorNickname }, `@${creatorNickname}`, 'nickname-link')}`
+      : `Criada por ${escapeHTML(creatorName)}`;
+
+    renderCommunityAvatar(community);
 
     commActionBtn.style.display = 'inline-flex';
     deleteCommunityBtn.style.display = community.is_creator ? 'inline-flex' : 'none';
@@ -130,120 +153,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       commActionBtn.onclick = joinCommunity;
     }
 
-    renderMembers(members);
+    renderMembers(members, community);
     renderPosts(posts, isMember);
   }
 
-  function renderCommentLikeButton(comment) {
-    return `
-      <button type="button" class="comment-action ${comment.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleCommentLike(${comment.id}, this)">
-        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${comment.liked_by_me ? 'currentColor' : 'none'};">
-          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
-        </svg>
-        <span class="comment-like-count">${comment.total_likes ?? comment.likes_count ?? 0}</span>
-      </button>
-    `;
+  function scrollToHighlightedPost() {
+    if (!highlightedPostId) return;
+    const postEl = document.getElementById(`post-${highlightedPostId}`);
+    if (!postEl) return;
+    postEl.classList.add('post-card-highlight');
+    setTimeout(() => postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
-  function renderComments(comments = [], isMember = false, level = 0) {
-    if (!comments.length) return '';
-
-    return comments.map((comment) => {
-      const author = comment.author || {};
-      const commentAuthor = userDisplayName(author);
-      const isMyComment = currentUser && author.nickname === currentUser.nickname;
-      const replies = getCommentReplies(comment);
-      const replyLabel = replies.length || comment.replies_count || 0;
-
-      return `
-        <div class="post-comment ${level > 0 ? 'comment-reply' : ''}">
-          <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author, 'comment-avatar')}</a>
-          <div class="comment-body">
-            <p class="comment-text-line">
-              <span class="comment-meta">
-                ${userLinkHTML(author, commentAuthor, 'comment-author')}
-                <span class="comment-username">@${escapeHTML(author.nickname || 'usuario')}</span>
-              </span>
-              <span id="comment-text-content-${comment.id}" class="comment-content" data-raw="${escapeHTML(comment.content)}">${escapeHTML(comment.content)}</span>
-              ${comment.edited ? '<small class="text-muted">(editado)</small>' : ''}
-            </p>
-            <div class="comment-actions">
-              ${renderCommentLikeButton(comment)}
-              ${isMember ? `<button type="button" class="comment-action" onclick="toggleReplyInput(${comment.id})">Responder (${replyLabel})</button>` : ''}
-              ${isMyComment ? `
-                <button type="button" class="comment-action" onclick="enableCommentEdit(${comment.id})">Editar</button>
-                <button type="button" class="comment-action text-danger" onclick="deleteComment(${comment.id})">Excluir</button>
-              ` : ''}
-            </div>
-            ${isMember ? `
-              <div id="reply-box-${comment.id}" class="reply-box d-none">
-                <input type="text" id="reply-input-${comment.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Responda a ${escapeHTML(commentAuthor)}...">
-                <button class="btn login-btn py-1 px-2" type="button" onclick="addReply(${comment.id})">Enviar</button>
-              </div>
-            ` : ''}
-            ${replies.length ? `<div class="comment-replies">${renderComments(replies, isMember, level + 1)}</div>` : ''}
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function renderPostActions(post, isMyPost, isMember) {
-    return `
-      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleLike(${post.id}, this)" type="button" ${!isMember ? 'disabled title="Participe da comunidade para interagir"' : ''}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
-          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
-        </svg>
-        <span class="like-count">${postLikesCount(post)}</span>
-      </button>
-      <button class="post-action-btn" onclick="document.getElementById('comment-input-${post.id}')?.focus()" type="button" ${!isMember ? 'disabled title="Participe da comunidade para comentar"' : ''}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
-        </svg>
-        <span>${postCommentsCount(post)}</span>
-      </button>
-      ${isMyPost ? `<button class="post-action-btn owner-action" onclick="enablePostEdit(${post.id})" type="button">Editar</button><button class="post-action-btn owner-action delete-action text-danger" onclick="deletePost(${post.id})" type="button">Excluir</button>` : ''}
-    `;
-  }
-
-  function renderPosts(posts, isMember) {
+  function renderPosts(posts = [], isMember) {
     if (!posts.length) {
       postsContainer.innerHTML = '<div class="api-empty-state text-center">Nenhum post nesta comunidade ainda.</div>';
       return;
     }
 
-    postsContainer.innerHTML = posts.map((post) => {
-      const author = post.author || {};
-      const authorName = userDisplayName(author);
-      const isMyPost = currentUser && author.nickname === currentUser.nickname;
-      const when = relativeTime(post.created_at || post.updated_at, 'feito');
-      const comments = getPostComments(post);
-      const commentsHTML = renderComments(comments, isMember);
+    if (highlightedPostId) ConectaPosts.openPostComments(highlightedPostId);
 
-      const commentInput = isMember ? `
-        <div class="comment-input-row mt-3">
-          <input type="text" id="comment-input-${post.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Escreva um comentário...">
-          <button class="btn login-btn py-1 px-3" type="button" onclick="addComment(${post.id})">Enviar</button>
-        </div>
-      ` : '';
+    postsContainer.innerHTML = posts.map((post) => ConectaPosts.renderPostCard(post, {
+      currentUser,
+      showCommunityLabel: false,
+      allowCommentInput: isMember,
+      canInteract: isMember,
+    })).join('');
 
-      return `
-        <article class="post-card">
-          <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author)}</a>
-          <div class="post-body" style="min-width:0;">
-            <div class="post-header">
-              <div class="text-truncate">
-                ${userLinkHTML(author, authorName, 'post-author')}
-                <span>@${escapeHTML(author.nickname || 'usuario')} ${when ? `· ${escapeHTML(when)}` : ''} ${post.edited ? '· (editado)' : ''}</span>
-              </div>
-            </div>
-            <div id="post-text-content-${post.id}" data-raw="${escapeHTML(post.content)}"><p class="post-text">${escapeHTML(post.content)}</p></div>
-            <div class="post-actions">${renderPostActions(post, isMyPost, isMember)}</div>
-            <div class="comments-section mt-2">${commentsHTML}${commentInput}</div>
-          </div>
-        </article>
-      `;
-    }).join('');
+    scrollToHighlightedPost();
   }
 
   async function loadCommunityDetails() {
@@ -344,22 +281,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function createCommunityPost(content) {
     const payloadWithCommunity = buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug });
     const attempts = [
-      {
-        path: `/api/posts/communities/${currentSlug}/post/create/`,
-        body: payloadWithCommunity,
-      },
-      {
-        path: `/api/posts/community/${currentSlug}/post/create/`,
-        body: payloadWithCommunity,
-      },
-      {
-        path: '/api/posts/feed/create/',
-        body: payloadWithCommunity,
-      },
-      {
-        path: `/api/posts/communities/${currentSlug}/post/create/`,
-        body: { content },
-      },
+      { path: `/api/posts/communities/${currentSlug}/post/create/`, body: payloadWithCommunity },
+      { path: `/api/posts/community/${currentSlug}/post/create/`, body: payloadWithCommunity },
+      { path: '/api/posts/feed/create/', body: payloadWithCommunity },
+      { path: `/api/posts/communities/${currentSlug}/post/create/`, body: { content } },
     ];
 
     let lastData = null;
@@ -423,13 +348,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.addComment = async (postId) => {
     const input = document.getElementById(`comment-input-${postId}`);
-    const content = input.value.trim();
+    const content = input?.value.trim();
     if (!content) return;
     const response = await apiFetch(`/api/posts/post/${postId}/comment/`, {
       method: 'POST',
       body: JSON.stringify({ content }),
     });
-    if (response.ok) await loadCommunityDetails();
+    if (response.ok) {
+      ConectaPosts.openPostComments(postId);
+      await loadCommunityDetails();
+    }
   };
 
   window.toggleCommentLike = async (commentId, btnElement = null) => {
@@ -451,19 +379,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.enablePostEdit = (postId) => {
     const contentDiv = document.getElementById(`post-text-content-${postId}`);
-    const originalText = contentDiv.dataset.raw;
+    if (!contentDiv) return;
+    const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.dataset.raw || '';
     contentDiv.innerHTML = `
       <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="200">${originalText}</textarea>
+        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
         <div class="d-flex gap-2 mt-2">
-          <button class="btn btn-sm btn-primary" onclick="savePostEdit(${postId})">Salvar</button>
-          <button class="btn btn-sm btn-secondary" onclick="loadCommunityDetailsFromButton()">Cancelar</button>
+          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId})">Salvar</button>
+          <button class="btn btn-sm btn-secondary" type="button" onclick="loadCommunityDetailsFromButton()">Cancelar</button>
         </div>
       </div>`;
+    document.getElementById(`edit-post-input-${postId}`).value = originalText;
   };
 
   window.savePostEdit = async (postId) => {
-    const content = document.getElementById(`edit-post-input-${postId}`).value.trim();
+    const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
     if (!content) return;
     const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
       method: 'PATCH',
@@ -474,17 +404,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.enableCommentEdit = (commentId) => {
     const textSpan = document.getElementById(`comment-text-content-${commentId}`);
-    const originalText = textSpan.dataset.raw;
+    if (!textSpan) return;
+    const originalText = textSpan.textContent || textSpan.dataset.raw || '';
     textSpan.innerHTML = `
       <span class="comment-edit-inline">
-        <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200" value="${originalText}">
-        <button class="btn btn-sm btn-primary py-0 px-2" onclick="saveCommentEdit(${commentId})">Salvar</button>
-        <button class="btn btn-sm btn-secondary py-0 px-2" onclick="loadCommunityDetailsFromButton()">✕</button>
+        <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200">
+        <button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId})">Salvar</button>
+        <button class="btn btn-sm btn-secondary py-0 px-2" type="button" onclick="loadCommunityDetailsFromButton()">✕</button>
       </span>`;
+    document.getElementById(`edit-comment-input-${commentId}`).value = originalText;
   };
 
   window.saveCommentEdit = async (commentId) => {
-    const content = document.getElementById(`edit-comment-input-${commentId}`).value.trim();
+    const content = document.getElementById(`edit-comment-input-${commentId}`)?.value.trim();
     if (!content) return;
     const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, {
       method: 'PATCH',

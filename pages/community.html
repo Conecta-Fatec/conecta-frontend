@@ -55,11 +55,10 @@
           <a href="profile.html" class="sidebar-link">Perfil</a>
           <a href="communities.html" class="sidebar-link active">Comunidades</a>
           <a href="friends.html" class="sidebar-link">Amizades</a>
-          <a href="#" class="sidebar-link">Notificações</a>
+          <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
         </nav>
-
-        <button class="new-post-btn" type="button" onclick="window.location.href='feed.html'">Novo post</button>
+        <button class="new-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newCommunityPostModal">Postar na comunidade</button>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
@@ -69,14 +68,14 @@
               <span id="sidebar-username">@usuario</span>
             </div>
           </a>
-          <button class="logout-btn" type="button" data-logout>Sair</button>
+          <a href="about.html" class="logout-btn about-btn">Sobre</a>
         </div>
       </aside>
 
       <section class="feed-content community-page-content">
         <header class="community-page-hero">
           <div class="community-page-header">
-            <div class="community-page-avatar" id="comm-avatar">--</div>
+            <button class="community-page-avatar profile-main-avatar" id="comm-avatar" type="button" data-photo-viewer="community" aria-label="Abrir foto da comunidade">--</button>
             <div class="community-page-info">
               <span class="feed-kicker">Comunidade</span>
               <h1 id="comm-name">Carregando...</h1>
@@ -98,7 +97,7 @@
             <article class="community-create-card" id="community-create-post-card">
               <div class="d-flex gap-3 align-items-start">
                 <div class="user-avatar" id="post-input-avatar">--</div>
-                <button class="form-control text-start text-muted bg-light border-0" style="border-radius:20px;padding:12px 20px;" data-bs-toggle="modal" data-bs-target="#newCommunityPostModal">
+                <button class="form-control text-start text-muted community-post-trigger" data-bs-toggle="modal" data-bs-target="#newCommunityPostModal">
                   Compartilhe algo com esta comunidade...
                 </button>
               </div>
@@ -129,7 +128,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body">
-          <textarea id="communityPostContent" class="form-control border-0 bg-light" rows="4" maxlength="200" placeholder="O que deseja compartilhar?" style="resize:none;outline:none;box-shadow:none;border-radius:12px;padding:16px;"></textarea>
+          <textarea id="communityPostContent" class="form-control border-0 community-modal-textarea" rows="4" maxlength="200" placeholder="O que deseja compartilhar?" style="resize:none;outline:none;box-shadow:none;border-radius:12px;padding:16px;"></textarea>
           <p id="communityPostError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
         <div class="modal-footer border-0">
@@ -170,6 +169,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/community.js"></script>
 </body>
 </html>

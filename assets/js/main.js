@@ -88,17 +88,25 @@ function getApiError(data, fallback = 'Não foi possível concluir a ação.') {
   return String(value);
 }
 
-async function loadLoggedUser() {
+let loggedUserPromise = null;
+
+async function loadLoggedUser(force = false) {
   const token = getAccessToken();
   if (!token) return null;
 
-  const response = await apiFetch('/api/users/me/');
-  if (!response.ok) return getLoggedUserFromStorage();
+  if (!force && loggedUserPromise) return loggedUserPromise;
 
-  const user = await response.json();
-  saveLoggedUser(user);
-  updateSidebarUser(user);
-  return user;
+  loggedUserPromise = (async () => {
+    const response = await apiFetch('/api/users/me/');
+    if (!response.ok) return getLoggedUserFromStorage();
+
+    const user = await response.json();
+    saveLoggedUser(user);
+    updateSidebarUser(user);
+    return user;
+  })();
+
+  return loggedUserPromise;
 }
 
 function updateSidebarUser(user) {
@@ -253,13 +261,12 @@ function setupMobileBottomNav() {
 
   const currentPage = window.location.pathname.split('/').pop() || 'feed.html';
   const items = [
-    { href: 'feed.html', label: 'Início', icon: '<svg viewBox="0 0 24 24"><path d="M3.5 10.8 12 3.5l8.5 7.3V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1v-9.2Z" /></svg>', pages: ['feed.html'] },
+    { href: 'feed.html', label: 'Home', icon: '<svg viewBox="0 0 24 24"><path d="M3.5 10.8 12 3.5l8.5 7.3V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1v-9.2Z" /></svg>', pages: ['feed.html'] },
     { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M7.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20.5a4.5 4.5 0 0 1 9 0m0 0a4.5 4.5 0 0 1 9 0" /></svg>', pages: ['communities.html', 'community.html'] },
-    { href: 'friends.html', label: 'Amigos', icon: '<svg viewBox="0 0 24 24"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-5.5 9a5.5 5.5 0 0 1 11 0m4-9v6m-3-3h6" /></svg>', pages: ['friends.html'] },
+    { href: 'friends.html', label: 'Amizades', icon: '<svg viewBox="0 0 24 24"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-5.5 9a5.5 5.5 0 0 1 11 0m4-9v6m-3-3h6" /></svg>', pages: ['friends.html'] },
     { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM4 21a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
-    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12v2m0 13v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M3 12h2m14 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>', pages: ['settings.html'] },
+    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12v2m0 13v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M3 12h2m14 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html'] },
   ];
-
   const nav = document.createElement('nav');
   nav.className = 'mobile-bottom-nav';
   nav.setAttribute('aria-label', 'Menu principal');
@@ -268,6 +275,71 @@ function setupMobileBottomNav() {
     return `<a href="${item.href}" class="${active}" aria-label="${item.label}">${item.icon}<span>${item.label}</span></a>`;
   }).join('');
   document.body.appendChild(nav);
+}
+
+
+function setupCookieBanner() {
+  const banner = document.getElementById('cookieBanner');
+  if (!banner) return;
+  const accepted = localStorage.getItem('conecta_cookie_consent') === 'accepted';
+  banner.classList.toggle('d-none', accepted);
+  document.getElementById('acceptCookiesBtn')?.addEventListener('click', () => {
+    localStorage.setItem('conecta_cookie_consent', 'accepted');
+    document.cookie = 'conecta_cookie_consent=accepted; max-age=31536000; path=/; SameSite=Lax';
+    banner.classList.add('d-none');
+  });
+}
+
+function postDestinationUrl(post = {}) {
+  const community = post.community || post.community_data || null;
+  const slug = community?.slug || post.community_slug;
+  const postId = post.id ? `&post=${encodeURIComponent(post.id)}` : '';
+  if (slug) return `community.html?slug=${encodeURIComponent(slug)}${postId}`;
+  return `feed.html${post.id ? `?post=${encodeURIComponent(post.id)}` : ''}`;
+}
+
+function setupProfilePhotoViewer() {
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-photo-viewer]');
+    if (!trigger) return;
+    const img = trigger.querySelector('img');
+    if (!img) return;
+    let modal = document.getElementById('photoViewerModal');
+    if (!modal) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal fade" id="photoViewerModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered photo-viewer-dialog">
+            <div class="modal-content photo-viewer-content">
+              <div class="modal-header border-0">
+                <h2 class="modal-title fs-6 fw-bold" id="photoViewerTitle">Foto</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body text-center">
+                <img id="photoViewerImage" class="photo-viewer-img" alt="Foto ampliada">
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+      modal = document.getElementById('photoViewerModal');
+    }
+    const modalImg = document.getElementById('photoViewerImage');
+    const modalTitle = document.getElementById('photoViewerTitle');
+    if (!modal || !modalImg) return;
+    modalImg.src = img.src;
+    modalImg.alt = img.alt || 'Foto ampliada';
+    if (modalTitle) modalTitle.textContent = trigger.dataset.photoTitle || 'Foto';
+    bootstrap.Modal.getOrCreateInstance(modal).show();
+  });
+}
+
+function setupRegisterRules() {
+  const rules = document.getElementById('registerRulesAccepted');
+  const button = document.getElementById('regSubmitBtn');
+  if (!rules || !button) return;
+  const sync = () => { button.disabled = !rules.checked; };
+  rules.addEventListener('change', sync);
+  sync();
 }
 
 applyTheme();
@@ -280,6 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupMobileBottomNav();
   initSettingsControls();
+  setupCookieBanner();
+  setupProfilePhotoViewer();
+  setupRegisterRules();
 
   if (window.location.pathname.includes('/pages/') && getAccessToken()) {
     const storedUser = getLoggedUserFromStorage();
@@ -360,6 +435,13 @@ if (registerForm) {
 
     if (password !== passwordConfirm) {
       errDiv.textContent = 'As senhas não coincidem. Tente novamente.';
+      errDiv.style.display = 'block';
+      return;
+    }
+
+    const rulesAccepted = document.getElementById('registerRulesAccepted');
+    if (rulesAccepted && !rulesAccepted.checked) {
+      errDiv.textContent = 'Você precisa aceitar as regras de convivência para criar a conta.';
       errDiv.style.display = 'block';
       return;
     }

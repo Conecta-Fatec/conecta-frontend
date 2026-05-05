@@ -1,3 +1,6 @@
+/* =========================================================
+   Perfil próprio: cabeçalho, listas limitadas e posts resumo
+========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
 
@@ -10,17 +13,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const nicknameEl = document.getElementById('profile-nickname');
   const courseEl = document.getElementById('profile-course');
   const friendsCountEl = document.getElementById('profile-friends-count');
+  const postsCountEl = document.getElementById('profile-posts-count');
   const postsContainer = document.getElementById('profile-posts-container');
-  const createdContainer = document.getElementById('created-communities-container');
-  const joinedContainer = document.getElementById('joined-communities-container');
+  const communitiesContainer = document.getElementById('profile-communities-container');
   const friendsContainer = document.getElementById('profile-friends-container');
   const openEditProfileBtn = document.getElementById('openEditProfileBtn');
   const saveProfileBtn = document.getElementById('saveProfileBtn');
 
-  function fillAvatarElement(element, user, sizeClass = 'community-page-avatar') {
+  const state = {
+    communitiesVisible: 3,
+    friendsVisible: 3,
+    communities: [],
+    friends: [],
+  };
+
+  function fillAvatarElement(element, user) {
     const name = userDisplayName(user);
     const photo = toApiUrl(userPhoto(user));
     element.classList.remove('has-image');
+    element.setAttribute('data-photo-viewer', 'profile');
+    element.dataset.photoTitle = name;
+
     if (photo) {
       element.innerHTML = `<img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}">`;
       element.classList.add('has-image');
@@ -45,86 +58,107 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function renderCommunities(container, communities) {
-    if (!communities || communities.length === 0) {
-      container.innerHTML = '<div class="api-empty-state">Nenhuma comunidade.</div>';
+  function mergeCommunities(user = {}) {
+    const created = normalizeArray(user.created_communities, 'results').map((community) => ({ ...community, __created: true }));
+    const joined = normalizeArray(user.joined_communities, 'results').map((community) => ({ ...community, __created: Boolean(community.is_creator) }));
+
+    return created.concat(joined)
+      .filter((community, index, list) => list.findIndex((item) => item.slug === community.slug) === index)
+      .map(normalizeCommunity)
+      .sort((a, b) => Number(Boolean(b.__created || b.is_creator)) - Number(Boolean(a.__created || a.is_creator)) || getCommunityMemberCount(b) - getCommunityMemberCount(a));
+  }
+
+  function renderCommunities() {
+    const communities = state.communities;
+    if (!communities.length) {
+      communitiesContainer.innerHTML = '<div class="api-empty-state">Nenhuma comunidade.</div>';
       return;
     }
 
-    container.innerHTML = communities.map((community) => {
+    const shown = communities.slice(0, state.communitiesVisible);
+    communitiesContainer.innerHTML = shown.map((community) => {
       const comm = normalizeCommunity(community);
+      const isCreated = Boolean(community.__created || community.is_creator);
       return `
         <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item">
           ${communityAvatarHTML(comm, 'side-community-avatar')}
           <div>
             <strong>${escapeHTML(comm.name)}</strong>
-            <span>${getCommunityMemberCount(comm)} participante(s)</span>
+            <span>${getCommunityMemberCount(comm)} participante(s)${isCreated ? ' · criada por você' : ''}</span>
           </div>
         </a>
       `;
     }).join('');
+
+    if (communities.length > shown.length) {
+      communitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="profileMoreCommunities">Ver mais</button>');
+      document.getElementById('profileMoreCommunities').addEventListener('click', () => {
+        state.communitiesVisible += 3;
+        renderCommunities();
+      });
+    }
   }
 
-  function renderFriends(friends) {
+  function renderFriends() {
+    const friends = state.friends;
     if (!friendsContainer) return;
-    if (!friends || friends.length === 0) {
+    if (!friends.length) {
       friendsContainer.innerHTML = '<div class="api-empty-state">Nenhuma amizade ainda.</div>';
       return;
     }
 
-    friendsContainer.innerHTML = friends.slice(0, 6).map((friend) => `
+    const shown = friends.slice(0, state.friendsVisible);
+    friendsContainer.innerHTML = shown.map((friend) => `
       <a href="${profileUrlFor(friend)}" class="side-community-item">
         ${avatarHTML(friend, 'side-community-avatar')}
         <div>
           <strong>${escapeHTML(userDisplayName(friend))}</strong>
-          <span>@${escapeHTML(friend.nickname)}</span>
+          <span>@${escapeHTML(friend.nickname || 'usuario')}</span>
         </div>
       </a>
     `).join('');
+
+    if (friends.length > shown.length) {
+      friendsContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="profileMoreFriends">Ver mais</button>');
+      document.getElementById('profileMoreFriends').addEventListener('click', () => {
+        state.friendsVisible += 3;
+        renderFriends();
+      });
+    }
   }
 
-  function renderProfilePostActions(post) {
+  function postCountsHTML(post = {}) {
     return `
-      <button class="post-action-btn ${post.liked_by_me ? 'text-primary-custom' : ''}" onclick="toggleProfilePostLike(${post.id}, this)" type="button" aria-label="Curtir publicação">
-        <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${post.liked_by_me ? 'currentColor' : 'none'};">
-          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z" />
-        </svg>
-        <span class="like-count">${postLikesCount(post)}</span>
-      </button>
-      <span class="post-action-btn" aria-label="Comentários">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
-        </svg>
-        <span>${postCommentsCount(post)}</span>
-      </span>
+      <span class="post-summary-metric">♡ ${postLikesCount(post)}</span>
+      <span class="post-summary-metric">▱ ${postCommentsCount(post)}</span>
     `;
   }
 
-  function renderPosts(posts) {
-    if (!posts || posts.length === 0) {
+  function renderPosts(posts = []) {
+    if (!posts.length) {
       postsContainer.innerHTML = '<div class="api-empty-state">Você ainda não publicou nada.</div>';
       return;
     }
 
     postsContainer.innerHTML = posts.map((post) => {
       const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
-      const communityLabel = post.community
-        ? `<a class="post-community-chip" href="community.html?slug=${encodeURIComponent(post.community.slug)}">Publicado em ${escapeHTML(post.community.name)}</a>`
-        : '<span class="post-community-chip">Publicado no feed</span>';
+      const communityLabel = ConectaPosts?.renderCommunityChip ? ConectaPosts.renderCommunityChip(post) : '';
+      const destination = postDestinationUrl(post);
 
       return `
-        <article class="post-card profile-post-item">
-          <a href="profile.html" class="avatar-link">${avatarHTML(currentUser)}</a>
+        <article class="post-card profile-post-item clickable-post" data-post-url="${escapeHTML(destination)}">
+          <a href="profile.html" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(currentUser)}</a>
           <div class="post-body">
             <div class="post-header">
               <div>
                 <strong class="post-author">${escapeHTML(userDisplayName(currentUser))}</strong>
-                <span>@${escapeHTML(currentUser.nickname)} ${when ? `· ${escapeHTML(when)}` : ''}</span>
+                <span class="post-username">@${escapeHTML(currentUser.nickname || 'usuario')}</span>
+                ${when ? `<span> · ${escapeHTML(when)}</span>` : ''}
               </div>
             </div>
             ${communityLabel}
             <p class="post-text">${escapeHTML(post.content)}</p>
-            <div class="post-actions">${renderProfilePostActions(post)}</div>
+            <div class="post-actions post-summary-actions">${postCountsHTML(post)}</div>
           </div>
         </article>
       `;
@@ -132,32 +166,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function loadFriendsCard(user) {
-    let friends = user.friends || user.friends_list || [];
+    let friends = normalizeArray(user.friends || user.friends_list, 'results');
     if (!friends.length) {
       try {
         const data = await apiJSON('/api/users/friends/');
-        friends = data.friends || data.results || data || [];
+        friends = normalizeArray(data, 'friends', 'results');
       } catch (error) {
         friends = [];
       }
     }
-    renderFriends(friends);
+    state.friends = friends;
+    renderFriends();
   }
 
   async function renderProfile(user) {
     currentUser = user;
+    const posts = normalizeArray(user.posts, 'results');
     const name = userDisplayName(user);
 
     fillAvatarElement(avatar, user);
     nameEl.textContent = name;
-    bioEl.textContent = user.bio || 'Sem bio.';
-    nicknameEl.textContent = `@${user.nickname}`;
-    courseEl.textContent = user.course || 'Curso não informado';
+    nicknameEl.textContent = `@${user.nickname || 'usuario'}`;
     friendsCountEl.textContent = `${user.friends_count || 0} amigo(s)`;
+    postsCountEl.textContent = `${user.posts_count ?? posts.length} post(s)`;
+    courseEl.textContent = user.course || 'Curso não informado';
+    bioEl.textContent = user.bio || 'Sem bio.';
 
-    renderCommunities(createdContainer, user.created_communities || []);
-    renderCommunities(joinedContainer, user.joined_communities || []);
-    renderPosts(user.posts || []);
+    state.communities = mergeCommunities(user);
+    renderCommunities();
+    renderPosts(posts);
     await loadFriendsCard(user);
   }
 
@@ -218,17 +255,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       editProfileModal.hide();
-      window.toggleProfilePostLike = async function toggleProfilePostLike(postId, btnElement) {
-    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
-  };
-
-  await loadProfile();
+      await loadLoggedUser(true);
+      await loadProfile();
     } catch (err) {
       console.error(err);
       error.textContent = 'Erro de conexão com o servidor.';
@@ -239,15 +267,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  window.toggleProfilePostLike = async function toggleProfilePostLike(postId, btnElement) {
-    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
-  };
+  postsContainer.addEventListener('click', (event) => {
+    const card = event.target.closest('[data-post-url]');
+    if (!card || event.target.closest('a,button')) return;
+    window.location.href = card.dataset.postUrl;
+  });
 
   await loadProfile();
 });

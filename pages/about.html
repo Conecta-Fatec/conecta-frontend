@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conecta Fatec | Perfil público</title>
+  <title>Conecta Fatec | Sobre</title>
+
+  <script>
+    if (!localStorage.getItem('access_token')) {
+      window.location.href = '../index.html';
+    }
+  </script>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../assets/css/style.css" />
@@ -46,13 +53,13 @@
     <div class="feed-layout">
       <aside class="sidebar desktop-sidebar">
         <a href="feed.html" class="sidebar-logo">
-          <img src="../assets/img/logo-light.png" alt="Logo" class="sidebar-logo-img logo-light" />
-          <img src="../assets/img/logo-dark.png" alt="Logo" class="sidebar-logo-img logo-dark" />
+          <img src="../assets/img/logo-light.png" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light" />
+          <img src="../assets/img/logo-dark.png" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-dark" />
         </a>
 
         <nav class="sidebar-nav">
           <a href="feed.html" class="sidebar-link">Feed</a>
-          <a href="profile.html" class="sidebar-link active">Perfil</a>
+          <a href="profile.html" class="sidebar-link">Perfil</a>
           <a href="communities.html" class="sidebar-link">Comunidades</a>
           <a href="friends.html" class="sidebar-link">Amizades</a>
           <a href="notifications.html" class="sidebar-link">Notificações</a>
@@ -67,60 +74,38 @@
               <span id="sidebar-username">@usuario</span>
             </div>
           </a>
-          <a href="about.html" class="logout-btn about-btn">Sobre</a>
+          <a href="about.html" class="logout-btn about-btn active">Sobre</a>
         </div>
       </aside>
 
-      <section class="feed-content community-page-content">
-        <header class="community-page-hero profile-hero-card">
-          <div class="profile-hero-layout">
-            <button class="community-page-avatar profile-main-avatar" id="public-avatar" type="button" data-photo-viewer="public-profile" aria-label="Abrir foto de perfil">--</button>
-            <div class="community-page-info profile-main-info">
-              <span class="feed-kicker">Perfil público</span>
-              <h1 id="public-name">Carregando...</h1>
-              <span id="public-nickname" class="nickname-badge">@usuario</span>
-              <div class="profile-stat-row">
-                <span id="public-friends-count">0 amigo(s)</span>
-                <span id="public-posts-count">0 post(s)</span>
-              </div>
-              <p id="public-course" class="profile-course-text">Curso não informado</p>
-              <p id="public-bio" class="profile-bio-text">Buscando informações do perfil...</p>
-            </div>
-            <button type="button" class="btn btn-primary fw-bold" id="friendActionBtn" style="display:none;">Adicionar</button>
+      <section class="feed-content">
+        <header class="feed-header feed-hero">
+          <div>
+            <span class="feed-kicker">Sobre</span>
+            <h1>Sobre o Conecta Fatec</h1>
+            <p>Uma rede social acadêmica criada para aproximar estudantes da Faculdade de Tecnologia de São Paulo.</p>
           </div>
         </header>
 
-        <div class="community-page-layout profile-page-layout">
-          <section class="community-main profile-api-grid">
-            <article class="profile-api-card">
-              <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
-                <h2 class="h5 fw-bold mb-0">Publicações</h2>
-                <small class="text-muted">Clique em um post para abrir no feed ou na comunidade.</small>
-              </div>
-              <div id="public-posts-container" class="d-flex flex-column gap-3">
-                <p class="text-muted">Carregando posts...</p>
-              </div>
-            </article>
-          </section>
-
-          <aside class="community-side profile-side-stack">
-            <section class="profile-api-card mb-3">
-              <h2 class="h5 fw-bold mb-3">Comunidades</h2>
-              <div id="public-communities-container" class="d-flex flex-column gap-2"></div>
-            </section>
-            <section class="profile-api-card">
-              <h2 class="h5 fw-bold mb-3">Amizades</h2>
-              <div id="public-friends-container" class="profile-friends-list"></div>
-            </section>
-          </aside>
-        </div>
+        <section class="settings-layout about-layout">
+          <article class="settings-card">
+            <h2>Objetivo do projeto</h2>
+            <p>O Conecta Fatec tem foco em conexões entre alunos. A proposta é facilitar amizades acadêmicas, comunidades de estudo, troca de ideias e divulgação de projetos dentro do ambiente universitário.</p>
+          </article>
+          <article class="settings-card">
+            <h2>Uso não comercial</h2>
+            <p>Este frontend faz parte de um projeto acadêmico em grupo. A plataforma não foi reformulada para fins comerciais e mantém a lógica já funcional do backend existente.</p>
+          </article>
+          <article class="settings-card">
+            <h2>Próximos passos</h2>
+            <p>As próximas melhorias podem incluir notificações, refinamento visual, ajustes de responsividade e otimizações graduais sem quebrar as funcionalidades atuais.</p>
+          </article>
+        </section>
       </section>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/post-ui.js"></script>
-  <script src="../assets/js/profileuser.js"></script>
 </body>
 </html>
