@@ -23,13 +23,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const state = {
     communitiesVisible: 3,
     friendsVisible: 3,
+    postsVisible: 5,
     communities: [],
     friends: [],
+    posts: [],
   };
 
   function fillAvatarElement(element, user) {
     const name = userDisplayName(user);
     const photo = toApiUrl(userPhoto(user));
+
     element.classList.remove('has-image');
     element.setAttribute('data-photo-viewer', 'profile');
     element.dataset.photoTitle = name;
@@ -37,61 +40,99 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (photo) {
       element.innerHTML = `<img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}">`;
       element.classList.add('has-image');
-    } else {
-      element.innerHTML = escapeHTML(getInitials(name));
+      return;
     }
+
+    element.innerHTML = escapeHTML(getInitials(name));
   }
 
   function setCourseValue(course) {
     const select = document.getElementById('editCourse');
     const value = course || '';
     const option = [...select.options].find((item) => item.value === value || item.textContent === value);
+
     if (option) {
       select.value = option.value;
       return;
     }
+
     if (value) {
       const customOption = new Option(value, value, true, true);
       select.add(customOption);
-    } else {
-      select.value = '';
+      return;
     }
+
+    select.value = '';
   }
 
   function mergeCommunities(user = {}) {
-    const created = normalizeArray(user.created_communities, 'results').map((community) => ({ ...community, __created: true }));
-    const joined = normalizeArray(user.joined_communities, 'results').map((community) => ({ ...community, __created: Boolean(community.is_creator) }));
+    const created = normalizeArray(user.created_communities, 'results').map((community) => ({
+      ...community,
+      __created: true,
+    }));
 
-    return created.concat(joined)
+    const joined = normalizeArray(user.joined_communities, 'results').map((community) => ({
+      ...community,
+      __created: Boolean(community.is_creator),
+    }));
+
+    return created
+      .concat(joined)
       .filter((community, index, list) => list.findIndex((item) => item.slug === community.slug) === index)
       .map(normalizeCommunity)
-      .sort((a, b) => Number(Boolean(b.__created || b.is_creator)) - Number(Boolean(a.__created || a.is_creator)) || getCommunityMemberCount(b) - getCommunityMemberCount(a));
+      .sort((a, b) => (
+        Number(Boolean(b.__created || b.is_creator)) - Number(Boolean(a.__created || a.is_creator))
+      ) || getCommunityMemberCount(b) - getCommunityMemberCount(a));
+  }
+
+  function postSourceHTML(post = {}) {
+    const community = post.community || post.community_data || null;
+    const communityName = (
+      community?.name ||
+      post.community_name ||
+      post.community_title ||
+      post.community_display_name ||
+      ''
+    );
+
+    if (communityName) {
+      return `<span class="profile-post-source">Feito em ${escapeHTML(communityName)}</span>`;
+    }
+
+    return '<span class="profile-post-source">Feito no feed</span>';
   }
 
   function renderCommunities() {
     const communities = state.communities;
+
     if (!communities.length) {
       communitiesContainer.innerHTML = '<div class="api-empty-state">Nenhuma comunidade.</div>';
       return;
     }
 
     const shown = communities.slice(0, state.communitiesVisible);
+
     communitiesContainer.innerHTML = shown.map((community) => {
       const comm = normalizeCommunity(community);
       const isCreated = Boolean(community.__created || community.is_creator);
+
       return `
         <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item">
           ${communityAvatarHTML(comm, 'side-community-avatar')}
           <div>
             <strong>${escapeHTML(comm.name)}</strong>
-            <span>${getCommunityMemberCount(comm)} participante(s)${isCreated ? ' · criada por você' : ''}</span>
+            <span>${getCommunityMemberCount(comm)} participante(s)${isCreated ? ' · criador' : ''}</span>
           </div>
         </a>
       `;
     }).join('');
 
     if (communities.length > shown.length) {
-      communitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="profileMoreCommunities">Ver mais</button>');
+      communitiesContainer.insertAdjacentHTML(
+        'beforeend',
+        '<button type="button" class="load-more-btn compact" id="profileMoreCommunities">Ver mais</button>'
+      );
+
       document.getElementById('profileMoreCommunities').addEventListener('click', () => {
         state.communitiesVisible += 3;
         renderCommunities();
@@ -101,16 +142,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderFriends() {
     const friends = state.friends;
+
     if (!friendsContainer) return;
+
     if (!friends.length) {
       friendsContainer.innerHTML = '<div class="api-empty-state">Nenhuma amizade ainda.</div>';
       return;
     }
 
     const shown = friends.slice(0, state.friendsVisible);
+
     friendsContainer.innerHTML = shown.map((friend) => `
-      <a href="${profileUrlFor(friend)}" class="side-community-item">
-        ${avatarHTML(friend, 'side-community-avatar')}
+      <a href="${profileUrlFor(friend)}" class="side-friend-item">
+        ${avatarHTML(friend, 'friend-card-avatar side-friend-avatar')}
         <div>
           <strong>${escapeHTML(userDisplayName(friend))}</strong>
           <span>@${escapeHTML(friend.nickname || 'usuario')}</span>
@@ -119,7 +163,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     `).join('');
 
     if (friends.length > shown.length) {
-      friendsContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="profileMoreFriends">Ver mais</button>');
+      friendsContainer.insertAdjacentHTML(
+        'beforeend',
+        '<button type="button" class="load-more-btn compact" id="profileMoreFriends">Ver mais</button>'
+      );
+
       document.getElementById('profileMoreFriends').addEventListener('click', () => {
         state.friendsVisible += 3;
         renderFriends();
@@ -127,27 +175,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function postCountsHTML(post = {}) {
-    return `
-      <span class="post-summary-metric">♡ ${postLikesCount(post)}</span>
-      <span class="post-summary-metric">▱ ${postCommentsCount(post)}</span>
-    `;
-  }
+  function renderPosts() {
+    const posts = state.posts || [];
 
-  function renderPosts(posts = []) {
     if (!posts.length) {
       postsContainer.innerHTML = '<div class="api-empty-state">Você ainda não publicou nada.</div>';
       return;
     }
 
-    postsContainer.innerHTML = posts.map((post) => {
+    const shown = posts.slice(0, state.postsVisible);
+
+    postsContainer.innerHTML = shown.map((post) => {
       const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
-      const communityLabel = ConectaPosts?.renderCommunityChip ? ConectaPosts.renderCommunityChip(post) : '';
       const destination = postDestinationUrl(post);
 
       return `
         <article class="post-card profile-post-item clickable-post" data-post-url="${escapeHTML(destination)}">
           <a href="profile.html" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(currentUser)}</a>
+
           <div class="post-body">
             <div class="post-header">
               <div>
@@ -156,17 +201,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ${when ? `<span> · ${escapeHTML(when)}</span>` : ''}
               </div>
             </div>
-            ${communityLabel}
+
             <p class="post-text">${escapeHTML(post.content)}</p>
-            <div class="post-actions post-summary-actions">${postCountsHTML(post)}</div>
+            ${postSourceHTML(post)}
           </div>
         </article>
       `;
     }).join('');
+
+    if (posts.length > shown.length) {
+      postsContainer.insertAdjacentHTML(
+        'beforeend',
+        '<div class="profile-posts-footer"><button type="button" class="load-more-btn compact" id="profileMorePosts">Ver mais</button></div>'
+      );
+
+      document.getElementById('profileMorePosts').addEventListener('click', () => {
+        state.postsVisible += 5;
+        renderPosts();
+      });
+
+      return;
+    }
+
+    postsContainer.insertAdjacentHTML(
+      'beforeend',
+      '<div class="feed-footer profile-posts-end">Fim dos posts</div>'
+    );
   }
 
   async function loadFriendsCard(user) {
     let friends = normalizeArray(user.friends || user.friends_list, 'results');
+
     if (!friends.length) {
       try {
         const data = await apiJSON('/api/users/friends/');
@@ -175,16 +240,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         friends = [];
       }
     }
+
     state.friends = friends;
     renderFriends();
   }
 
   async function renderProfile(user) {
     currentUser = user;
+
     const posts = normalizeArray(user.posts, 'results');
     const name = userDisplayName(user);
 
     fillAvatarElement(avatar, user);
+
     nameEl.textContent = name;
     nicknameEl.textContent = `@${user.nickname || 'usuario'}`;
     friendsCountEl.textContent = `${user.friends_count || 0} amigo(s)`;
@@ -193,8 +261,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     bioEl.textContent = user.bio || 'Sem bio.';
 
     state.communities = mergeCommunities(user);
+    state.posts = posts;
+    state.postsVisible = 5;
+
     renderCommunities();
-    renderPosts(posts);
+    renderPosts();
+
     await loadFriendsCard(user);
   }
 
@@ -235,7 +307,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     formData.append('nickname', document.getElementById('editNickname').value.trim());
     formData.append('course', document.getElementById('editCourse').value);
     formData.append('bio', document.getElementById('editBio').value.trim());
-    if (photo) formData.append('photo', photo);
+
+    if (photo) {
+      formData.append('photo', photo);
+    }
 
     error.style.display = 'none';
     saveProfileBtn.disabled = true;
@@ -246,6 +321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         method: 'PATCH',
         body: formData,
       });
+
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -255,6 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       editProfileModal.hide();
+
       await loadLoggedUser(true);
       await loadProfile();
     } catch (err) {
@@ -269,7 +346,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   postsContainer.addEventListener('click', (event) => {
     const card = event.target.closest('[data-post-url]');
+
     if (!card || event.target.closest('a,button')) return;
+
     window.location.href = card.dataset.postUrl;
   });
 

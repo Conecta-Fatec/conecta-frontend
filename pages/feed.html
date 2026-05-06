@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conecta Fatec | Mural</title>
+  <title>Conecta Fatec | Feed</title>
 
   <script>
     if (!localStorage.getItem('access_token')) {
@@ -78,6 +78,7 @@
           <a href="friends.html" class="sidebar-link">Amizades</a>
           <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
+          <a href="about.html" class="sidebar-link">Sobre</a>
         </nav>
 
         <button class="new-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newPostModal">
@@ -92,14 +93,13 @@
             <span id="sidebar-username">@usuario</span>
           </div>
         </a>
-          <a href="about.html" class="logout-btn about-btn">Sobre</a>
         </div>
       </aside>
 
       <section class="feed-content">
         <header class="feed-header feed-hero feed-hero-actions">
           <div>
-            <span class="feed-kicker">Conecta Fatec</span>
+            <span class="feed-kicker">Feed</span>
             <h1>Feed acadêmico</h1>
             <p>Acompanhe publicações e atualizações dos alunos.</p>
           </div>
@@ -110,7 +110,6 @@
         </header>
 
         <article class="feed-create-card" id="feed-create-post-card" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#newPostModal">
-          <div class="user-avatar" id="post-input-avatar">--</div>
           <div class="feed-create-card-text">
             <strong>Criar publicação</strong>
             <span>Compartilhe uma ideia, dúvida ou atualização com os alunos.</span>

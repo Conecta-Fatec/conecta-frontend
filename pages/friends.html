@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Conecta Fatec | Amizades</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
   <script>
     tailwind.config = {
       theme: {
@@ -18,6 +18,7 @@
       }
     };
   </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
@@ -28,6 +29,7 @@
       const themeKey = 'conecta_theme_mode';
       const fontFamilyKey = 'conecta_font_family';
       const fontSizeKey = 'conecta_font_size';
+
       const fontFamilies = {
         inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -35,7 +37,14 @@
         mono: '"Cascadia Code", "Fira Code", Consolas, monospace',
         rounded: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif'
       };
-      const fontSizes = { small: '14px', normal: '16px', large: '18px', xlarge: '20px' };
+
+      const fontSizes = {
+        small: '14px',
+        normal: '16px',
+        large: '18px',
+        xlarge: '20px'
+      };
+
       const savedTheme = localStorage.getItem(themeKey);
       const resolvedTheme = savedTheme === 'dark' ? 'dark' : 'light';
       const fontFamily = fontFamilies[localStorage.getItem(fontFamilyKey)] || fontFamilies.inter;
@@ -46,6 +55,7 @@
 
       function applyBodyPreferences() {
         if (!document.body) return;
+
         document.body.classList.remove('theme-light', 'theme-dark');
         document.body.classList.add('theme-' + resolvedTheme);
         document.body.style.setProperty('--app-font-family', fontFamily);
@@ -56,9 +66,9 @@
       document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
     })();
   </script>
+
   <main class="feed-page">
     <div class="feed-layout">
-
       <aside class="sidebar desktop-sidebar">
         <a href="feed.html" class="sidebar-logo">
           <img src="../assets/img/logo-light.png" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light" />
@@ -72,17 +82,17 @@
           <a href="friends.html" class="sidebar-link active">Amizades</a>
           <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
+          <a href="about.html" class="sidebar-link">Sobre</a>
         </nav>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
-          <div class="user-avatar" id="sidebar-avatar">--</div>
-          <div>
-            <strong id="sidebar-name">Carregando...</strong>
-            <span id="sidebar-username">@usuario</span>
-          </div>
-        </a>
-          <a href="about.html" class="logout-btn about-btn">Sobre</a>
+            <div class="user-avatar" id="sidebar-avatar">--</div>
+            <div>
+              <strong id="sidebar-name">Carregando...</strong>
+              <span id="sidebar-username">@usuario</span>
+            </div>
+          </a>
         </div>
       </aside>
 
@@ -105,18 +115,33 @@
               </div>
             </section>
 
-            <div class="community-create-box friend-request-card">
-              <div class="community-create-box-text flex-grow-1">
-                <strong>Pesquisar ou adicionar amizade</strong>
-                <span>Digite o nickname do aluno para buscar ou enviar uma solicitação.</span>
+            <div
+              class="community-create-box friend-add-card is-clickable"
+              role="button"
+              tabindex="0"
+              data-bs-toggle="modal"
+              data-bs-target="#addFriendModal"
+            >
+              <div class="community-create-box-text">
+                <strong>Adicionar pelo nickname</strong>
+                <span>Envie uma solicitação diretamente para um aluno usando o nickname.</span>
               </div>
-              <div class="friend-request-form">
-                <input type="search" id="targetNickname" class="form-control custom-input" placeholder="Nickname ou nome do usuário">
-                <button type="button" class="community-create-box-btn" onclick="sendFriendRequest()">Enviar solicitação</button>
-              </div>
+
+              <button class="community-create-box-btn" type="button">
+                Adicionar amizade
+              </button>
             </div>
-            <p id="friendError" class="text-danger mt-2 small" style="display:none;"></p>
-            <p id="friendSuccess" class="text-success mt-2 small" style="display:none;"></p>
+
+            <div class="search-box-row friend-search-row">
+              <input
+                type="search"
+                id="friendSearch"
+                class="form-control custom-input"
+                placeholder="Pesquisar amizades pelo nome ou nickname..."
+                aria-label="Pesquisar amizades"
+              />
+            </div>
+
           </div>
         </header>
 
@@ -128,6 +153,7 @@
                 <p>Usuários que já fazem parte da sua rede.</p>
               </div>
             </div>
+
             <div class="friends-grid communities-grid" id="my-friends-container">
               <p class="text-muted py-3">Carregando amigos...</p>
             </div>
@@ -139,14 +165,17 @@
                 <h2>Solicitações</h2>
                 <p>Acompanhe pedidos recebidos e enviados.</p>
               </div>
+
               <div class="feed-tabs" role="tablist">
                 <button class="feed-tab active" id="requests-received-tab" type="button">Recebidas</button>
                 <button class="feed-tab" id="requests-sent-tab" type="button">Enviadas</button>
               </div>
             </div>
+
             <div class="friends-grid communities-grid requests-grid" id="received-requests-container">
               <p class="text-muted py-3">Carregando solicitações...</p>
             </div>
+
             <div class="friends-grid communities-grid requests-grid d-none" id="sent-requests-container">
               <p class="text-muted py-3">Carregando solicitações enviadas...</p>
             </div>
@@ -159,18 +188,54 @@
                 <p>Encontre novos alunos para se conectar.</p>
               </div>
             </div>
+
             <div class="friends-grid communities-grid" id="explore-friends-container">
-              <p class="text-muted py-3">Digite um nickname para encontrar alunos.</p>
+              <p class="text-muted py-3">Digite um nickname para encontrar alunos ou enviar uma solicitação.</p>
             </div>
           </section>
         </div>
       </section>
     </div>
   </main>
+    <div class="modal fade" id="addFriendModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content post-modal-content">
+          <div class="modal-header post-modal-header">
+            <h2 class="modal-title fs-5">Adicionar amizade</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
 
+          <div class="modal-body post-modal-body">
+            <div class="community-form-area">
+              <label for="targetNickname">Nickname do usuário</label>
+
+              <input
+                type="search"
+                id="targetNickname"
+                maxlength="40"
+                placeholder="Ex: kevinsramos"
+                autocomplete="off"
+              />
+            </div>
+
+            <p id="friendError" class="text-danger mt-2 small" style="display:none;"></p>
+            <p id="friendSuccess" class="text-success mt-2 small" style="display:none;"></p>
+          </div>
+
+          <div class="modal-footer post-modal-footer">
+            <button type="button" class="modal-cancel-btn" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+
+            <button type="button" class="modal-publish-btn" onclick="sendFriendRequest()">
+              Enviar solicitação
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/friends.js"></script>
 </body>
-
 </html>

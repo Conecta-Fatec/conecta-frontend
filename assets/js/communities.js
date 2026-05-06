@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     createdCount: 0,
     totalVisible: 0,
     query: '',
-    myVisible: 4,
-    exploreVisible: 4,
+    myVisible: 3,
+    exploreVisible: 3,
   };
 
   function normalizeCommunitiesData(data = {}) {
@@ -47,27 +47,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function matchesSearch(community = {}) {
     if (!state.query) return true;
+
     const haystack = `${community.name || ''} ${community.description || ''}`.toLowerCase();
     return haystack.includes(state.query);
   }
 
+  function communityCardContent(comm, badge, actionHTML = '') {
+    return `
+      ${communityAvatarHTML(comm, 'community-card-avatar')}
+
+      <div class="community-card-body">
+        <span class="community-card-tag">${badge}</span>
+
+        <h3>${escapeHTML(comm.name)}</h3>
+
+        <p>${escapeHTML(comm.description || 'Sem descrição.')}</p>
+
+        <div class="community-card-meta">
+          <span>${getCommunityMemberCount(comm)} participante(s)</span>
+        </div>
+
+        ${actionHTML}
+      </div>
+    `;
+  }
+
   function renderCommunityCard(community, type) {
     const comm = normalizeCommunity(community);
-    const badge = comm.is_creator ? 'Criada por você' : type === 'mine' ? 'Participante' : 'Aberta';
-    const action = type === 'mine'
-      ? `<a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="community-card-btn">Ver comunidade</a>`
-      : `<button class="community-card-btn" type="button" data-join-community="${escapeHTML(comm.slug)}">Entrar</button>`;
+    const isMine = type === 'mine';
+    const badge = comm.is_creator ? 'Criada por você' : isMine ? 'Participante' : 'Aberta';
+    const communityUrl = `community.html?slug=${encodeURIComponent(comm.slug)}`;
+
+    if (isMine) {
+      return `
+        <a href="${communityUrl}" class="community-card community-card-link" aria-label="Abrir comunidade ${escapeHTML(comm.name)}">
+          ${communityCardContent(comm, badge, '<span class="community-text-link">Ver comunidade</span>')}
+        </a>
+      `;
+    }
 
     return `
       <article class="community-card">
-        ${communityAvatarHTML(comm, 'community-card-avatar')}
-        <div class="community-card-body">
-          <span class="community-card-tag">${badge}</span>
-          <h3>${escapeHTML(comm.name)}</h3>
-          <p>${escapeHTML(comm.description || 'Sem descrição.')}</p>
-          <div class="community-card-meta"><span>${getCommunityMemberCount(comm)} participante(s)</span></div>
-          ${action}
-        </div>
+        ${communityCardContent(
+          comm,
+          badge,
+          `<button class="community-card-btn" type="button" data-join-community="${escapeHTML(comm.slug)}">Entrar</button>`
+        )}
       </article>
     `;
   }
@@ -137,11 +162,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function joinCommunity(slug) {
     try {
       const response = await apiFetch(`/api/posts/communities/${slug}/join/`, { method: 'POST' });
+
       if (!response.ok) {
         const data = await response.json().catch(() => null);
         alert(getApiError(data, 'Erro ao entrar na comunidade.'));
         return;
       }
+
       await loadCommunities();
     } catch (error) {
       console.error(error);
@@ -151,7 +178,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.addEventListener('click', (event) => {
     const joinButton = event.target.closest('[data-join-community]');
+
     if (joinButton) {
+      event.preventDefault();
+      event.stopPropagation();
       joinCommunity(joinButton.dataset.joinCommunity);
       return;
     }
@@ -159,15 +189,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const moreButton = event.target.closest('[data-more]');
     if (!moreButton) return;
 
-    if (moreButton.dataset.more === 'my-communities') state.myVisible += 4;
-    if (moreButton.dataset.more === 'explore-communities') state.exploreVisible += 4;
+    if (moreButton.dataset.more === 'my-communities') state.myVisible += 3;
+    if (moreButton.dataset.more === 'explore-communities') state.exploreVisible += 3;
+
     renderCommunities();
   });
 
   searchInput?.addEventListener('input', (event) => {
     state.query = event.target.value.trim().toLowerCase();
-    state.myVisible = 4;
-    state.exploreVisible = 4;
+    state.myVisible = 3;
+    state.exploreVisible = 3;
     renderCommunities();
   });
 
@@ -190,6 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       try {
         let body;
+
         if (photo) {
           body = new FormData();
           body.append('name', name);
@@ -214,7 +246,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('communityName').value = '';
         document.getElementById('communityBio').value = '';
-        if (document.getElementById('communityPhoto')) document.getElementById('communityPhoto').value = '';
+
+        if (document.getElementById('communityPhoto')) {
+          document.getElementById('communityPhoto').value = '';
+        }
+
         bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityModal')).hide();
         await loadCommunities();
       } catch (error) {

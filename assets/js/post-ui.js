@@ -51,12 +51,18 @@
     return result;
   }
 
-  function commentAuthorHTML(author = {}) {
+  function commentAuthorHTML(author = {}, item = {}) {
+    const when = relativeTime(item.created_at || item.updated_at, 'feito');
+
     return `
-      <span class="comment-meta">
-        ${userLinkHTML(author, userDisplayName(author), 'comment-author')}
-        <span class="comment-username">@${escapeHTML(author.nickname || 'usuario')}</span>
-      </span>
+      <div class="comment-header">
+        <div class="comment-title">
+          ${userLinkHTML(author, userDisplayName(author), 'comment-author')}
+          <span class="comment-username">@${escapeHTML(author.nickname || 'usuario')}</span>
+          ${when ? `<span class="comment-date"> · ${escapeHTML(when)}</span>` : ''}
+          ${item.edited ? '<small class="comment-date"> · (editado)</small>' : ''}
+        </div>
+      </div>
     `;
   }
 
@@ -73,17 +79,21 @@
 
   function renderReplyItem(reply = {}, index = 0, parentId = '') {
     const author = reply.author || {};
+
     return `
       <div class="comment-reply-inline ${index === 0 ? 'active' : 'd-none'}" data-reply-item-for="${parentId}">
         <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author, 'comment-avatar comment-avatar-small')}</a>
+
         <div class="comment-body">
-          <p class="comment-text-line">
-            ${commentAuthorHTML(author)}
-            <span id="comment-text-content-${reply.id}" class="comment-content" data-raw="${escapeHTML(reply.content)}">${escapeHTML(reply.content)}</span>
-            ${reply.edited ? '<small class="text-muted">(editado)</small>' : ''}
+          ${commentAuthorHTML(author, reply)}
+
+          <p id="comment-text-content-${reply.id}" class="comment-text-line comment-content" data-raw="${escapeHTML(reply.content)}">
+            ${escapeHTML(reply.content)}
           </p>
+
           <div class="comment-actions">
             ${renderCommentLikeButton(reply, false)}
+
             ${reply.author?.nickname === window.ConectaPosts.currentUserNickname ? `
               <button class="comment-action" onclick="enableCommentEdit(${reply.id})" type="button">Editar</button>
               <button class="comment-action text-danger" onclick="deleteComment(${reply.id})" type="button">Excluir</button>
@@ -104,26 +114,32 @@
     return `
       <div class="post-comment comment-flat">
         <a href="${profileUrlFor(author)}" class="avatar-link">${avatarHTML(author, 'comment-avatar')}</a>
+
         <div class="comment-body">
-          <p class="comment-text-line">
-            ${commentAuthorHTML(author)}
-            <span id="comment-text-content-${comment.id}" class="comment-content" data-raw="${escapeHTML(comment.content)}">${escapeHTML(comment.content)}</span>
-            ${comment.edited ? '<small class="text-muted">(editado)</small>' : ''}
+          ${commentAuthorHTML(author, comment)}
+
+          <p id="comment-text-content-${comment.id}" class="comment-text-line comment-content" data-raw="${escapeHTML(comment.content)}">
+            ${escapeHTML(comment.content)}
           </p>
+
           <div class="comment-actions">
             ${renderCommentLikeButton(comment, options.canInteract === false)}
+
             ${canReply ? `<button class="comment-action" onclick="toggleReplyInput(${comment.id})" type="button">Responder${replyCount ? ` (${replyCount})` : ''}</button>` : ''}
+
             ${isOwner ? `
               <button class="comment-action" onclick="enableCommentEdit(${comment.id})" type="button">Editar</button>
               <button class="comment-action text-danger" onclick="deleteComment(${comment.id})" type="button">Excluir</button>
             ` : ''}
           </div>
+
           ${canReply ? `
             <div id="reply-box-${comment.id}" class="reply-box d-none">
               <input type="text" id="reply-input-${comment.id}" class="form-control custom-input form-control-sm" maxlength="200" placeholder="Responda a ${escapeHTML(userDisplayName(author))}...">
               <button class="btn login-btn py-1 px-2" type="button" onclick="addReply(${comment.id})">Enviar</button>
             </div>
           ` : ''}
+
           ${replies.length ? `
             <div class="comment-replies-one" data-reply-group="${comment.id}">
               ${replies.map((reply, index) => renderReplyItem(reply, index, comment.id)).join('')}

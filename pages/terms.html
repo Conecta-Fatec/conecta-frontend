@@ -28,7 +28,7 @@
 
   <main class="doc-page">
     <div class="doc-shell">
-      <a href="../index.html" class="doc-back-link">← Voltar para o login</a>
+      <a href="#" class="doc-back-link" id="docBackLink">Voltar</a>
 
       <section class="doc-card">
         <h1>Termos de Uso</h1>
@@ -69,5 +69,24 @@
       </section>
     </div>
   </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const link = document.getElementById('docBackLink');
+      if (!link) return;
+
+      const isLogged = Boolean(localStorage.getItem('access_token'));
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get('from');
+
+      if (isLogged && from === 'about') {
+        link.href = 'about.html';
+        link.textContent = '← Voltar para Sobre';
+        return;
+      }
+
+      link.href = '../index.html';
+      link.textContent = '← Voltar para o login';
+    });
+  </script>
 </body>
 </html>

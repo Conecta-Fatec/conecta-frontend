@@ -14,11 +14,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   const exploreContainer = document.getElementById('explore-friends-container');
   const receivedContainer = document.getElementById('received-requests-container');
   const sentContainer = document.getElementById('sent-requests-container');
-  const searchInput = document.getElementById('targetNickname');
+  const addInput = document.getElementById('targetNickname');
+  const searchInput = document.getElementById('friendSearch');
   const friendError = document.getElementById('friendError');
   const friendSuccess = document.getElementById('friendSuccess');
   const requestsReceivedTab = document.getElementById('requests-received-tab');
   const requestsSentTab = document.getElementById('requests-sent-tab');
+
+  const addFriendModal = document.getElementById('addFriendModal');
+
+  addFriendModal?.addEventListener('show.bs.modal', () => {
+    if (addInput) addInput.value = '';
+
+    if (friendError) {
+      friendError.textContent = '';
+      friendError.style.display = 'none';
+    }
+
+    if (friendSuccess) {
+      friendSuccess.textContent = '';
+      friendSuccess.style.display = 'none';
+    }
+
+    setTimeout(() => addInput?.focus(), 180);
+  });
 
   const state = {
     friends: [],
@@ -26,39 +45,93 @@ document.addEventListener('DOMContentLoaded', async () => {
     received: [],
     sent: [],
     query: '',
-    friendsVisible: 4,
-    exploreVisible: 4,
+    friendsVisible: 3,
+    exploreVisible: 3,
     totalUsers: null,
     requestMode: 'received',
   };
 
   function normalizeList(data, key) {
     if (Array.isArray(data)) return data;
-    return data?.[key] || data?.results || data?.items || [];
+    return data?.[key] || data?.results || data?.items || data?.users || [];
   }
 
   function isSameUser(a = {}, b = {}) {
-    return Boolean((a.id && b.id && Number(a.id) === Number(b.id)) || (a.nickname && b.nickname && a.nickname === b.nickname));
+    return Boolean(
+      (a.id && b.id && Number(a.id) === Number(b.id)) ||
+      (a.nickname && b.nickname && a.nickname === b.nickname)
+    );
   }
 
-  function friendCard(user = {}, actionsHTML = '', tag = '') {
+  function userCardContent(user = {}, actionHTML = '', tag = '') {
     const name = userDisplayName(user);
+
     return `
-      <article class="friend-card community-card friend-community-card">
-        <a href="${profileUrlFor(user)}" class="avatar-link">${avatarHTML(user, 'friend-card-avatar user-avatar community-card-avatar')}</a>
-        <div class="friend-card-body community-card-body">
-          ${tag ? `<span class="community-card-tag">${tag}</span>` : ''}
-          <a href="${profileUrlFor(user)}" class="friend-card-link"><h3 class="friend-card-name">${escapeHTML(name)}</h3></a>
-          <span class="nickname-text">@${escapeHTML(user.nickname || 'usuario')}</span>
-          <p>${escapeHTML(user.bio || user.course || 'Sem bio')}</p>
-          ${actionsHTML}
+      ${avatarHTML(user, 'friend-card-avatar')}
+
+      <div class="friend-card-body community-card-body">
+        ${tag ? `<span class="community-card-tag">${tag}</span>` : ''}
+
+        <h3 class="friend-card-name">${escapeHTML(name)}</h3>
+
+        <span class="nickname-text">@${escapeHTML(user.nickname || 'usuario')}</span>
+
+        ${user.course ? `<p class="friend-card-course">${escapeHTML(user.course)}</p>` : ''}
+
+        ${actionHTML}
+      </div>
+    `;
+  }
+
+  function friendCard(user = {}) {
+    return `
+      <a href="${profileUrlFor(user)}" class="friend-card community-card friend-card-link-card" aria-label="Abrir perfil de ${escapeHTML(userDisplayName(user))}">
+        ${userCardContent(user, '<span class="friend-text-link">Ver perfil</span>')}
+      </a>
+    `;
+  }
+
+  function exploreCard(user = {}) {
+    const sentNicknames = new Set(state.sent.map((req) => req.receiver?.nickname).filter(Boolean));
+    const isSent = sentNicknames.has(user.nickname);
+
+    return `
+      <article class="friend-card community-card">
+        ${userCardContent(
+          user,
+          isSent
+            ? '<span class="friend-status-pill">Solicitação enviada</span>'
+            : `<button type="button" class="community-card-btn" onclick="sendFriendRequest('${escapeHTML(user.nickname)}')">Adicionar</button>`,
+          'Aluno'
+        )}
+      </article>
+    `;
+  }
+
+  function requestCard(user = {}, type = 'received') {
+    const actions = type === 'received'
+      ? `
+        <div class="request-actions">
+          <button type="button" class="friend-card-btn" onclick="acceptFriend('${escapeHTML(user.nickname)}')">Aceitar</button>
+          <button type="button" class="friend-card-btn cancel-request-btn" onclick="rejectFriend('${escapeHTML(user.nickname)}')">Recusar</button>
         </div>
+      `
+      : `
+        <div class="request-actions">
+          <button type="button" class="friend-card-btn cancel-request-btn" onclick="cancelRequest('${escapeHTML(user.nickname)}')">Cancelar</button>
+        </div>
+      `;
+
+    return `
+      <article class="friend-card community-card request-card">
+        ${userCardContent(user, actions, type === 'received' ? 'Recebida' : 'Enviada')}
       </article>
     `;
   }
 
   function matchesSearch(user = {}) {
     if (!state.query) return true;
+
     const haystack = `${user.full_name || ''} ${user.first_name || ''} ${user.last_name || ''} ${user.nickname || ''} ${user.course || ''}`.toLowerCase();
     return haystack.includes(state.query);
   }
@@ -90,15 +163,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderFriends() {
     const filteredFriends = state.friends.filter(matchesSearch);
+
     renderLimited(
       friendsContainer,
       filteredFriends,
       state.friendsVisible,
-      (friend) => friendCard(
-        friend,
-        `<button type="button" class="friend-card-btn remove-friend-btn" onclick="removeFriend('${escapeHTML(friend.nickname)}')">Remover amizade</button>`,
-        'Amigo'
-      ),
+      friendCard,
       'Você ainda não tem amigos adicionados.',
       'mine'
     );
@@ -106,7 +176,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderExplore() {
     const friendNicknames = new Set(state.friends.map((friend) => friend.nickname).filter(Boolean));
-    const sentNicknames = new Set(state.sent.map((req) => req.receiver?.nickname).filter(Boolean));
     const filteredExplore = state.explore
       .filter((user) => user.nickname && !friendNicknames.has(user.nickname))
       .filter(matchesSearch);
@@ -115,13 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       exploreContainer,
       filteredExplore,
       state.exploreVisible,
-      (user) => friendCard(
-        user,
-        sentNicknames.has(user.nickname)
-          ? '<span class="friend-status-pill">Solicitação enviada</span>'
-          : `<button type="button" class="community-card-btn" onclick="sendFriendRequest('${escapeHTML(user.nickname)}')">Adicionar</button>`,
-        'Aluno'
-      ),
+      exploreCard,
       state.query ? 'Nenhum usuário encontrado para a busca.' : 'Digite um nickname para encontrar alunos ou enviar uma solicitação.',
       'explore'
     );
@@ -137,24 +200,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!state.received.length) {
       receivedContainer.innerHTML = '<div class="api-empty-state">Nenhuma solicitação recebida.</div>';
     } else {
-      receivedContainer.innerHTML = state.received.map((req) => friendCard(
-        req.sender,
-        `<div class="d-flex gap-2 mt-2 flex-wrap">
-          <button type="button" class="friend-card-btn" onclick="acceptFriend('${escapeHTML(req.sender.nickname)}')">Aceitar</button>
-          <button type="button" class="friend-card-btn cancel-request-btn" onclick="rejectFriend('${escapeHTML(req.sender.nickname)}')">Recusar</button>
-        </div>`,
-        'Recebida'
-      )).join('');
+      receivedContainer.innerHTML = state.received
+        .map((req) => requestCard(req.sender, 'received'))
+        .join('');
     }
 
     if (!state.sent.length) {
       sentContainer.innerHTML = '<div class="api-empty-state">Nenhuma solicitação enviada.</div>';
     } else {
-      sentContainer.innerHTML = state.sent.map((req) => friendCard(
-        req.receiver,
-        `<button type="button" class="friend-card-btn cancel-request-btn" onclick="cancelRequest('${escapeHTML(req.receiver.nickname)}')">Cancelar pedido</button>`,
-        'Enviada'
-      )).join('');
+      sentContainer.innerHTML = state.sent
+        .map((req) => requestCard(req.receiver, 'sent'))
+        .join('');
     }
   }
 
@@ -182,18 +238,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function loadExploreUsers(query = '') {
     const encoded = encodeURIComponent(query);
+
     try {
       const data = await tryApiJSON([
         `/api/users/search/?q=${encoded}`,
         `/api/users/?search=${encoded}`,
         `/api/users/all/?search=${encoded}`,
       ]);
+
       const users = normalizeList(data, 'users');
       const me = getLoggedUserFromStorage();
+
       state.explore = users.filter((user) => !isSameUser(user, me));
       state.totalUsers = data.total_users ?? data.users_count ?? data.count ?? (users.length || state.totalUsers);
     } catch (error) {
-      // Se a API não tiver listagem pública de usuários, a página continua útil pelo envio por nickname.
       if (query) state.explore = [];
       state.totalUsers = state.totalUsers ?? null;
     }
@@ -201,7 +259,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function refreshAll() {
     try {
-      await Promise.all([loadFriends(), loadReceivedRequests(), loadSentRequests(), loadExploreUsers(state.query)]);
+      await Promise.all([
+        loadFriends(),
+        loadReceivedRequests(),
+        loadSentRequests(),
+        loadExploreUsers(state.query),
+      ]);
+
       renderAll();
     } catch (error) {
       console.error(error);
@@ -210,11 +274,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   let searchTimer = null;
+
   searchInput?.addEventListener('input', () => {
     state.query = searchInput.value.trim().toLowerCase();
-    state.friendsVisible = 4;
-    state.exploreVisible = 4;
+    state.friendsVisible = 3;
+    state.exploreVisible = 3;
+
     clearTimeout(searchTimer);
+
     searchTimer = setTimeout(async () => {
       await loadExploreUsers(state.query);
       renderAll();
@@ -223,9 +290,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.addEventListener('click', (event) => {
     const moreButton = event.target.closest('[data-friends-more]');
+
     if (!moreButton) return;
-    if (moreButton.dataset.friendsMore === 'mine') state.friendsVisible += 4;
-    if (moreButton.dataset.friendsMore === 'explore') state.exploreVisible += 4;
+
+    if (moreButton.dataset.friendsMore === 'mine') state.friendsVisible += 3;
+    if (moreButton.dataset.friendsMore === 'explore') state.exploreVisible += 3;
+
     renderAll();
   });
 
@@ -240,48 +310,127 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   window.sendFriendRequest = async function sendFriendRequest(nicknameArg = '') {
-    const nickname = (nicknameArg || searchInput?.value || '').trim();
+    const nickname = (nicknameArg || addInput?.value || searchInput?.value || '').trim();
+
     friendError.style.display = 'none';
     friendSuccess.style.display = 'none';
 
     if (!nickname) {
-      friendError.textContent = 'Digite um nickname válido.';
+      friendError.textContent = 'Informe um nickname para enviar a solicitação.';
       friendError.style.display = 'block';
       return;
     }
 
     try {
-      await apiJSON(`/api/users/friend-request/${encodeURIComponent(nickname)}/send/`, { method: 'POST' });
-      friendSuccess.textContent = 'Solicitação enviada com sucesso!';
+      const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/send/`, {
+        method: 'POST',
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        friendError.textContent = getApiError(data, 'Erro ao enviar solicitação.');
+        friendError.style.display = 'block';
+        return;
+      }
+
+      friendSuccess.textContent = 'Solicitação enviada com sucesso.';
       friendSuccess.style.display = 'block';
-      if (!nicknameArg && searchInput) searchInput.value = '';
-      state.query = '';
+
+      if (addInput) addInput.value = '';
+
       await refreshAll();
-    } catch (e) {
-      friendError.textContent = e.message || 'Erro ao enviar solicitação.';
+
+      const modalEl = document.getElementById('addFriendModal');
+      if (modalEl) {
+        setTimeout(() => {
+          bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+        }, 650);
+      }
+      
+    } catch (error) {
+      console.error(error);
+      friendError.textContent = 'Erro de conexão com o servidor.';
       friendError.style.display = 'block';
     }
   };
 
+  window.removeFriend = async function removeFriend(nickname) {
+    if (!confirm(`Remover @${nickname} da sua lista de amizades?`)) return;
+
+    try {
+      const response = await apiFetch(`/api/users/friend/${encodeURIComponent(nickname)}/remove/`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        alert(getApiError(data, 'Erro ao remover amizade.'));
+        return;
+      }
+
+      await refreshAll();
+    } catch (error) {
+      console.error(error);
+      alert('Erro de conexão com o servidor.');
+    }
+  };
+
   window.acceptFriend = async function acceptFriend(nickname) {
-    await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/accept/`, { method: 'POST' });
-    await refreshAll();
+    try {
+      const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/accept/`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        alert(getApiError(data, 'Erro ao aceitar solicitação.'));
+        return;
+      }
+
+      await refreshAll();
+    } catch (error) {
+      console.error(error);
+      alert('Erro de conexão com o servidor.');
+    }
   };
 
   window.rejectFriend = async function rejectFriend(nickname) {
-    await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/reject/`, { method: 'POST' });
-    await refreshAll();
+    try {
+      const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/reject/`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        alert(getApiError(data, 'Erro ao recusar solicitação.'));
+        return;
+      }
+
+      await refreshAll();
+    } catch (error) {
+      console.error(error);
+      alert('Erro de conexão com o servidor.');
+    }
   };
 
   window.cancelRequest = async function cancelRequest(nickname) {
-    await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/cancel/`, { method: 'POST' });
-    await refreshAll();
-  };
+    try {
+      const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/cancel/`, {
+        method: 'POST',
+      });
 
-  window.removeFriend = async function removeFriend(nickname) {
-    if (!confirm(`Tem certeza que deseja remover @${nickname} dos seus amigos?`)) return;
-    await apiFetch(`/api/users/friend/${encodeURIComponent(nickname)}/remove/`, { method: 'POST' });
-    await refreshAll();
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        alert(getApiError(data, 'Erro ao cancelar solicitação.'));
+        return;
+      }
+
+      await refreshAll();
+    } catch (error) {
+      console.error(error);
+      alert('Erro de conexão com o servidor.');
+    }
   };
 
   await refreshAll();

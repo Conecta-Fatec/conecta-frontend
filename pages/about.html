@@ -12,6 +12,7 @@
   </script>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
   <script>
     tailwind.config = {
       theme: {
@@ -23,15 +24,18 @@
       }
     };
   </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
+
 <body class="theme-light">
   <script>
     (function () {
       const themeKey = 'conecta_theme_mode';
       const fontFamilyKey = 'conecta_font_family';
       const fontSizeKey = 'conecta_font_size';
+
       const fontFamilies = {
         inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -39,7 +43,14 @@
         mono: '"Cascadia Code", "Fira Code", Consolas, monospace',
         rounded: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif'
       };
-      const fontSizes = { small: '14px', normal: '16px', large: '18px', xlarge: '20px' };
+
+      const fontSizes = {
+        small: '14px',
+        normal: '16px',
+        large: '18px',
+        xlarge: '20px'
+      };
+
       const savedTheme = localStorage.getItem(themeKey);
       const resolvedTheme = savedTheme === 'dark' ? 'dark' : 'light';
       const fontFamily = fontFamilies[localStorage.getItem(fontFamilyKey)] || fontFamilies.inter;
@@ -50,6 +61,7 @@
 
       function applyBodyPreferences() {
         if (!document.body) return;
+
         document.body.classList.remove('theme-light', 'theme-dark');
         document.body.classList.add('theme-' + resolvedTheme);
         document.body.style.setProperty('--app-font-family', fontFamily);
@@ -60,6 +72,7 @@
       document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
     })();
   </script>
+
   <main class="feed-page">
     <div class="feed-layout">
       <aside class="sidebar desktop-sidebar">
@@ -75,6 +88,7 @@
           <a href="friends.html" class="sidebar-link">Amizades</a>
           <a href="notifications.html" class="sidebar-link">Notificações</a>
           <a href="settings.html" class="sidebar-link">Configurações</a>
+          <a href="about.html" class="sidebar-link active">Sobre</a>
         </nav>
 
         <div class="sidebar-actions">
@@ -85,7 +99,6 @@
               <span id="sidebar-username">@usuario</span>
             </div>
           </a>
-          <a href="about.html" class="logout-btn about-btn active">Sobre</a>
         </div>
       </aside>
 
@@ -94,23 +107,92 @@
           <div>
             <span class="feed-kicker">Sobre</span>
             <h1>Sobre o Conecta Fatec</h1>
-            <p>Uma rede social acadêmica criada para aproximar estudantes da Faculdade de Tecnologia de São Paulo.</p>
+            <p>Conheça o projeto, os desenvolvedores e os links oficiais da plataforma.</p>
           </div>
         </header>
 
-        <section class="settings-layout about-layout">
-          <article class="settings-card">
-            <h2>Objetivo do projeto</h2>
-            <p>O Conecta Fatec tem foco em conexões entre alunos. A proposta é facilitar amizades acadêmicas, comunidades de estudo, troca de ideias e divulgação de projetos dentro do ambiente universitário.</p>
+        <section class="about-page-layout">
+          <article class="about-project-card">
+            <span class="about-section-label">Projeto acadêmico</span>
+
+            <h2>Uma rede feita para aproximar alunos, comunidades e ideias.</h2>
+
+            <p>
+              O Conecta Fatec é uma rede social acadêmica desenvolvida para fortalecer a interação entre estudantes da Fatec.
+              A plataforma permite compartilhar publicações, participar de comunidades, encontrar colegas, acompanhar perfis e criar conexões dentro do ambiente universitário.
+            </p>
+
+            <p>
+              A proposta do projeto é oferecer um espaço simples, organizado e voltado para a rotina dos alunos, reunindo comunicação, colaboração e divulgação de ideias em uma experiência única.
+              Esta reformulação visual moderniza a interface sem alterar a lógica principal já existente no sistema.
+            </p>
+
+            <div class="about-dev-section">
+              <h3>Desenvolvedores</h3>
+
+              <div class="about-dev-list" id="aboutDevelopersList">
+                <a href="profileuser.html?nickname=kevinsramos" class="about-dev-item" data-dev-nickname="kevinsramos">
+                  <div class="user-avatar about-dev-avatar">KS</div>
+                  <div>
+                    <strong>Kevin Silva</strong>
+                    <span>@kevinsramos</span>
+                  </div>
+                </a>
+
+                <a href="profileuser.html?nickname=davifariass" class="about-dev-item" data-dev-nickname="davifariass">
+                  <div class="user-avatar about-dev-avatar">DF</div>
+                  <div>
+                    <strong>Davi Farias</strong>
+                    <span>@davifariass</span>
+                  </div>
+                </a>
+
+                <a href="profileuser.html?nickname=mathbert" class="about-dev-item" data-dev-nickname="mathbert">
+                  <div class="user-avatar about-dev-avatar">MB</div>
+                  <div>
+                    <strong>Mathbert</strong>
+                    <span>@mathbert</span>
+                  </div>
+                </a>
+              </div>
+            </div>
           </article>
-          <article class="settings-card">
-            <h2>Uso não comercial</h2>
-            <p>Este frontend faz parte de um projeto acadêmico em grupo. A plataforma não foi reformulada para fins comerciais e mantém a lógica já funcional do backend existente.</p>
-          </article>
-          <article class="settings-card">
-            <h2>Próximos passos</h2>
-            <p>As próximas melhorias podem incluir notificações, refinamento visual, ajustes de responsividade e otimizações graduais sem quebrar as funcionalidades atuais.</p>
-          </article>
+
+          <div class="about-resource-grid">
+            <article class="about-resource-card">
+              <span class="about-section-label">Código fonte</span>
+
+              <h2>Repositório no GitHub</h2>
+
+              <p>
+                Acesse a organização oficial do projeto para visualizar o repositório, acompanhar a estrutura do código e consultar futuras atualizações.
+              </p>
+
+              <a href="https://github.com/Conecta-Fatec" target="_blank" rel="noopener noreferrer" class="about-resource-link">
+                Abrir GitHub
+              </a>
+            </article>
+
+            <article class="about-resource-card">
+              <span class="about-section-label">TERMOS DE USO</span>
+
+              <h2>Termos e cookies</h2>
+
+              <p>
+                Consulte as regras de convivência, os termos de uso da plataforma e as informações sobre cookies e armazenamento local.
+              </p>
+
+              <div class="about-resource-actions">
+                <a href="terms.html?from=about" target="_blank" rel="noopener noreferrer" class="about-resource-link">
+                  Ver termos
+                </a>
+
+                <a href="cookies.html?from=about" target="_blank" rel="noopener noreferrer" class="about-resource-link subtle">
+                  Ver cookies
+                </a>
+              </div>
+            </article>
+          </div>
         </section>
       </section>
     </div>
@@ -118,5 +200,40 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof requireAuth === 'function' && !requireAuth()) return;
+
+      if (typeof loadLoggedUser === 'function') {
+        await loadLoggedUser();
+      }
+
+      const developerItems = document.querySelectorAll('[data-dev-nickname]');
+      if (!developerItems.length) return;
+
+      developerItems.forEach(async (item) => {
+        const nickname = item.dataset.devNickname;
+
+        try {
+          const user = await apiJSON(`/api/users/profile/${encodeURIComponent(nickname)}/`);
+          const name = userDisplayName(user);
+          const course = user.course || 'Desenvolvedor do projeto';
+
+          item.href = profileUrlFor(user);
+
+          item.innerHTML = `
+            ${avatarHTML(user, 'user-avatar about-dev-avatar')}
+            <div>
+              <strong>${escapeHTML(name)}</strong>
+              <span>@${escapeHTML(user.nickname || nickname)}</span>
+            </div>
+          `;
+        } catch (error) {
+          console.warn(`Não foi possível carregar o perfil @${nickname}`, error);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
