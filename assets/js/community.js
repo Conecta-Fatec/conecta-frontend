@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const publishBtn = document.getElementById('publishCommunityPostBtn');
   const saveCommunityBtn = document.getElementById('saveCommunityBtn');
   const createPostCard = document.getElementById('community-create-post-card');
+  const communityGeneralTab = document.getElementById('community-general-tab');
+  const communityFriendsTab = document.getElementById('community-friends-tab');
+
+  let communityPostsCache = [];
+  let currentIsMember = false;
+  let currentPostMode = 'general';
+  let cachedFriends = { ids: new Set(), nicknames: new Set() };
 
   function creatorFromCommunity(community = {}) {
     return community.creator || community.created_by || community.owner || {
@@ -126,6 +133,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
+function setActiveCommunityTab(mode) {
+  currentPostMode = mode;
+  communityGeneralTab?.classList.toggle('active', mode === 'general');
+  communityFriendsTab?.classList.toggle('active', mode === 'friends');
+}
+
+async function loadFriendsIndex() {
+  if (cachedFriends.ids.size || cachedFriends.nicknames.size) return cachedFriends;
+
+  try {
+    const data = await apiJSON('/api/users/friends/');
+    const friends = normalizeArray(data, 'friends', 'results');
+
+    cachedFriends = {
+      ids: new Set(friends.map((friend) => Number(friend.id)).filter(Number.isFinite)),
+      nicknames: new Set(friends.map((friend) => friend.nickname).filter(Boolean)),
+    };
+  } catch (error) {
+    console.error('Erro ao carregar amigos para filtrar posts da comunidade:', error);
+    cachedFriends = { ids: new Set(), nicknames: new Set() };
+  }
+
+  return cachedFriends;
+}
+
+  function isPostFromFriend(post = {}, friendsIndex = { ids: new Set(), nicknames: new Set() }) {
+    const author = post.author || {};
+    const authorId = Number(author.id ?? post.author_id);
+    const authorNickname = author.nickname || post.author_nickname || post.nickname;
+
+    return (Number.isFinite(authorId) && friendsIndex.ids.has(authorId))
+      || (authorNickname && friendsIndex.nicknames.has(authorNickname));
+  }
+
+  async function getVisibleCommunityPosts() {
+    if (currentPostMode === 'general') return communityPostsCache;
+
+    const friendsIndex = await loadFriendsIndex();
+    return communityPostsCache.filter((post) => isPostFromFriend(post, friendsIndex));
+  }
+
+  async function renderVisibleCommunityPosts() {
+    const visiblePosts = await getVisibleCommunityPosts();
+    renderPosts(visiblePosts, currentIsMember);
+  }
+  
   function renderCommunityDetails(data) {
     const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
     currentCommunity = community;
@@ -162,8 +215,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       commActionBtn.onclick = joinCommunity;
     }
 
+    communityPostsCache = posts;
+    currentIsMember = isMember;
+
     renderMembers(members, community);
-    renderPosts(posts, isMember);
+    renderVisibleCommunityPosts();
   }
 
   function scrollToHighlightedPost() {
@@ -176,7 +232,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderPosts(posts = [], isMember) {
     if (!posts.length) {
-      postsContainer.innerHTML = '<div class="api-empty-state text-center">Nenhum post nesta comunidade ainda.</div>';
+      postsContainer.innerHTML = currentPostMode === 'friends'
+        ? '<div class="api-empty-state text-center">Nenhum post de amigos nesta comunidade ainda.</div>'
+        : '<div class="api-empty-state text-center">Nenhum post nesta comunidade ainda.</div>';
       return;
     }
 
@@ -187,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showCommunityLabel: false,
       allowCommentInput: isMember,
       canInteract: isMember,
-    })).join('');
+    })).join('') + '<footer class="feed-footer community-posts-end">Fim dos posts</footer>';
 
     scrollToHighlightedPost();
   }
@@ -459,6 +517,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   window.loadCommunityDetailsFromButton = loadCommunityDetails;
+
+  communityGeneralTab?.addEventListener('click', () => {
+    setActiveCommunityTab('general');
+    renderVisibleCommunityPosts();
+  });
+
+  communityFriendsTab?.addEventListener('click', () => {
+    setActiveCommunityTab('friends');
+    renderVisibleCommunityPosts();
+  });
 
   await loadCommunityDetails();
 });

@@ -265,7 +265,7 @@ function setupMobileBottomNav() {
     { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M7.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20.5a4.5 4.5 0 0 1 9 0m0 0a4.5 4.5 0 0 1 9 0" /></svg>', pages: ['communities.html', 'community.html'] },
     { href: 'friends.html', label: 'Amizades', icon: '<svg viewBox="0 0 24 24"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-5.5 9a5.5 5.5 0 0 1 11 0m4-9v6m-3-3h6" /></svg>', pages: ['friends.html'] },
     { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM4 21a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
-    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12v2m0 13v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M3 12h2m14 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html'] },
+    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7Z" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2a1 1 0 0 0-.6.9V20a2 2 0 0 1-4 0v-.2a1 1 0 0 0-.6-.9a1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1a1 1 0 0 0-.9-.6H4a2 2 0 0 1 0-4h.2a1 1 0 0 0 .9-.6a1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2a1 1 0 0 0 .6-.9V4a2 2 0 0 1 4 0v.2a1 1 0 0 0 .6.9a1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1a1 1 0 0 0 .9.6H20a2 2 0 0 1 0 4h-.2a1 1 0 0 0-.9.6Z" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html'] },
   ];
   const nav = document.createElement('nav');
   nav.className = 'mobile-bottom-nav';
@@ -454,7 +454,6 @@ if (registerForm) {
       last_name: document.getElementById('regLastName').value.trim(),
       email: document.getElementById('regEmail').value.trim(),
       nickname: document.getElementById('regNickname').value.trim(),
-      course: document.getElementById('regCourse').value,
       password,
       confirm_password: passwordConfirm,
     };

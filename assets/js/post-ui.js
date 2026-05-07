@@ -176,7 +176,7 @@
       </button>
       <button class="post-action-btn" onclick="ConectaPosts.toggleComments(${post.id}, ${options.allowCommentInput === false ? 'false' : 'true'})" type="button" aria-label="Ver comentários">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-5.5 5v-5A3.5 3.5 0 0 1 1 11.5v-6Z" />
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
         <span>${postCommentsCount(post)}</span>
       </button>

@@ -114,11 +114,22 @@
             </article>
 
             <section class="community-posts-section">
-              <h2>Publicações da comunidade</h2>
+              <section class="feed-control-card community-feed-control">
+                <div class="feed-control-text">
+                  <h2>Publicações da comunidade</h2>
+                </div>
+
+                <div class="feed-tabs" role="tablist">
+                  <button class="feed-tab active" id="community-general-tab" type="button">Geral</button>
+                  <button class="feed-tab" id="community-friends-tab" type="button">Amigos</button>
+                </div>
+              </section>
+
               <div id="community-posts-container" class="d-flex flex-column gap-4">
                 <p class="text-center py-4 text-muted">Carregando posts...</p>
               </div>
             </section>
+            
           </section>
 
           <aside class="community-side">
