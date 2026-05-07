@@ -28,7 +28,7 @@
 
   <main class="doc-page">
     <div class="doc-shell">
-      <a href="#" class="doc-back-link" id="docBackLink">← Voltar</a>
+      <a href="#" class="doc-back-link" id="docBackLink">Voltar</a>
 
       <section class="doc-card">
         <h1>Política de Cookies</h1>
@@ -75,18 +75,12 @@
 
       if (isLogged && from === 'about') {
         link.href = 'about.html';
-        link.textContent = '← Voltar para Sobre';
-        return;
-      }
-
-      if (isLogged) {
-        link.href = 'feed.html';
-        link.textContent = '← Voltar para o Conecta Fatec';
+        link.textContent = 'Voltar para Sobre';
         return;
       }
 
       link.href = '../index.html';
-      link.textContent = '← Voltar para o login';
+      link.textContent = 'Voltar para o login';
     });
   </script>
 </body>
