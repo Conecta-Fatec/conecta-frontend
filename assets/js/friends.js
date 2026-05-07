@@ -57,26 +57,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function isSameUser(a = {}, b = {}) {
+    const first = userProfileSource(a);
+    const second = userProfileSource(b);
+
     return Boolean(
-      (a.id && b.id && Number(a.id) === Number(b.id)) ||
-      (a.nickname && b.nickname && a.nickname === b.nickname)
+      (first.id && second.id && Number(first.id) === Number(second.id)) ||
+      (first.nickname && second.nickname && first.nickname === second.nickname)
     );
   }
 
   function userCardContent(user = {}, actionHTML = '', tag = '') {
-    const name = userDisplayName(user);
+    const source = userProfileSource(user);
+    const name = userDisplayName(source);
+    const nickname = source.nickname || source.username || 'usuario';
 
     return `
-      ${avatarHTML(user, 'friend-card-avatar')}
+      ${avatarHTML(source, 'friend-card-avatar')}
 
       <div class="friend-card-body community-card-body">
         ${tag ? `<span class="community-card-tag">${tag}</span>` : ''}
 
         <h3 class="friend-card-name">${escapeHTML(name)}</h3>
 
-        <span class="nickname-text">@${escapeHTML(user.nickname || 'usuario')}</span>
+        <span class="nickname-text">@${escapeHTML(nickname)}</span>
 
-        ${user.course ? `<p class="friend-card-course">${escapeHTML(user.course)}</p>` : ''}
+        ${source.course ? `<p class="friend-card-course">${escapeHTML(source.course)}</p>` : ''}
 
         ${actionHTML}
       </div>
@@ -91,17 +96,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
+  function clickableProfileCardAttrs(user = {}) {
+    return `data-profile-href="${profileUrlFor(user)}" role="link" tabindex="0" aria-label="Abrir perfil de ${escapeHTML(userDisplayName(user))}"`;
+  }
+
   function exploreCard(user = {}) {
-    const sentNicknames = new Set(state.sent.map((req) => req.receiver?.nickname).filter(Boolean));
-    const isSent = sentNicknames.has(user.nickname);
+    const source = userProfileSource(user);
+    const nickname = source.nickname || source.username || '';
+    const sentNicknames = new Set(state.sent.map((req) => userProfileSource(req.receiver || req).nickname).filter(Boolean));
+    const isSent = sentNicknames.has(nickname);
 
     return `
-      <article class="friend-card community-card">
+      <article class="friend-card community-card friend-card-link-card" ${clickableProfileCardAttrs(source)}>
         ${userCardContent(
-          user,
+          source,
           isSent
             ? '<span class="friend-status-pill">Solicitação enviada</span>'
-            : `<button type="button" class="community-card-btn" onclick="sendFriendRequest('${escapeHTML(user.nickname)}')">Adicionar</button>`,
+            : `<button type="button" class="community-card-btn" onclick="sendFriendRequest('${escapeHTML(nickname)}')">Adicionar</button>`,
           'Aluno'
         )}
       </article>
@@ -109,22 +120,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function requestCard(user = {}, type = 'received') {
+    const source = userProfileSource(user);
+    const nickname = source.nickname || source.username || '';
     const actions = type === 'received'
       ? `
         <div class="request-actions">
-          <button type="button" class="friend-card-btn" onclick="acceptFriend('${escapeHTML(user.nickname)}')">Aceitar</button>
-          <button type="button" class="friend-card-btn cancel-request-btn" onclick="rejectFriend('${escapeHTML(user.nickname)}')">Recusar</button>
+          <button type="button" class="friend-card-btn" onclick="acceptFriend('${escapeHTML(nickname)}')">Aceitar</button>
+          <button type="button" class="friend-card-btn cancel-request-btn" onclick="rejectFriend('${escapeHTML(nickname)}')">Recusar</button>
         </div>
       `
       : `
         <div class="request-actions">
-          <button type="button" class="friend-card-btn cancel-request-btn" onclick="cancelRequest('${escapeHTML(user.nickname)}')">Cancelar</button>
+          <button type="button" class="friend-card-btn cancel-request-btn" onclick="cancelRequest('${escapeHTML(nickname)}')">Cancelar</button>
         </div>
       `;
 
     return `
-      <article class="friend-card community-card request-card">
-        ${userCardContent(user, actions, type === 'received' ? 'Recebida' : 'Enviada')}
+      <article class="friend-card community-card friend-card-link-card request-card" ${clickableProfileCardAttrs(source)}>
+        ${userCardContent(source, actions, type === 'received' ? 'Recebida' : 'Enviada')}
       </article>
     `;
   }
@@ -132,7 +145,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   function matchesSearch(user = {}) {
     if (!state.query) return true;
 
-    const haystack = `${user.full_name || ''} ${user.first_name || ''} ${user.last_name || ''} ${user.nickname || ''} ${user.course || ''}`.toLowerCase();
+    const source = userProfileSource(user);
+    const haystack = `${source.full_name || ''} ${source.name || ''} ${source.first_name || ''} ${source.last_name || ''} ${source.nickname || ''} ${source.username || ''} ${source.course || ''}`.toLowerCase();
     return haystack.includes(state.query);
   }
 
@@ -175,9 +189,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderExplore() {
-    const friendNicknames = new Set(state.friends.map((friend) => friend.nickname).filter(Boolean));
+    const friendNicknames = new Set(state.friends.map((friend) => userProfileSource(friend).nickname).filter(Boolean));
     const filteredExplore = state.explore
-      .filter((user) => user.nickname && !friendNicknames.has(user.nickname))
+      .filter((user) => {
+        const nickname = userProfileSource(user).nickname;
+        return nickname && !friendNicknames.has(nickname);
+      })
       .filter(matchesSearch);
 
     renderLimited(
@@ -289,6 +306,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.addEventListener('click', (event) => {
+    const interactiveChild = event.target.closest('button, a, input, textarea, select, label');
+    const profileCard = event.target.closest('[data-profile-href]');
+
+    if (profileCard && !interactiveChild) {
+      window.location.href = profileCard.dataset.profileHref;
+      return;
+    }
+
     const moreButton = event.target.closest('[data-friends-more]');
 
     if (!moreButton) return;
@@ -297,6 +322,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (moreButton.dataset.friendsMore === 'explore') state.exploreVisible += 3;
 
     renderAll();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (!['Enter', ' '].includes(event.key)) return;
+    if (event.target.closest('button, a, input, textarea, select, label')) return;
+
+    const profileCard = event.target.closest('[data-profile-href]');
+    if (!profileCard) return;
+
+    event.preventDefault();
+    window.location.href = profileCard.dataset.profileHref;
   });
 
   requestsReceivedTab?.addEventListener('click', () => {

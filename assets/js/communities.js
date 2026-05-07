@@ -78,22 +78,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const badge = comm.is_creator ? 'Criada por você' : isMine ? 'Participante' : 'Aberta';
     const communityUrl = `community.html?slug=${encodeURIComponent(comm.slug)}`;
 
-    if (isMine) {
-      return `
-        <a href="${communityUrl}" class="community-card community-card-link" aria-label="Abrir comunidade ${escapeHTML(comm.name)}">
-          ${communityCardContent(comm, badge, '<span class="community-text-link">Ver comunidade</span>')}
-        </a>
-      `;
-    }
-
     return `
-      <article class="community-card">
-        ${communityCardContent(
-          comm,
-          badge,
-          `<button class="community-card-btn" type="button" data-join-community="${escapeHTML(comm.slug)}">Entrar</button>`
-        )}
-      </article>
+      <a href="${communityUrl}" class="community-card community-card-link" aria-label="Abrir comunidade ${escapeHTML(comm.name)}">
+        ${communityCardContent(comm, badge, '<span class="community-text-link">Ver comunidade</span>')}
+      </a>
     `;
   }
 

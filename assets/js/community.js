@@ -44,7 +44,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function isSameUser(a = {}, b = {}) {
-    return Boolean((a.id && b.id && Number(a.id) === Number(b.id)) || (a.nickname && b.nickname && a.nickname === b.nickname));
+    const first = userProfileSource(a);
+    const second = userProfileSource(b);
+
+    return Boolean(
+      (first.id && second.id && Number(first.id) === Number(second.id)) ||
+      (first.nickname && second.nickname && first.nickname === second.nickname)
+    );
   }
 
   function memberJoinedDate(member = {}) {
@@ -104,13 +110,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     membersContainer.innerHTML = sorted.map((member) => {
-      const name = userDisplayName(member);
+      const memberUser = userProfileSource(member);
+      const name = userDisplayName(memberUser);
+      const nickname = memberUser.nickname || memberUser.username || 'usuario';
+
       return `
-        <a href="${profileUrlFor(member)}" class="side-community-item member-item ${member.__creator ? 'member-creator' : ''}">
-          ${avatarHTML(member, 'side-community-avatar')}
+        <a href="${profileUrlFor(memberUser)}" class="side-community-item member-item ${member.__creator ? 'member-creator' : ''}">
+          ${avatarHTML(memberUser, 'side-community-avatar')}
           <div>
             <strong>${escapeHTML(name)} ${member.__creator ? '<span class="creator-crown" title="Criador da comunidade">♛</span>' : ''}</strong>
-            <span>@${escapeHTML(member.nickname || 'usuario')}${member.__creator ? ' · criador' : ''}</span>
+            <span>@${escapeHTML(nickname)}${member.__creator ? ' · criador' : ''}</span>
           </div>
         </a>
       `;

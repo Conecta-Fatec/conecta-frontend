@@ -496,12 +496,80 @@ function toApiUrl(url) {
   return `${API_BASE_URL}/${value}`;
 }
 
+function nestedUserFrom(user = {}) {
+  if (!user || typeof user !== 'object') return {};
+
+  return user.user || user.profile || user.student || user.friend || user.member || user.participant || user.sender || user.receiver || {};
+}
+
+function userProfileSource(user = {}) {
+  if (!user || typeof user !== 'object') return {};
+
+  const nested = nestedUserFrom(user);
+  const hasNested = nested && typeof nested === 'object' && Object.keys(nested).length > 0;
+
+  if (!hasNested) return user;
+
+  return {
+    ...nested,
+    ...user,
+    id: user.id ?? nested.id,
+    nickname: user.nickname || nested.nickname || nested.username,
+    username: user.username || nested.username || nested.nickname,
+    full_name: user.full_name || nested.full_name || nested.name,
+    first_name: user.first_name || nested.first_name,
+    last_name: user.last_name || nested.last_name,
+    course: user.course || nested.course,
+  };
+}
+
+function normalizePhotoValue(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'object') {
+    return value.url || value.src || value.href || value.path || value.image || value.photo || '';
+  }
+  return '';
+}
+
+function photoFromObject(source = {}) {
+  if (!source || typeof source !== 'object') return '';
+
+  const candidates = [
+    source.photo_url,
+    source.photo,
+    source.avatar_url,
+    source.avatar,
+    source.profile_photo,
+    source.profile_picture,
+    source.profile_image,
+    source.picture,
+    source.picture_url,
+    source.image_url,
+    source.image,
+    source.user_photo,
+    source.member_photo,
+    source.creator_photo,
+    source.author_photo,
+  ];
+
+  for (const candidate of candidates) {
+    const photo = normalizePhotoValue(candidate);
+    if (photo) return photo;
+  }
+
+  return '';
+}
+
 function userDisplayName(user = {}) {
-  return user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.nickname || 'Usuário';
+  const source = userProfileSource(user);
+
+  return source.full_name || source.name || `${source.first_name || ''} ${source.last_name || ''}`.trim() || source.nickname || source.username || 'Usuário';
 }
 
 function userPhoto(user = {}) {
-  return user.photo_url || user.photo || user.avatar_url || user.profile_photo || '';
+  const source = userProfileSource(user);
+  return photoFromObject(source) || photoFromObject(nestedUserFrom(user));
 }
 
 function avatarColorClass(seed = '') {
@@ -513,19 +581,26 @@ function avatarColorClass(seed = '') {
 }
 
 function avatarHTML(user = {}, sizeClass = 'user-avatar') {
-  const name = userDisplayName(user);
-  const nickname = user.nickname || name;
-  const photo = toApiUrl(userPhoto(user));
+  const source = userProfileSource(user);
+  const name = userDisplayName(source);
+  const nickname = source.nickname || source.username || name;
+  const photo = toApiUrl(userPhoto(source));
+
   if (photo) {
     return `<div class="${sizeClass} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy"></div>`;
   }
+
   return `<div class="${sizeClass} static-avatar ${avatarColorClass(nickname)}">${escapeHTML(getInitials(name || nickname))}</div>`;
 }
 
 function profileUrlFor(user = {}) {
+  const source = userProfileSource(user);
+  const nickname = source.nickname || source.username || '';
   const logged = getLoggedUserFromStorage();
-  if (logged?.nickname && user.nickname === logged.nickname) return 'profile.html';
-  return `profileuser.html?nickname=${encodeURIComponent(user.nickname || '')}`;
+
+  if (logged?.nickname && nickname === logged.nickname) return 'profile.html';
+
+  return `profileuser.html?nickname=${encodeURIComponent(nickname)}`;
 }
 
 function userLinkHTML(user = {}, label = null, className = '') {
