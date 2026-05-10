@@ -2251,3 +2251,352 @@ body.theme-dark .logo-dark { display: block; }
 
   .login-container { padding: 1.35rem !important; border-radius: var(--radius-lg) !important; }
 }
+
+/* =========================================================
+   18. Post Único 
+========================================================= */
+.single-post-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem var(--page-pad);
+  position: sticky;
+  top: 0;
+  background: var(--surface-color);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  z-index: 10;
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.back-btn {
+  color: var(--text-color);
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: var(--surface-hover);
+}
+
+.single-post-view {
+  padding: 1rem var(--page-pad);
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.single-post-view .post-card {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.reply-bar-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: var(--content-width); /* Respeita a largura ao lado da sidebar */
+  background: var(--surface-color);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-top: var(--hairline) solid var(--line-color);
+  padding: 0.75rem var(--page-pad);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1040;
+}
+
+@media (max-width: 48rem) {
+  .reply-bar-container {
+    width: 100%;
+    bottom: 4rem; /* Fica logo acima do menu mobile inferior */
+  }
+}
+
+.reply-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.reply-input-wrapper input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  outline: none;
+  font-size: 1rem;
+}
+/* =========================================================
+   19. Comentários (Textos, Ícones e Cores)
+========================================================= */
+.tw-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.tw-author-name {
+  font-weight: 700;
+  color: var(--text-color);
+  text-decoration: none;
+  margin-right: 0.35rem;
+}
+
+.tw-author-name:hover {
+  text-decoration: underline;
+  color: var(--text-color);
+}
+
+.tw-username, .tw-date, .tw-dot, .tw-replying-to {
+  color: var(--text-muted);
+}
+
+.tw-dot {
+  margin: 0 0.25rem;
+}
+
+.tw-replying-to {
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.tw-replying-to a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.tw-replying-to a:hover {
+  text-decoration: underline;
+}
+
+.tw-text {
+  color: var(--text-color);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin: 0 0 0.5rem;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.tw-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 3.5rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 48rem) {
+  .tw-actions {
+    gap: 2rem;
+  }
+}
+
+.tw-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.tw-icon-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Efeitos Hover do Twitter */
+.tw-action-btn:hover { color: var(--primary-color); }
+.tw-action-btn.reply-btn:hover .tw-icon-circle { background: rgba(29, 155, 240, 0.1); color: rgb(29, 155, 240); }
+.tw-action-btn.like-btn:hover .tw-icon-circle { background: rgba(249, 24, 128, 0.1); color: rgb(249, 24, 128); }
+.tw-action-btn.edit-btn:hover .tw-icon-circle { background: rgba(0, 186, 124, 0.1); color: rgb(0, 186, 124); }
+.tw-action-btn.delete-btn:hover .tw-icon-circle { background: rgba(244, 33, 46, 0.1); color: rgb(244, 33, 46); }
+
+/* --- ESTILO DO BOTÃO DE CURTIR (TWITTER/X) --- */
+:root {
+  --tw-heart-color: rgb(224, 36, 94);
+}
+
+.like-btn, .comment-like-btn {
+  display: inline-flex;
+  align-items: center;
+  color: var(--tw-light-gray);
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.1s;
+}
+
+.like-btn svg, .comment-like-btn svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.like-btn.liked, .comment-like-btn.liked, .tw-action-btn.like-btn.liked {
+  color: var(--tw-heart-color) !important;
+}
+
+.like-btn.liked svg, .comment-like-btn.liked svg {
+  fill: currentColor;
+  stroke: none;
+}
+
+.like-btn:hover, .comment-like-btn:hover {
+  color: var(--tw-heart-color);
+}
+
+.tw-reply-box {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* =========================================================
+   20. Estilo de Thread (X/Twitter) c/ Linha Vertical
+========================================================= */
+
+/* Container da conversa com hover suave */
+.tw-thread-container {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  transition: background-color 0.2s;
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+.tw-thread-container:hover {
+  background: var(--surface-hover);
+}
+.tw-thread-container:last-child {
+  border-bottom: none;
+}
+
+/* Base do comentário: flexível e limpa */
+.tw-comment-wrapper {
+  display: flex;
+  align-items: stretch;
+  padding: 0; 
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+/* Coluna do Avatar e da Linha */
+.tw-avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1rem;
+  margin-left: var(--page-pad);
+  margin-right: 0.85rem;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.tw-avatar-col .comment-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+}
+
+/* Garante que o avatar fique na frente da linha */
+.tw-avatar-link {
+  z-index: 2;
+}
+
+/* A Linha Mágica do X */
+.tw-thread-line {
+  width: 2px;
+  background-color: var(--line-color);
+  flex-grow: 1; /* Cresce para preencher todo o comentário */
+  margin-top: 0.25rem;
+  margin-bottom: -1rem; /* Puxa a linha para dentro do padding do próximo comentário */
+  z-index: 1;
+}
+
+/* Coluna do Texto do Comentário */
+.tw-content-col {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
+  padding-right: var(--page-pad);
+}
+
+/* Ajustes específicos para o preview apertadinho do Feed */
+.inline-comments-wrapper .tw-thread-container:hover {
+  background: transparent;
+}
+.inline-comments-wrapper .tw-avatar-col {
+  padding-top: 0.65rem;
+  width: 30px;
+  margin-left: 0; /* Remove a margem extra no preview */
+}
+.inline-comments-wrapper .tw-avatar-col .comment-avatar {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+}
+.inline-comments-wrapper .tw-content-col {
+  padding-top: 0.65rem;
+  padding-bottom: 0.2rem;
+  padding-right: 0; /* Remove a margem extra no preview */
+}
+.inline-comments-wrapper .tw-thread-line {
+  margin-bottom: -0.65rem;
+}
+/* =========================================================
+   21. Botões de Paginação estilo TikTok
+========================================================= */
+.tk-replies-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-left: calc(var(--page-pad) + 40px + 0.85rem); /* Alinha com o texto, saltando o avatar */
+  margin-top: -0.2rem;
+  margin-bottom: 0.85rem;
+}
+
+.tk-replies-line {
+  width: 24px;
+  height: 1px;
+  background-color: var(--line-color);
+}
+
+.tk-replies-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.tk-replies-btn:hover {
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+

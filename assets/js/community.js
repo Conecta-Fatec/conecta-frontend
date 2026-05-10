@@ -1,13 +1,16 @@
 /* =========================================================
-   Comunidade: detalhes, membros e posts internos
+   Comunidade: detalhes, membros e posts internos (OTIMIZADO)
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
+  // Verifica se o utilizador está logado antes de carregar a página
   if (!requireAuth()) return;
 
+  // Captura os parâmetros da URL (ex: ?slug=comunidade-teste&post=123)
   const urlParams = new URLSearchParams(window.location.search);
   const slug = urlParams.get('slug');
   const highlightedPostId = urlParams.get('post');
 
+  // Se não houver slug, redireciona de volta para a lista de comunidades
   if (!slug) {
     window.location.href = 'communities.html';
     return;
@@ -20,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (window.ConectaPosts) ConectaPosts.currentUserNickname = currentUser?.nickname || '';
 
+  // Elementos do DOM (HTML)
   const commName = document.getElementById('comm-name');
   const commDesc = document.getElementById('comm-desc');
   const commCreator = document.getElementById('comm-creator');
@@ -35,11 +39,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const communityGeneralTab = document.getElementById('community-general-tab');
   const communityFriendsTab = document.getElementById('community-friends-tab');
 
+  // Cache local para guardar os posts e evitar requisições desnecessárias
   let communityPostsCache = [];
   let currentIsMember = false;
   let currentPostMode = 'general';
   let cachedFriends = { ids: new Set(), nicknames: new Set() };
 
+  // --- Funções Auxiliares de Tratamento de Dados ---
+
+  // Descobre quem é o criador da comunidade lidando com diferentes formatos de resposta da API
   function creatorFromCommunity(community = {}) {
     return community.creator || community.created_by || community.owner || {
       nickname: community.creator_nickname,
@@ -53,7 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   function isSameUser(a = {}, b = {}) {
     const first = userProfileSource(a);
     const second = userProfileSource(b);
-
     return Boolean(
       (first.id && second.id && Number(first.id) === Number(second.id)) ||
       (first.nickname && second.nickname && first.nickname === second.nickname)
@@ -66,6 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return Number.isFinite(time) ? time : Number.POSITIVE_INFINITY;
   }
 
+  // Normaliza os dados da comunidade recebidos da API
   function normalizeCommunityDetails(data = {}) {
     const community = normalizeCommunity(data.community || data, data.members_count);
     const members = normalizeArray(data.members, 'results').length
@@ -82,6 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
+  // --- Funções de Renderização Visual (HTML) ---
+
   function renderCommunityAvatar(community = {}) {
     commAvatar.classList.remove('has-image');
     commAvatar.setAttribute('data-photo-viewer', 'community');
@@ -95,6 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Renderiza a lista de membros, colocando sempre o criador no topo
   function renderMembers(members = [], community = {}) {
     const creator = creatorFromCommunity(community);
     const unique = [];
@@ -133,30 +144,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
-function setActiveCommunityTab(mode) {
-  currentPostMode = mode;
-  communityGeneralTab?.classList.toggle('active', mode === 'general');
-  communityFriendsTab?.classList.toggle('active', mode === 'friends');
-}
-
-async function loadFriendsIndex() {
-  if (cachedFriends.ids.size || cachedFriends.nicknames.size) return cachedFriends;
-
-  try {
-    const data = await apiJSON('/api/users/friends/');
-    const friends = normalizeArray(data, 'friends', 'results');
-
-    cachedFriends = {
-      ids: new Set(friends.map((friend) => Number(friend.id)).filter(Number.isFinite)),
-      nicknames: new Set(friends.map((friend) => friend.nickname).filter(Boolean)),
-    };
-  } catch (error) {
-    console.error('Erro ao carregar amigos para filtrar posts da comunidade:', error);
-    cachedFriends = { ids: new Set(), nicknames: new Set() };
+  // Controla as abas de "Todos os Posts" e "Apenas Amigos"
+  function setActiveCommunityTab(mode) {
+    currentPostMode = mode;
+    communityGeneralTab?.classList.toggle('active', mode === 'general');
+    communityFriendsTab?.classList.toggle('active', mode === 'friends');
   }
 
-  return cachedFriends;
-}
+  // Carrega e guarda em cache a lista de amigos para não fazer várias requisições
+  async function loadFriendsIndex() {
+    if (cachedFriends.ids.size || cachedFriends.nicknames.size) return cachedFriends;
+
+    try {
+      const data = await apiJSON('/api/users/friends/');
+      const friends = normalizeArray(data, 'friends', 'results');
+
+      cachedFriends = {
+        ids: new Set(friends.map((friend) => Number(friend.id)).filter(Number.isFinite)),
+        nicknames: new Set(friends.map((friend) => friend.nickname).filter(Boolean)),
+      };
+    } catch (error) {
+      console.error('Erro ao carregar amigos para filtrar posts da comunidade:', error);
+      cachedFriends = { ids: new Set(), nicknames: new Set() };
+    }
+
+    return cachedFriends;
+  }
 
   function isPostFromFriend(post = {}, friendsIndex = { ids: new Set(), nicknames: new Set() }) {
     const author = post.author || {};
@@ -179,6 +192,7 @@ async function loadFriendsIndex() {
     renderPosts(visiblePosts, currentIsMember);
   }
   
+  // Preenche todos os dados do cabeçalho da comunidade
   function renderCommunityDetails(data) {
     const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
     currentCommunity = community;
@@ -199,8 +213,9 @@ async function loadFriendsIndex() {
 
     commActionBtn.style.display = 'inline-flex';
     deleteCommunityBtn.style.display = community.is_creator ? 'inline-flex' : 'none';
-    createPostCard.style.display = isMember ? 'block' : 'none';
+    createPostCard.style.display = isMember ? 'block' : 'none'; // Só mostra o input de post se for membro
 
+    // Define a ação do botão principal (Entrar, Sair ou Editar)
     if (community.is_creator) {
       commActionBtn.textContent = 'Editar comunidade';
       commActionBtn.className = 'btn btn-outline-primary fw-bold';
@@ -230,6 +245,7 @@ async function loadFriendsIndex() {
     setTimeout(() => postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
+  // Renderiza a lista de posts no ecrã principal da comunidade
   function renderPosts(posts = [], isMember) {
     if (!posts.length) {
       postsContainer.innerHTML = currentPostMode === 'friends'
@@ -238,17 +254,19 @@ async function loadFriendsIndex() {
       return;
     }
 
-    if (highlightedPostId) ConectaPosts.openPostComments(highlightedPostId);
+    if (highlightedPostId && window.ConectaPosts) ConectaPosts.openPostComments(highlightedPostId);
 
     postsContainer.innerHTML = posts.map((post) => ConectaPosts.renderPostCard(post, {
       currentUser,
-      showCommunityLabel: false,
+      showCommunityLabel: false, // Oculta a etiqueta porque já estamos dentro da comunidade
       allowCommentInput: isMember,
       canInteract: isMember,
     })).join('') + '<footer class="feed-footer community-posts-end">Fim dos posts</footer>';
 
     scrollToHighlightedPost();
   }
+
+  // --- Funções de Comunicação com a API ---
 
   async function loadCommunityDetails() {
     try {
@@ -281,6 +299,7 @@ async function loadFriendsIndex() {
     if (response.ok) window.location.href = 'communities.html';
   }
 
+  // --- Lógica do Modal de Edição da Comunidade ---
   function openEditCommunityModal() {
     document.getElementById('editCommunityName').value = currentCommunity.name || '';
     document.getElementById('editCommunityBio').value = currentCommunity.description || '';
@@ -324,6 +343,7 @@ async function loadFriendsIndex() {
       }
 
       editCommunityModal.hide();
+      // Atualiza o slug na URL se o nome da comunidade mudou
       if (data?.community?.slug && data.community.slug !== currentSlug) {
         window.history.replaceState({}, '', `community.html?slug=${encodeURIComponent(data.community.slug)}`);
         currentSlug = data.community.slug;
@@ -345,37 +365,37 @@ async function loadFriendsIndex() {
     if (response.ok) window.location.href = 'communities.html';
   });
 
+  // =========================================================================
+  // OTIMIZAÇÃO: Criação de post direta
+  // Evita o loop infinito de 404s que sobrecarregava o servidor Render
+  // =========================================================================
   async function createCommunityPost(content) {
-    const payloadWithCommunity = buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug });
-    const attempts = [
-      { path: `/api/posts/communities/${currentSlug}/post/create/`, body: payloadWithCommunity },
-      { path: `/api/posts/community/${currentSlug}/post/create/`, body: payloadWithCommunity },
-      { path: '/api/posts/feed/create/', body: payloadWithCommunity },
-      { path: `/api/posts/communities/${currentSlug}/post/create/`, body: { content } },
-    ];
+    const payload = typeof buildCommunityPostPayload === 'function' 
+        ? buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug })
+        : { content };
 
-    let lastData = null;
-    let lastResponse = null;
-
-    for (const attempt of attempts) {
-      const response = await apiFetch(attempt.path, {
+    // Tenta primeiro a rota direta da comunidade
+    let response = await apiFetch(`/api/posts/communities/${currentSlug}/post/create/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    
+    // Se a rota específica der 404, faz o fallback inteligente para o feed geral,
+    // enviando a flag da comunidade junto no payload para ser classificado corretamente.
+    if (!response.ok && response.status === 404) {
+      response = await apiFetch('/api/posts/feed/create/', {
         method: 'POST',
-        body: JSON.stringify(attempt.body),
+        body: JSON.stringify(payload),
       });
-      const data = await response.json().catch(() => null);
-      lastData = data;
-      lastResponse = response;
-
-      if (response.ok) return { response, data };
-      if (![400, 404, 405].includes(response.status)) break;
     }
 
-    const error = new Error(getApiError(lastData, 'Erro ao publicar.'));
-    error.response = lastResponse;
-    error.data = lastData;
-    throw error;
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(getApiError(data, 'Erro ao publicar.'));
+    
+    return { response, data };
   }
 
+  // Ação de publicar (Ouve o clique do botão no modal)
   publishBtn.addEventListener('click', async () => {
     const contentEl = document.getElementById('communityPostContent');
     const error = document.getElementById('communityPostError');
@@ -402,6 +422,8 @@ async function loadFriendsIndex() {
     }
   });
 
+  // --- Funções de Interação Global (Expostas para o HTML) ---
+
   window.toggleLike = async (postId, btnElement = null) => {
     const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
     if (!response.ok) return;
@@ -422,7 +444,7 @@ async function loadFriendsIndex() {
       body: JSON.stringify({ content }),
     });
     if (response.ok) {
-      ConectaPosts.openPostComments(postId);
+      if(window.ConectaPosts) ConectaPosts.openPostComments(postId);
       await loadCommunityDetails();
     }
   };
@@ -518,6 +540,7 @@ async function loadFriendsIndex() {
 
   window.loadCommunityDetailsFromButton = loadCommunityDetails;
 
+  // Lógica dos eventos de clique nas abas (Geral / Amigos)
   communityGeneralTab?.addEventListener('click', () => {
     setActiveCommunityTab('general');
     renderVisibleCommunityPosts();
@@ -528,5 +551,6 @@ async function loadFriendsIndex() {
     renderVisibleCommunityPosts();
   });
 
+  // Inicializa carregando os dados da comunidade
   await loadCommunityDetails();
 });

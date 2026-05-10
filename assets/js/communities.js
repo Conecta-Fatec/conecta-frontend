@@ -1,5 +1,5 @@
 /* =========================================================
-   Comunidades: listagem, busca, criação e paginação leve
+   Comunidades: listagem, busca instantânea e paginação leve
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const createBtn = document.getElementById('createCommunityBtn');
   const errorP = document.getElementById('communityError');
 
+  // Estado que controla as listas e a pesquisa
   const state = {
     myCommunities: [],
     otherCommunities: [],
@@ -23,9 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     exploreVisible: 3,
   };
 
+  // Filtra e classifica as comunidades que vieram da API
   function normalizeCommunitiesData(data = {}) {
-    const mineRaw = normalizeArray(data.my_communities, 'results')
-      .concat(normalizeArray(data.joined_communities, 'results'));
+    const mineRaw = normalizeArray(data.my_communities, 'results').concat(normalizeArray(data.joined_communities, 'results'));
 
     const myCommunities = mineRaw
       .filter((community, index, list) => list.findIndex((item) => item.slug === community.slug) === index)
@@ -47,7 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function matchesSearch(community = {}) {
     if (!state.query) return true;
-
     const haystack = `${community.name || ''} ${community.description || ''}`.toLowerCase();
     return haystack.includes(state.query);
   }
@@ -55,18 +55,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   function communityCardContent(comm, badge, actionHTML = '') {
     return `
       ${communityAvatarHTML(comm, 'community-card-avatar')}
-
       <div class="community-card-body">
         <span class="community-card-tag">${badge}</span>
-
         <h3>${escapeHTML(comm.name)}</h3>
-
         <p>${escapeHTML(comm.description || 'Sem descrição.')}</p>
-
         <div class="community-card-meta">
           <span>${getCommunityMemberCount(comm)} participante(s)</span>
         </div>
-
         ${actionHTML}
       </div>
     `;
@@ -85,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
+  // Função genérica de renderização com botão Ver Mais
   function renderLimitedList(container, items, visible, type, emptyText, moreAction) {
     if (!items.length) {
       container.innerHTML = `<div class="api-empty-state">${emptyText}</div>`;
@@ -107,23 +103,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filteredMine = state.myCommunities.filter(matchesSearch);
     const filteredExplore = state.otherCommunities.filter(matchesSearch);
 
-    renderLimitedList(
-      myCommunitiesContainer,
-      filteredMine,
-      state.myVisible,
-      'mine',
-      'Você ainda não participa de nenhuma comunidade.',
-      'my-communities'
-    );
-
-    renderLimitedList(
-      exploreCommunitiesContainer,
-      filteredExplore,
-      state.exploreVisible,
-      'explore',
-      'Não há novas comunidades no momento.',
-      'explore-communities'
-    );
+    renderLimitedList(myCommunitiesContainer, filteredMine, state.myVisible, 'mine', 'Você ainda não participa de nenhuma comunidade.', 'my-communities');
+    renderLimitedList(exploreCommunitiesContainer, filteredExplore, state.exploreVisible, 'explore', 'Não há novas comunidades no momento.', 'explore-communities');
 
     memberCountEl.textContent = state.myCommunities.length;
     creatorCountEl.textContent = state.createdCount;
@@ -150,39 +131,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function joinCommunity(slug) {
     try {
       const response = await apiFetch(`/api/posts/communities/${slug}/join/`, { method: 'POST' });
-
       if (!response.ok) {
         const data = await response.json().catch(() => null);
         alert(getApiError(data, 'Erro ao entrar na comunidade.'));
         return;
       }
-
       await loadCommunities();
-    } catch (error) {
-      console.error(error);
-      alert('Erro de conexão com o servidor.');
-    }
+    } catch (error) { alert('Erro de conexão com o servidor.'); }
   }
 
+  // Escuta os cliques no botão "Ver Mais"
   document.addEventListener('click', (event) => {
     const joinButton = event.target.closest('[data-join-community]');
-
-    if (joinButton) {
-      event.preventDefault();
-      event.stopPropagation();
-      joinCommunity(joinButton.dataset.joinCommunity);
-      return;
-    }
+    if (joinButton) { event.preventDefault(); event.stopPropagation(); joinCommunity(joinButton.dataset.joinCommunity); return; }
 
     const moreButton = event.target.closest('[data-more]');
     if (!moreButton) return;
-
     if (moreButton.dataset.more === 'my-communities') state.myVisible += 3;
     if (moreButton.dataset.more === 'explore-communities') state.exploreVisible += 3;
-
     renderCommunities();
   });
 
+  // Filtra em tempo real (Pesquisa sem apertar ENTER)
   searchInput?.addEventListener('input', (event) => {
     state.query = event.target.value.trim().toLowerCase();
     state.myVisible = 3;
@@ -198,56 +168,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       errorP.style.display = 'none';
 
-      if (!name) {
-        errorP.textContent = 'O nome da comunidade é obrigatório.';
-        errorP.style.display = 'block';
-        return;
-      }
+      if (!name) { errorP.textContent = 'O nome da comunidade é obrigatório.'; errorP.style.display = 'block'; return; }
 
-      createBtn.disabled = true;
-      createBtn.textContent = 'Criando...';
+      createBtn.disabled = true; createBtn.textContent = 'Criando...';
 
       try {
         let body;
-
         if (photo) {
-          body = new FormData();
-          body.append('name', name);
-          body.append('description', description);
-          body.append('photo', photo);
+          body = new FormData(); body.append('name', name); body.append('description', description); body.append('photo', photo);
         } else {
           body = JSON.stringify({ name, description });
         }
 
-        const response = await apiFetch('/api/posts/communities/create/', {
-          method: 'POST',
-          body,
-        });
-
+        const response = await apiFetch('/api/posts/communities/create/', { method: 'POST', body });
         const data = await response.json().catch(() => null);
 
-        if (!response.ok) {
-          errorP.textContent = getApiError(data, 'Erro ao criar comunidade.');
-          errorP.style.display = 'block';
-          return;
-        }
+        if (!response.ok) { errorP.textContent = getApiError(data, 'Erro ao criar comunidade.'); errorP.style.display = 'block'; return; }
 
-        document.getElementById('communityName').value = '';
-        document.getElementById('communityBio').value = '';
-
-        if (document.getElementById('communityPhoto')) {
-          document.getElementById('communityPhoto').value = '';
-        }
+        document.getElementById('communityName').value = ''; document.getElementById('communityBio').value = '';
+        if (document.getElementById('communityPhoto')) document.getElementById('communityPhoto').value = '';
 
         bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityModal')).hide();
         await loadCommunities();
       } catch (error) {
-        console.error(error);
-        errorP.textContent = 'Erro de conexão com o servidor.';
-        errorP.style.display = 'block';
+        console.error(error); errorP.textContent = 'Erro de conexão com o servidor.'; errorP.style.display = 'block';
       } finally {
-        createBtn.disabled = false;
-        createBtn.textContent = 'Criar';
+        createBtn.disabled = false; createBtn.textContent = 'Criar';
       }
     });
   }

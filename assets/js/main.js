@@ -1,3 +1,7 @@
+/* =========================================================
+   CONECTA FATEC: Funções Globais e Core da Aplicação. Otimização de Busca Paralela (Promise.any)
+========================================================= */
+
 const API_BASE_URL = 'https://conecta-fatec-api.onrender.com';
 
 function getAccessToken() {
@@ -265,7 +269,7 @@ function setupMobileBottomNav() {
     { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M7.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20.5a4.5 4.5 0 0 1 9 0m0 0a4.5 4.5 0 0 1 9 0" /></svg>', pages: ['communities.html', 'community.html'] },
     { href: 'friends.html', label: 'Amizades', icon: '<svg viewBox="0 0 24 24"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-5.5 9a5.5 5.5 0 0 1 11 0m4-9v6m-3-3h6" /></svg>', pages: ['friends.html'] },
     { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM4 21a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
-    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7Z" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2a1 1 0 0 0-.6.9V20a2 2 0 0 1-4 0v-.2a1 1 0 0 0-.6-.9a1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1a1 1 0 0 0-.9-.6H4a2 2 0 0 1 0-4h.2a1 1 0 0 0 .9-.6a1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2a1 1 0 0 0 .6-.9V4a2 2 0 0 1 4 0v.2a1 1 0 0 0 .6.9a1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1a1 1 0 0 0 .9.6H20a2 2 0 0 1 0 4h-.2a1 1 0 0 0-.9.6Z" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html'] },
+    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7Z" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2a1 1 0 0 0-.6.9V20a2 2 0 0 1-4 0v-.2a1 1 0 0 0-.6-.9a1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1.1a1 1 0 0 0 1.1.2a1 1 0 0 0 .6-.9V4a2 2 0 0 1 4 0v.2a1 1 0 0 0 .6.9a1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1a1 1 0 0 0 .9.6H20a2 2 0 0 1 0 4h-.2a1 1 0 0 0-.9.6Z" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html'] },
   ];
   const nav = document.createElement('nav');
   nav.className = 'mobile-bottom-nav';
@@ -276,7 +280,6 @@ function setupMobileBottomNav() {
   }).join('');
   document.body.appendChild(nav);
 }
-
 
 function setupCookieBanner() {
   const banner = document.getElementById('cookieBanner');
@@ -607,7 +610,6 @@ function userLinkHTML(user = {}, label = null, className = '') {
   return `<a href="${profileUrlFor(user)}" class="${className}">${escapeHTML(text)}</a>`;
 }
 
-
 function normalizeArray(data, ...keys) {
   if (Array.isArray(data)) return data;
   if (!data || typeof data !== 'object') return [];
@@ -645,6 +647,7 @@ function communityPhoto(community = {}) {
   return community.photo_url || community.photo || community.image_url || community.image || community.avatar_url || community.cover_url || '';
 }
 
+// A FUNÇÃO QUE FALTAVA FOI RESTAURADA AQUI
 function communityAvatarHTML(community = {}, sizeClass = 'community-card-avatar') {
   const name = community.name || 'Comunidade';
   const photo = toApiUrl(communityPhoto(community));
@@ -723,15 +726,15 @@ async function apiJSON(path, options = {}) {
   return data;
 }
 
+// OTIMIZAÇÃO: Promise.any para buscas paralelas (MANTIDA!)
 async function tryApiJSON(paths, options = {}) {
-  let lastError = null;
-  for (const path of paths) {
-    try {
-      return await apiJSON(path, options);
-    } catch (error) {
-      lastError = error;
-      if (error.response && ![404, 405].includes(error.response.status)) break;
-    }
+  const promises = paths.map(path =>
+    apiJSON(path, options).then(data => data)
+  );
+
+  try {
+    return await Promise.any(promises);
+  } catch (aggregateError) {
+    throw new Error('Nenhum dos endpoints de busca encontrou os dados.');
   }
-  throw lastError || new Error('Não foi possível consultar a API.');
 }

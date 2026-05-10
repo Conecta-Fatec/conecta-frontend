@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Conecta Fatec | Perfil</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />  
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -16,9 +19,11 @@
       }
     };
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
+
 <body class="theme-light">
   <script>
     (function () {
@@ -55,6 +60,7 @@
   </script>
   <main class="feed-page">
     <div class="feed-layout">
+
       <aside class="sidebar desktop-sidebar">
         <a href="feed.html" class="sidebar-logo">
           <img src="../assets/img/logo-light.png" alt="Logo" class="sidebar-logo-img logo-light" />
@@ -85,7 +91,10 @@
       <section class="feed-content community-page-content">
         <header class="community-page-hero profile-hero-card">
           <div class="profile-hero-layout">
-            <button class="community-page-avatar profile-main-avatar" id="profile-avatar" type="button" data-photo-viewer="profile" aria-label="Abrir foto de perfil">--</button>
+
+            <button class="community-page-avatar profile-main-avatar" id="profile-avatar" type="button"
+              data-photo-viewer="profile" aria-label="Abrir foto de perfil">--</button>
+
             <div class="community-page-info profile-main-info">
               <span class="feed-kicker">Meu perfil</span>
               <h1 id="profile-name">Carregando...</h1>
@@ -96,7 +105,13 @@
               </div>
               <p id="profile-course" class="profile-course-text">Curso não informado</p>
               <p id="profile-bio" class="profile-bio-text">Buscando informações do perfil...</p>
+
+              <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill"
+                  id="openEditPhotoBtn">📸 Editar Foto</button>
+              </div>
             </div>
+
             <button type="button" class="btn btn-outline-primary fw-bold" id="openEditProfileBtn">Editar perfil</button>
           </div>
         </header>
@@ -152,18 +167,17 @@
             <select id="editCourse" class="form-select">
               <option value="">Selecione um curso</option>
               <option value="Automação Industrial">Automação Industrial</option>
-              <option value="Desenvolvimento de Software Multiplataforma">Desenvolvimento de Software Multiplataforma</option>
+              <option value="Desenvolvimento de Software Multiplataforma">Desenvolvimento de Software Multiplataforma
+              </option>
               <option value="Fabricação Mecânica">Fabricação Mecânica</option>
               <option value="Manutenção Industrial">Manutenção Industrial</option>
               <option value="Mecânica: Processos de Soldagem">Mecânica: Processos de Soldagem</option>
-              <option value="Refrigeração, Ventilação e Ar Condicionado">Refrigeração, Ventilação e Ar Condicionado</option>
+              <option value="Refrigeração, Ventilação e Ar Condicionado">Refrigeração, Ventilação e Ar Condicionado
+              </option>
             </select>
 
             <label for="editBio">Bio</label>
             <textarea id="editBio" rows="4" maxlength="150"></textarea>
-
-            <label for="editPhoto">Foto de perfil</label>
-            <input type="file" id="editPhoto" accept="image/*" />
           </div>
           <p id="editProfileError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
@@ -175,9 +189,36 @@
     </div>
   </div>
 
+  <div class="modal fade" id="editPhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content post-modal-content">
+        <div class="modal-header post-modal-header">
+          <h2 class="modal-title fs-5">Alterar Foto de Perfil</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body post-modal-body text-center">
+          <input type="file" id="editPhotoInput" accept="image/png, image/jpeg" class="form-control mb-3" />
+
+          <div id="photoCropWrapper" class="d-none border rounded"
+            style="max-height: 400px; overflow: hidden; background: #eee;">
+            <img id="photoToCrop" style="max-width: 100%; display: block; margin: 0 auto;" />
+          </div>
+
+          <p id="editPhotoError" class="text-danger mt-2 small" style="display:none;"></p>
+        </div>
+        <div class="modal-footer post-modal-footer">
+          <button type="button" class="modal-cancel-btn" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="modal-publish-btn" id="savePhotoBtn">Cortar e Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/profile.js"></script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 /* =========================================================
    Feed: posts gerais, posts de amigos e interação principal
+   - Otimizado para não gerar estrangulamento de requisições
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -37,9 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     return Boolean(post.community || post.community_data || post.community_slug || post.community_name);
   }
 
+  // Cache da lista de amigos para filtrar os posts rapidamente
   async function loadFriendsIndex() {
     if (cachedFriends.ids?.size || cachedFriends.nicknames?.size) return cachedFriends;
-
     try {
       const data = await apiJSON('/api/users/friends/');
       const friends = normalizeArray(data, 'friends', 'results');
@@ -51,7 +52,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error('Erro ao carregar amigos para filtrar o feed:', error);
       cachedFriends = { ids: new Set(), nicknames: new Set() };
     }
-
     return cachedFriends;
   }
 
@@ -64,6 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       || (authorNickname && friendsIndex.nicknames.has(authorNickname));
   }
 
+  // OTIMIZAÇÃO: Busca o feed de amigos. Se der 404, faz um fallback 
+  // usando Promise.all para carregar TUDO ao mesmo tempo sem lentidão.
   async function fetchFriendsPostsWithFallback() {
     try {
       const data = await apiJSON('/api/posts/feed/friends/');
@@ -73,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Erro ao buscar feed de amigos no backend:', error);
       }
 
+      // Executa as duas requisições simultaneamente
       const [allPosts, friendsIndex] = await Promise.all([
         apiJSON('/api/posts/feed/').then(normalizePostsPayload),
         loadFriendsIndex(),
@@ -82,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Define qual rota usar dependendo da Aba selecionada (Geral ou Amigos)
   async function fetchPosts(mode) {
     if (mode === 'friends') return fetchFriendsPostsWithFallback();
     return normalizePostsPayload(await apiJSON('/api/posts/feed/')).filter((post) => !isCommunityPost(post));
@@ -95,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
+  // Renderiza no ecrã utilizando o post-ui.js global
   function renderPosts(posts) {
     postsContainer.innerHTML = '';
 
@@ -128,6 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Acção de criar um novo post no Modal
   async function publishFeedPost() {
     const content = postInput.value.trim();
     if (!content) return;
@@ -153,85 +159,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  window.deletePost = async function deletePost(postId) {
+  // Funções Globais da página de Feed
+  window.deletePost = async function(postId) {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/delete/`, { method: 'DELETE' });
       if (response.ok) await loadPosts(true);
-    } catch (error) {
-      alert('Erro ao excluir o post.');
-    }
+    } catch (error) { alert('Erro ao excluir o post.'); }
   };
 
-  window.deleteComment = async function deleteComment(commentId) {
+  window.deleteComment = async function(commentId) {
     if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
     try {
       const response = await apiFetch(`/api/posts/comment/${commentId}/delete/`, { method: 'DELETE' });
       if (response.ok) await loadPosts(true);
-    } catch (error) {
-      alert('Erro ao excluir o comentário.');
-    }
+    } catch (error) { alert('Erro ao excluir o comentário.'); }
   };
 
-  window.enablePostEdit = function enablePostEdit(postId) {
+  window.enablePostEdit = function(postId) {
     const contentDiv = document.getElementById(`post-text-content-${postId}`);
     if (!contentDiv) return;
     const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.getAttribute('data-raw') || '';
-    contentDiv.innerHTML = `
-      <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
-        <div class="d-flex gap-2 mt-2">
-          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId})">Salvar</button>
-          <button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">Cancelar</button>
-        </div>
-      </div>`;
+    contentDiv.innerHTML = `<div class="mb-3 mt-2"><textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea><div class="d-flex gap-2 mt-2"><button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId})">Salvar</button><button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">Cancelar</button></div></div>`;
     document.getElementById(`edit-post-input-${postId}`).value = originalText;
   };
 
-  window.savePostEdit = async function savePostEdit(postId) {
+  window.savePostEdit = async function(postId) {
     const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
     if (!content) return;
     try {
-      const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ content }),
-      });
+      const response = await apiFetch(`/api/posts/post/${postId}/update/`, { method: 'PATCH', body: JSON.stringify({ content }) });
       if (response.ok) await loadPosts(true);
-      else alert('Erro ao editar o post.');
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) { console.error(error); }
   };
 
-  window.enableCommentEdit = function enableCommentEdit(commentId) {
+  window.enableCommentEdit = function(commentId) {
     const textSpan = document.getElementById(`comment-text-content-${commentId}`);
     if (!textSpan) return;
     const originalText = textSpan.textContent || textSpan.getAttribute('data-raw') || '';
-    textSpan.innerHTML = `
-      <span class="comment-edit-inline">
-        <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200">
-        <button class="btn btn-sm btn-primary" type="button" onclick="saveCommentEdit(${commentId})">Salvar</button>
-        <button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">✕</button>
-      </span>`;
+    textSpan.innerHTML = `<span class="comment-edit-inline"><input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200"><button class="btn btn-sm btn-primary" type="button" onclick="saveCommentEdit(${commentId})">Salvar</button><button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">✕</button></span>`;
     document.getElementById(`edit-comment-input-${commentId}`).value = originalText;
   };
 
-  window.saveCommentEdit = async function saveCommentEdit(commentId) {
+  window.saveCommentEdit = async function(commentId) {
     const content = document.getElementById(`edit-comment-input-${commentId}`)?.value.trim();
     if (!content) return;
     try {
-      const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ content }),
-      });
+      const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, { method: 'PATCH', body: JSON.stringify({ content }) });
       if (response.ok) await loadPosts(true);
-      else alert('Erro ao editar o comentário.');
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) { console.error(error); }
   };
 
-  window.toggleLike = async function toggleLike(postId, btnElement) {
+  window.toggleLike = async function(postId, btnElement) {
     const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
     if (!response.ok) return;
     const data = await response.json().catch(() => null);
@@ -241,24 +220,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
   };
 
-  window.addComment = async function addComment(postId) {
+  window.addComment = async function(postId) {
     const input = document.getElementById(`comment-input-${postId}`);
     const content = input?.value.trim();
     if (!content) return;
-    const response = await apiFetch(`/api/posts/post/${postId}/comment/`, {
-      method: 'POST',
-      body: JSON.stringify({ content }),
-    });
-    if (response.ok) {
-      input.value = '';
-      ConectaPosts.openPostComments(postId);
-      await loadPosts(true);
-    } else {
-      alert('Erro ao comentar.');
-    }
+    const response = await apiFetch(`/api/posts/post/${postId}/comment/`, { method: 'POST', body: JSON.stringify({ content }) });
+    if (response.ok) { input.value = ''; ConectaPosts.openPostComments(postId); await loadPosts(true); } 
+    else { alert('Erro ao comentar.'); }
   };
 
-  window.toggleCommentLike = async function toggleCommentLike(commentId, btnElement) {
+  window.toggleCommentLike = async function(commentId, btnElement) {
     const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
     if (!response.ok) return;
     const data = await response.json().catch(() => null);
@@ -268,45 +239,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
   };
 
-  window.toggleReplyInput = function toggleReplyInput(commentId) {
+  window.toggleReplyInput = function(commentId) {
     const box = document.getElementById(`reply-box-${commentId}`);
     box?.classList.toggle('d-none');
     if (box && !box.classList.contains('d-none')) document.getElementById(`reply-input-${commentId}`)?.focus();
   };
 
-  window.addReply = async function addReply(commentId) {
+  window.addReply = async function(commentId) {
     const input = document.getElementById(`reply-input-${commentId}`);
     const content = input?.value.trim();
     if (!content) return;
-    const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, {
-      method: 'POST',
-      body: JSON.stringify({ content }),
-    });
-    if (response.ok) {
-      input.value = '';
-      await loadPosts(true);
-    } else {
-      alert('Erro ao responder.');
-    }
+    const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, { method: 'POST', body: JSON.stringify({ content }) });
+    if (response.ok) { input.value = ''; await loadPosts(true); } 
+    else { alert('Erro ao responder.'); }
   };
 
+  // Event Listeners
   publishBtn?.addEventListener('click', publishFeedPost);
   inlineComposer?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('newPostModal')).show();
+      event.preventDefault(); bootstrap.Modal.getOrCreateInstance(document.getElementById('newPostModal')).show();
     }
   });
 
-  generalTab?.addEventListener('click', () => {
-    setActiveTab('general');
-    loadPosts();
-  });
-
-  friendsTab?.addEventListener('click', () => {
-    setActiveTab('friends');
-    loadPosts();
-  });
+  generalTab?.addEventListener('click', () => { setActiveTab('general'); loadPosts(); });
+  friendsTab?.addEventListener('click', () => { setActiveTab('friends'); loadPosts(); });
 
   setActiveTab('general');
   loadPosts();
