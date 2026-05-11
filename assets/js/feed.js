@@ -265,6 +265,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   generalTab?.addEventListener('click', () => { setActiveTab('general'); loadPosts(); });
   friendsTab?.addEventListener('click', () => { setActiveTab('friends'); loadPosts(); });
 
+  // ==========================================
+  // LÓGICA DO BOTÃO DE REFRESH NO FEED GERAL
+  // ==========================================
+  const refreshFeedBtn = document.getElementById('refreshFeedBtn');
+  if (refreshFeedBtn) {
+    refreshFeedBtn.addEventListener('click', async () => {
+      const icon = refreshFeedBtn.querySelector('.refresh-icon');
+      if (icon) icon.classList.add('spin-animation');
+      refreshFeedBtn.disabled = true;
+
+      // Executa a busca em modo "silencioso" para não piscar a tela
+      await window.loadPosts(true);
+
+      if (icon) icon.classList.remove('spin-animation');
+      refreshFeedBtn.disabled = false;
+    });
+  }
+
   setActiveTab('general');
   loadPosts();
 });

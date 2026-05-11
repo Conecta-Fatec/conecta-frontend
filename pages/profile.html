@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Conecta Fatec | Perfil</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -105,14 +105,11 @@
               </div>
               <p id="profile-course" class="profile-course-text">Curso não informado</p>
               <p id="profile-bio" class="profile-bio-text">Buscando informações do perfil...</p>
-
-              <div class="mt-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill"
-                  id="openEditPhotoBtn">📸 Editar Foto</button>
-              </div>
             </div>
 
-            <button type="button" class="btn btn-outline-primary fw-bold" id="openEditProfileBtn">Editar perfil</button>
+            <button type="button" class="btn btn-outline-primary fw-bold rounded-pill" id="openEditProfileBtn"
+              style="grid-area: action; justify-self: end;">Editar perfil</button>
+
           </div>
         </header>
 
@@ -149,22 +146,46 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content post-modal-content">
         <div class="modal-header post-modal-header">
-          <h2 class="modal-title fs-5">Editar perfil</h2>
+          <h2 class="modal-title fs-5 fw-bold">Editar perfil</h2>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body post-modal-body">
-          <div class="community-form-area">
+
+          <div class="d-flex justify-content-center mb-4 mt-2">
+            <div id="triggerProfilePhotoInput" class="position-relative"
+              style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 2px solid var(--line-color); background-color: var(--surface-hover);">
+              <img id="editProfileAvatarPreview" src="" alt="Avatar do Perfil"
+                style="width: 100%; height: 100%; object-fit: cover; display: none;" />
+              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                style="background: rgba(0,0,0,0.4);">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
+                  <path
+                    d="M12 17.5c-3.03 0-5.5-2.47-5.5-5.5S8.97 6.5 12 6.5s5.5 2.47 5.5 5.5-2.47 5.5-5.5 5.5zm0-9c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5zm7.01-2.58l-1.63-2.17c-.24-.32-.62-.51-1.03-.51H7.65c-.41 0-.79.19-1.03.51L4.99 5.92H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-10c0-1.1-.9-2-2-2h-1.99zM21 17.92c0 .04-.04.08-.08.08H3.08c-.04 0-.08-.04-.08-.08v-10c0-.04.04-.08.08-.08h2.64l1.63-2.17c.05-.06.12-.1.19-.1h8.92c.07 0 .14.04.19.1l1.63 2.17h2.64c.04 0 .08.04.08.08v10z">
+                  </path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <input type="file" id="editProfilePhotoInput" accept="image/png, image/jpeg, image/webp" class="d-none" />
+
+          <div id="profilePhotoCropWrapper" class="d-none border rounded mb-4"
+            style="max-height: 280px; overflow: hidden; background: #eee;">
+            <img id="profilePhotoToCrop" style="max-width: 100%; display: block; margin: 0 auto;" />
+          </div>
+
+          <div class="community-form-area text-dark">
             <label for="editFirstName">Nome</label>
-            <input type="text" id="editFirstName" />
+            <input type="text" id="editFirstName" class="form-control custom-input mb-2" />
 
             <label for="editLastName">Sobrenome</label>
-            <input type="text" id="editLastName" />
+            <input type="text" id="editLastName" class="form-control custom-input mb-2" />
 
             <label for="editNickname">Nickname</label>
-            <input type="text" id="editNickname" />
+            <input type="text" id="editNickname" class="form-control custom-input mb-2" />
 
             <label for="editCourse">Curso</label>
-            <select id="editCourse" class="form-select">
+            <select id="editCourse" class="form-select custom-input mb-2">
               <option value="">Selecione um curso</option>
               <option value="Automação Industrial">Automação Industrial</option>
               <option value="Desenvolvimento de Software Multiplataforma">Desenvolvimento de Software Multiplataforma
@@ -177,38 +198,13 @@
             </select>
 
             <label for="editBio">Bio</label>
-            <textarea id="editBio" rows="4" maxlength="150"></textarea>
+            <textarea id="editBio" rows="4" maxlength="150" class="form-control custom-input"></textarea>
           </div>
           <p id="editProfileError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
-        <div class="modal-footer post-modal-footer">
+        <div class="modal-footer post-modal-footer border-0">
           <button type="button" class="modal-cancel-btn" data-bs-dismiss="modal">Cancelar</button>
           <button type="button" class="modal-publish-btn" id="saveProfileBtn">Salvar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="editPhotoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content post-modal-content">
-        <div class="modal-header post-modal-header">
-          <h2 class="modal-title fs-5">Alterar Foto de Perfil</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body post-modal-body text-center">
-          <input type="file" id="editPhotoInput" accept="image/png, image/jpeg" class="form-control mb-3" />
-
-          <div id="photoCropWrapper" class="d-none border rounded"
-            style="max-height: 400px; overflow: hidden; background: #eee;">
-            <img id="photoToCrop" style="max-width: 100%; display: block; margin: 0 auto;" />
-          </div>
-
-          <p id="editPhotoError" class="text-danger mt-2 small" style="display:none;"></p>
-        </div>
-        <div class="modal-footer post-modal-footer">
-          <button type="button" class="modal-cancel-btn" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="modal-publish-btn" id="savePhotoBtn">Cortar e Salvar</button>
         </div>
       </div>
     </div>

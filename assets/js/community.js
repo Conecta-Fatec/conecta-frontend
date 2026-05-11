@@ -1,16 +1,13 @@
 /* =========================================================
-   Comunidade: detalhes, membros e posts internos (OTIMIZADO)
+   Comunidade: detalhes, membros, posts e Cropper Integrado
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Verifica se o utilizador está logado antes de carregar a página
   if (!requireAuth()) return;
 
-  // Captura os parâmetros da URL (ex: ?slug=comunidade-teste&post=123)
   const urlParams = new URLSearchParams(window.location.search);
   const slug = urlParams.get('slug');
   const highlightedPostId = urlParams.get('post');
 
-  // Se não houver slug, redireciona de volta para a lista de comunidades
   if (!slug) {
     window.location.href = 'communities.html';
     return;
@@ -20,10 +17,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentCommunity = null;
   let currentSlug = slug;
   let editCommunityModal = null;
+  let commCropper = null;
 
   if (window.ConectaPosts) ConectaPosts.currentUserNickname = currentUser?.nickname || '';
 
-  // Elementos do DOM (HTML)
   const commName = document.getElementById('comm-name');
   const commDesc = document.getElementById('comm-desc');
   const commCreator = document.getElementById('comm-creator');
@@ -39,15 +36,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const communityGeneralTab = document.getElementById('community-general-tab');
   const communityFriendsTab = document.getElementById('community-friends-tab');
 
-  // Cache local para guardar os posts e evitar requisições desnecessárias
   let communityPostsCache = [];
   let currentIsMember = false;
   let currentPostMode = 'general';
   let cachedFriends = { ids: new Set(), nicknames: new Set() };
 
-  // --- Funções Auxiliares de Tratamento de Dados ---
-
-  // Descobre quem é o criador da comunidade lidando com diferentes formatos de resposta da API
   function creatorFromCommunity(community = {}) {
     return community.creator || community.created_by || community.owner || {
       nickname: community.creator_nickname,
@@ -73,7 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return Number.isFinite(time) ? time : Number.POSITIVE_INFINITY;
   }
 
-  // Normaliza os dados da comunidade recebidos da API
   function normalizeCommunityDetails(data = {}) {
     const community = normalizeCommunity(data.community || data, data.members_count);
     const members = normalizeArray(data.members, 'results').length
@@ -90,9 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
-  // --- Funções de Renderização Visual (HTML) ---
-
   function renderCommunityAvatar(community = {}) {
+    if (!commAvatar) return;
     commAvatar.classList.remove('has-image');
     commAvatar.setAttribute('data-photo-viewer', 'community');
     commAvatar.dataset.photoTitle = community.name || 'Comunidade';
@@ -105,8 +96,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Renderiza a lista de membros, colocando sempre o criador no topo
   function renderMembers(members = [], community = {}) {
+    if (!membersContainer) return;
     const creator = creatorFromCommunity(community);
     const unique = [];
 
@@ -144,30 +135,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
-  // Controla as abas de "Todos os Posts" e "Apenas Amigos"
   function setActiveCommunityTab(mode) {
     currentPostMode = mode;
     communityGeneralTab?.classList.toggle('active', mode === 'general');
     communityFriendsTab?.classList.toggle('active', mode === 'friends');
   }
 
-  // Carrega e guarda em cache a lista de amigos para não fazer várias requisições
   async function loadFriendsIndex() {
     if (cachedFriends.ids.size || cachedFriends.nicknames.size) return cachedFriends;
-
     try {
       const data = await apiJSON('/api/users/friends/');
       const friends = normalizeArray(data, 'friends', 'results');
-
       cachedFriends = {
         ids: new Set(friends.map((friend) => Number(friend.id)).filter(Number.isFinite)),
         nicknames: new Set(friends.map((friend) => friend.nickname).filter(Boolean)),
       };
     } catch (error) {
-      console.error('Erro ao carregar amigos para filtrar posts da comunidade:', error);
       cachedFriends = { ids: new Set(), nicknames: new Set() };
     }
-
     return cachedFriends;
   }
 
@@ -182,7 +167,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function getVisibleCommunityPosts() {
     if (currentPostMode === 'general') return communityPostsCache;
-
     const friendsIndex = await loadFriendsIndex();
     return communityPostsCache.filter((post) => isPostFromFriend(post, friendsIndex));
   }
@@ -192,7 +176,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPosts(visiblePosts, currentIsMember);
   }
   
-  // Preenche todos os dados do cabeçalho da comunidade
   function renderCommunityDetails(data) {
     const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
     currentCommunity = community;
@@ -202,32 +185,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const creatorName = userDisplayName(creator);
     const creatorNickname = creator.nickname || community.creator_nickname || '';
 
-    commName.textContent = community.name || 'Comunidade';
-    commDesc.textContent = community.description || 'Sem descrição.';
-    commMembersCount.textContent = `${membersCount} participante(s)`;
-    commCreator.innerHTML = creatorNickname
-      ? `Criada por ${userLinkHTML({ ...creator, nickname: creatorNickname }, `@${creatorNickname}`, 'nickname-link')}`
-      : `Criada por ${escapeHTML(creatorName)}`;
+    if (commName) commName.textContent = community.name || 'Comunidade';
+    if (commDesc) commDesc.textContent = community.description || 'Sem descrição.';
+    if (commMembersCount) commMembersCount.textContent = `${membersCount} participante(s)`;
+    if (commCreator) {
+      commCreator.innerHTML = creatorNickname
+        ? `Criada por ${userLinkHTML({ ...creator, nickname: creatorNickname }, `@${creatorNickname}`, 'nickname-link')}`
+        : `Criada por ${escapeHTML(creatorName)}`;
+    }
 
     renderCommunityAvatar(community);
 
-    commActionBtn.style.display = 'inline-flex';
-    deleteCommunityBtn.style.display = community.is_creator ? 'inline-flex' : 'none';
-    createPostCard.style.display = isMember ? 'block' : 'none'; // Só mostra o input de post se for membro
+    if (commActionBtn) {
+      commActionBtn.style.display = 'inline-flex';
+      if (community.is_creator) {
+        commActionBtn.textContent = 'Editar comunidade';
+        commActionBtn.className = 'btn btn-outline-primary fw-bold';
+        commActionBtn.onclick = openEditCommunityModal;
+      } else if (isMember) {
+        commActionBtn.textContent = 'Sair da comunidade';
+        commActionBtn.className = 'btn btn-outline-danger fw-bold';
+        commActionBtn.onclick = leaveCommunity;
+      } else {
+        commActionBtn.textContent = 'Participar';
+        commActionBtn.className = 'btn btn-primary fw-bold';
+        commActionBtn.onclick = joinCommunity;
+      }
+    }
 
-    // Define a ação do botão principal (Entrar, Sair ou Editar)
-    if (community.is_creator) {
-      commActionBtn.textContent = 'Editar comunidade';
-      commActionBtn.className = 'btn btn-outline-primary fw-bold';
-      commActionBtn.onclick = openEditCommunityModal;
-    } else if (isMember) {
-      commActionBtn.textContent = 'Sair da comunidade';
-      commActionBtn.className = 'btn btn-outline-danger fw-bold';
-      commActionBtn.onclick = leaveCommunity;
-    } else {
-      commActionBtn.textContent = 'Participar';
-      commActionBtn.className = 'btn btn-primary fw-bold';
-      commActionBtn.onclick = joinCommunity;
+    if (deleteCommunityBtn) {
+      deleteCommunityBtn.style.display = community.is_creator ? 'inline-flex' : 'none';
+    }
+
+    if (createPostCard) {
+      createPostCard.style.display = isMember ? 'block' : 'none';
     }
 
     communityPostsCache = posts;
@@ -245,8 +236,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
-  // Renderiza a lista de posts no ecrã principal da comunidade
   function renderPosts(posts = [], isMember) {
+    if (!postsContainer) return;
     if (!posts.length) {
       postsContainer.innerHTML = currentPostMode === 'friends'
         ? '<div class="api-empty-state text-center">Nenhum post de amigos nesta comunidade ainda.</div>'
@@ -258,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     postsContainer.innerHTML = posts.map((post) => ConectaPosts.renderPostCard(post, {
       currentUser,
-      showCommunityLabel: false, // Oculta a etiqueta porque já estamos dentro da comunidade
+      showCommunityLabel: false,
       allowCommentInput: isMember,
       canInteract: isMember,
     })).join('') + '<footer class="feed-footer community-posts-end">Fim dos posts</footer>';
@@ -266,25 +257,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrollToHighlightedPost();
   }
 
-  // --- Funções de Comunicação com a API ---
-
   async function loadCommunityDetails() {
     try {
       const response = await apiFetch(`/api/posts/communities/${currentSlug}/`);
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        commName.textContent = 'Comunidade não encontrada';
-        commDesc.textContent = getApiError(data, 'Esta comunidade não existe ou foi excluída.');
-        postsContainer.innerHTML = '';
-        membersContainer.innerHTML = '';
+        if (commName) commName.textContent = 'Comunidade não encontrada';
+        if (commDesc) commDesc.textContent = getApiError(data, 'Esta comunidade não existe ou foi excluída.');
+        if (postsContainer) postsContainer.innerHTML = '';
+        if (membersContainer) membersContainer.innerHTML = '';
         return;
       }
 
       renderCommunityDetails(data || {});
     } catch (error) {
       console.error(error);
-      commDesc.textContent = 'Erro ao conectar com o servidor.';
+      if (commDesc) commDesc.textContent = 'Erro ao conectar com o servidor.';
     }
   }
 
@@ -299,20 +288,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (response.ok) window.location.href = 'communities.html';
   }
 
-  // --- Lógica do Modal de Edição da Comunidade ---
+  // ==========================================
+  // MODAL UNIFICADO: TEXTOS E FOTO
+  // ==========================================
   function openEditCommunityModal() {
     document.getElementById('editCommunityName').value = currentCommunity.name || '';
     document.getElementById('editCommunityBio').value = currentCommunity.description || '';
-    if (document.getElementById('editCommunityPhoto')) document.getElementById('editCommunityPhoto').value = '';
     document.getElementById('editCommunityError').style.display = 'none';
+
+    // Limpa o Cropper anterior
+    if (commCropper) { commCropper.destroy(); commCropper = null; }
+    document.getElementById('editCommPhotoInput').value = '';
+    document.getElementById('commPhotoCropWrapper').classList.add('d-none');
+
+    // Define a foto atual da comunidade no modal
+    const previewImg = document.getElementById('editCommAvatarPreview');
+    const photoUrl = toApiUrl(communityPhoto(currentCommunity));
+    
+    if (photoUrl) {
+      previewImg.src = photoUrl;
+      previewImg.style.display = 'block';
+    } else {
+      previewImg.style.display = 'none';
+    }
+
     editCommunityModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editCommunityModal'));
     editCommunityModal.show();
   }
 
-  saveCommunityBtn.addEventListener('click', async () => {
+  // Aciona o input de arquivo quando clica no ícone de câmera
+  document.getElementById('triggerCommPhotoInput')?.addEventListener('click', () => {
+    document.getElementById('editCommPhotoInput').click();
+  });
+
+  // Inicializa o Cropper quando a foto é selecionada
+  document.getElementById('editCommPhotoInput')?.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    const wrapper = document.getElementById('commPhotoCropWrapper');
+    const imageToCrop = document.getElementById('commPhotoToCrop');
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        imageToCrop.src = event.target.result;
+        wrapper.classList.remove('d-none'); // Mostra a caixa de recorte
+
+        if (commCropper) commCropper.destroy();
+
+        commCropper = new Cropper(imageToCrop, {
+          aspectRatio: 1, // Mantém a proporção quadrada
+          viewMode: 1,
+          autoCropArea: 0.8,
+          dragMode: 'move',
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Salva os dados (Textos + Foto, se houver)
+  saveCommunityBtn?.addEventListener('click', async () => {
     const name = document.getElementById('editCommunityName').value.trim();
     const description = document.getElementById('editCommunityBio').value.trim();
-    const photo = document.getElementById('editCommunityPhoto')?.files?.[0];
     const error = document.getElementById('editCommunityError');
 
     error.style.display = 'none';
@@ -320,20 +357,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveCommunityBtn.textContent = 'Salvando...';
 
     try {
-      let body;
-      if (photo) {
-        body = new FormData();
-        body.append('name', name);
-        body.append('description', description);
-        body.append('photo', photo);
+      let response;
+
+      // Se o usuário selecionou e cortou uma imagem nova
+      if (commCropper) {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('description', description);
+        
+        await new Promise((resolve) => {
+          const canvas = commCropper.getCroppedCanvas({ width: 400, height: 400, fillColor: '#fff' });
+          canvas.toBlob((blob) => { 
+            formData.append('photo', blob, 'comunidade.jpg'); 
+            resolve(); 
+          }, 'image/jpeg', 0.9);
+        });
+
+        response = await apiFetch(`/api/posts/communities/${currentSlug}/update/`, {
+          method: 'PATCH',
+          body: formData,
+        });
+
       } else {
-        body = JSON.stringify({ name, description });
+        // Se o usuário apenas editou o nome ou a bio (envia como JSON)
+        response = await apiFetch(`/api/posts/communities/${currentSlug}/update/`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name, description }),
+        });
       }
 
-      const response = await apiFetch(`/api/posts/communities/${currentSlug}/update/`, {
-        method: 'PATCH',
-        body,
-      });
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -343,14 +395,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       editCommunityModal.hide();
-      // Atualiza o slug na URL se o nome da comunidade mudou
+      // Atualiza o link se o nome mudar
       if (data?.community?.slug && data.community.slug !== currentSlug) {
         window.history.replaceState({}, '', `community.html?slug=${encodeURIComponent(data.community.slug)}`);
         currentSlug = data.community.slug;
       }
       await loadCommunityDetails();
     } catch (err) {
-      console.error(err);
       error.textContent = 'Erro de conexão com o servidor.';
       error.style.display = 'block';
     } finally {
@@ -359,33 +410,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  deleteCommunityBtn.addEventListener('click', async () => {
+  deleteCommunityBtn?.addEventListener('click', async () => {
     if (!confirm('Tem certeza que deseja excluir esta comunidade?')) return;
     const response = await apiFetch(`/api/posts/communities/${currentSlug}/delete/`, { method: 'DELETE' });
     if (response.ok) window.location.href = 'communities.html';
   });
 
-  // =========================================================================
-  // OTIMIZAÇÃO: Criação de post direta
-  // Evita o loop infinito de 404s que sobrecarregava o servidor Render
-  // =========================================================================
+  // Criação de Posts Internos (Otimizada via main.js)
   async function createCommunityPost(content) {
-    const payload = typeof buildCommunityPostPayload === 'function' 
-        ? buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug })
-        : { content };
-
-    // Tenta primeiro a rota direta da comunidade
+    const payloadWithCommunity = buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug });
+    
     let response = await apiFetch(`/api/posts/communities/${currentSlug}/post/create/`, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payloadWithCommunity),
     });
     
-    // Se a rota específica der 404, faz o fallback inteligente para o feed geral,
-    // enviando a flag da comunidade junto no payload para ser classificado corretamente.
     if (!response.ok && response.status === 404) {
       response = await apiFetch('/api/posts/feed/create/', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payloadWithCommunity),
       });
     }
 
@@ -395,8 +438,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { response, data };
   }
 
-  // Ação de publicar (Ouve o clique do botão no modal)
-  publishBtn.addEventListener('click', async () => {
+  publishBtn?.addEventListener('click', async () => {
     const contentEl = document.getElementById('communityPostContent');
     const error = document.getElementById('communityPostError');
     const content = contentEl.value.trim();
@@ -422,8 +464,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // --- Funções de Interação Global (Expostas para o HTML) ---
-
+  // Ações de Interação (Like, Comment, Edit)
   window.toggleLike = async (postId, btnElement = null) => {
     const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
     if (!response.ok) return;
@@ -444,7 +485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       body: JSON.stringify({ content }),
     });
     if (response.ok) {
-      if(window.ConectaPosts) ConectaPosts.openPostComments(postId);
+      ConectaPosts.openPostComments(postId);
       await loadCommunityDetails();
     }
   };
@@ -540,7 +581,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.loadCommunityDetailsFromButton = loadCommunityDetails;
 
-  // Lógica dos eventos de clique nas abas (Geral / Amigos)
   communityGeneralTab?.addEventListener('click', () => {
     setActiveCommunityTab('general');
     renderVisibleCommunityPosts();
@@ -551,6 +591,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderVisibleCommunityPosts();
   });
 
-  // Inicializa carregando os dados da comunidade
+  // ==========================================
+  // LÓGICA DO BOTÃO DE REFRESH NA COMUNIDADE
+  // ==========================================
+  const refreshCommBtn = document.getElementById('refreshCommunityBtn');
+  if (refreshCommBtn) {
+    refreshCommBtn.addEventListener('click', async () => {
+      const icon = refreshCommBtn.querySelector('.refresh-icon');
+      if (icon) icon.classList.add('spin-animation');
+      refreshCommBtn.disabled = true;
+
+      // Executa a busca
+      await loadCommunityDetails();
+
+      if (icon) icon.classList.remove('spin-animation');
+      refreshCommBtn.disabled = false;
+    });
+  }
+
   await loadCommunityDetails();
 });

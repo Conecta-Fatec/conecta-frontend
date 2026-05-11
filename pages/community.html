@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Conecta Fatec | Comunidade</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" /> 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -17,9 +18,11 @@
       }
     };
   </script>
- 
+
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 </head>
+
 <body class="theme-light">
   <script>
     (function () {
@@ -71,7 +74,8 @@
           <a href="settings.html" class="sidebar-link">Configurações</a>
           <a href="about.html" class="sidebar-link">Sobre</a>
         </nav>
-        <button class="new-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newCommunityPostModal">Postar na comunidade</button>
+        <button class="new-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newCommunityPostModal">Postar
+          na comunidade</button>
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
@@ -87,7 +91,9 @@
       <section class="feed-content community-page-content">
         <header class="community-page-hero">
           <div class="community-page-header">
-            <button class="community-page-avatar profile-main-avatar" id="comm-avatar" type="button" data-photo-viewer="community" aria-label="Abrir foto da comunidade">--</button>
+            <button class="community-page-avatar profile-main-avatar" id="comm-avatar" type="button"
+              data-photo-viewer="community" aria-label="Abrir foto da comunidade">--</button>
+
             <div class="community-page-info">
               <span class="feed-kicker">Comunidade</span>
               <h1 id="comm-name">Carregando...</h1>
@@ -98,8 +104,10 @@
               </div>
             </div>
             <div class="d-flex flex-column gap-2">
-              <button type="button" class="btn btn-primary" id="comm-action-btn" style="display:none;">Participar</button>
-              <button type="button" class="btn btn-outline-danger" id="delete-community-btn" style="display:none;">Excluir</button>
+              <button type="button" class="btn btn-primary" id="comm-action-btn"
+                style="display:none;">Participar</button>
+              <button type="button" class="btn btn-outline-danger" id="delete-community-btn"
+                style="display:none;">Excluir</button>
             </div>
           </div>
         </header>
@@ -108,21 +116,37 @@
           <section class="community-main">
             <article class="community-create-card" id="community-create-post-card">
               <div class="d-flex gap-3 align-items-start">
-                <button class="form-control text-start text-muted community-post-trigger" data-bs-toggle="modal" data-bs-target="#newCommunityPostModal">
+                <button class="form-control text-start text-muted community-post-trigger" data-bs-toggle="modal"
+                  data-bs-target="#newCommunityPostModal">
                   Compartilhe algo com esta comunidade...
                 </button>
               </div>
             </article>
 
             <section class="community-posts-section">
-              <section class="feed-control-card community-feed-control">
+              <section
+                class="feed-control-card community-feed-control d-flex flex-row justify-content-between align-items-center flex-wrap gap-2">
                 <div class="feed-control-text">
-                  <h2>Publicações da comunidade</h2>
+                  <h2 class="m-0">Publicações da comunidade</h2>
                 </div>
 
-                <div class="feed-tabs" role="tablist">
-                  <button class="feed-tab active" id="community-general-tab" type="button">Geral</button>
-                  <button class="feed-tab" id="community-friends-tab" type="button">Amigos</button>
+                <div class="d-flex align-items-center gap-2">
+                  <button id="refreshCommunityBtn"
+                    class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center"
+                    style="width: 36px; height: 36px; padding: 0; background: var(--surface-color); border-color: var(--line-color); color: var(--text-muted);"
+                    title="Atualizar publicações">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" class="refresh-icon">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <polyline points="1 20 1 14 7 14"></polyline>
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                  </button>
+
+                  <div class="feed-tabs m-0 border-0" role="tablist">
+                    <button class="feed-tab active" id="community-general-tab" type="button">Geral</button>
+                    <button class="feed-tab" id="community-friends-tab" type="button">Amigos</button>
+                  </div>
                 </div>
               </section>
 
@@ -130,7 +154,7 @@
                 <p class="text-center py-4 text-muted">Carregando posts...</p>
               </div>
             </section>
-            
+
           </section>
 
           <aside class="community-side">
@@ -150,7 +174,9 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body">
-          <textarea id="communityPostContent" class="form-control border-0 community-modal-textarea" rows="4" maxlength="200" placeholder="O que deseja compartilhar?" style="resize:none;outline:none;box-shadow:none;border-radius:12px;padding:16px;"></textarea>
+          <textarea id="communityPostContent" class="form-control border-0 community-modal-textarea" rows="4"
+            maxlength="200" placeholder="O que deseja compartilhar?"
+            style="resize:none;outline:none;box-shadow:none;border-radius:12px;padding:16px;"></textarea>
           <p id="communityPostError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
         <div class="modal-footer border-0">
@@ -169,15 +195,36 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body post-modal-body">
+
+          <div class="d-flex justify-content-center mb-4">
+            <div id="triggerCommPhotoInput" class="position-relative"
+              style="width: 100px; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; border: 2px solid var(--line-color); background-color: var(--surface-hover);">
+              <img id="editCommAvatarPreview" src="" alt="Avatar da Comunidade"
+                style="width: 100%; height: 100%; object-fit: cover; display: none;" />
+              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                style="background: rgba(0,0,0,0.4);">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
+                  <path
+                    d="M12 17.5c-3.03 0-5.5-2.47-5.5-5.5S8.97 6.5 12 6.5s5.5 2.47 5.5 5.5-2.47 5.5-5.5 5.5zm0-9c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5zm7.01-2.58l-1.63-2.17c-.24-.32-.62-.51-1.03-.51H7.65c-.41 0-.79.19-1.03.51L4.99 5.92H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-10c0-1.1-.9-2-2-2h-1.99zM21 17.92c0 .04-.04.08-.08.08H3.08c-.04 0-.08-.04-.08-.08v-10c0-.04.04-.08.08-.08h2.64l1.63-2.17c.05-.06.12-.1.19-.1h8.92c.07 0 .14.04.19.1l1.63 2.17h2.64c.04 0 .08.04.08.08v10z">
+                  </path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <input type="file" id="editCommPhotoInput" accept="image/png, image/jpeg, image/webp" class="d-none" />
+
+          <div id="commPhotoCropWrapper" class="d-none border rounded mb-4"
+            style="max-height: 280px; overflow: hidden; background: #eee;">
+            <img id="commPhotoToCrop" style="max-width: 100%; display: block; margin: 0 auto;" />
+          </div>
+
           <div class="community-form-area">
             <label for="editCommunityName">Nome da comunidade</label>
-            <input type="text" id="editCommunityName" maxlength="50" />
+            <input type="text" id="editCommunityName" maxlength="50" class="form-control mb-2" />
 
             <label for="editCommunityBio">Descrição</label>
-            <textarea id="editCommunityBio" rows="4" maxlength="150"></textarea>
-
-            <label for="editCommunityPhoto">Foto da comunidade</label>
-            <input type="file" id="editCommunityPhoto" accept="image/*" />
+            <textarea id="editCommunityBio" rows="4" maxlength="150" class="form-control"></textarea>
           </div>
           <p id="editCommunityError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
@@ -193,5 +240,7 @@
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/community.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 </body>
+
 </html>

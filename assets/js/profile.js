@@ -1,13 +1,12 @@
 /* =========================================================
-   Perfil próprio: cabeçalho, listas limitadas e posts resumo
+   Perfil próprio: cabeçalho, listas limitadas e Cropper Unificado
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
 
   let currentUser = null;
   let editProfileModal = null;
-  let editPhotoModal = null; // <- Nova Variável
-  let cropper = null;        // <- Nova Variável
+  let cropper = null;
 
   const avatar = document.getElementById('profile-avatar');
   const nameEl = document.getElementById('profile-name');
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     posts: [],
   };
 
-  // Mantido exatamente igual
   function fillAvatarElement(element, user) {
     const name = userDisplayName(user);
     const photo = toApiUrl(userPhoto(user));
@@ -131,6 +129,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const shown = posts.slice(0, state.postsVisible);
     postsContainer.innerHTML = shown.map((post) => {
+      // Salva no cache da RAM
+      if (window.ConectaPosts && window.ConectaPosts.postCache) {
+         window.ConectaPosts.postCache.set(String(post.id), post);
+      }
+
       const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
       const destination = postDestinationUrl(post);
 
@@ -208,10 +211,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ==========================================
-  // LÓGICA DO MODAL 1: DADOS DE TEXTO
+  // MODAL UNIFICADO: DADOS DE TEXTO E FOTO
   // ==========================================
-  openEditProfileBtn.addEventListener('click', () => {
+  openEditProfileBtn?.addEventListener('click', () => {
     if (!currentUser) return;
+    
+    // Preenche os textos
     document.getElementById('editFirstName').value = currentUser.first_name || '';
     document.getElementById('editLastName').value = currentUser.last_name || '';
     document.getElementById('editNickname').value = currentUser.nickname || '';
@@ -219,11 +224,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('editBio').value = currentUser.bio || '';
     document.getElementById('editProfileError').style.display = 'none';
 
+    // Prepara e limpa o Cropper
+    if (cropper) { cropper.destroy(); cropper = null; }
+    const fileInput = document.getElementById('editProfilePhotoInput');
+    if (fileInput) fileInput.value = '';
+    
+    document.getElementById('profilePhotoCropWrapper')?.classList.add('d-none');
+
+    // Define a foto atual no preview redondo
+    const previewImg = document.getElementById('editProfileAvatarPreview');
+    const photoUrl = toApiUrl(userPhoto(currentUser));
+    if (photoUrl) {
+        previewImg.src = photoUrl;
+        previewImg.style.display = 'block';
+    } else {
+        previewImg.style.display = 'none';
+    }
+
     editProfileModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editProfileModal'));
     editProfileModal.show();
   });
 
-  saveProfileBtn.addEventListener('click', async () => {
+  // Clicar no avatar redondo abre o selecionador de arquivo
+  document.getElementById('triggerProfilePhotoInput')?.addEventListener('click', () => {
+      document.getElementById('editProfilePhotoInput').click();
+  });
+
+  // Inicializa o Cropper quando uma foto nova é selecionada
+  document.getElementById('editProfilePhotoInput')?.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    const wrapper = document.getElementById('profilePhotoCropWrapper');
+    const imageToCrop = document.getElementById('profilePhotoToCrop');
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        imageToCrop.src = event.target.result;
+        wrapper.classList.remove('d-none');
+
+        if (cropper) cropper.destroy();
+
+        cropper = new Cropper(imageToCrop, {
+          aspectRatio: 1, // Quadrado
+          viewMode: 1,
+          autoCropArea: 0.8,
+          dragMode: 'move',
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Salva textos e imagem num único botão
+  saveProfileBtn?.addEventListener('click', async () => {
     const error = document.getElementById('editProfileError');
     const formData = new FormData();
 
@@ -238,6 +291,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveProfileBtn.textContent = 'Salvando...';
 
     try {
+      // Se houver uma foto sendo cortada, adiciona ao FormData
+      if (cropper) {
+          await new Promise((resolve) => {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400, fillColor: '#fff' });
+            canvas.toBlob((blob) => { formData.append('photo', blob, 'perfil.jpg'); resolve(); }, 'image/jpeg', 0.9);
+          });
+      }
+
       const response = await apiFetch('/api/users/me/update/', { method: 'PATCH', body: formData });
       const data = await response.json().catch(() => null);
 
@@ -257,89 +318,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } finally {
       saveProfileBtn.disabled = false;
       saveProfileBtn.textContent = 'Salvar';
-    }
-  });
-
-  // ==========================================
-  // LÓGICA DO MODAL 2: FOTO (CROPPER ESTÁVEL)
-  // ==========================================
-  document.getElementById('openEditPhotoBtn').addEventListener('click', () => {
-    document.getElementById('editPhotoInput').value = '';
-    document.getElementById('photoCropWrapper').classList.add('d-none');
-    document.getElementById('editPhotoError').style.display = 'none';
-    
-    if (cropper) { cropper.destroy(); cropper = null; }
-
-    editPhotoModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editPhotoModal'));
-    editPhotoModal.show();
-  });
-
-  document.getElementById('editPhotoInput').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    const wrapper = document.getElementById('photoCropWrapper');
-    const imageToCrop = document.getElementById('photoToCrop');
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        imageToCrop.src = event.target.result;
-        wrapper.classList.remove('d-none');
-
-        if (cropper) cropper.destroy();
-
-        // Configuração segura (1:1, sem sumir da tela)
-        cropper = new Cropper(imageToCrop, {
-          aspectRatio: 1,
-          viewMode: 1,
-          autoCropArea: 0.8,
-          dragMode: 'move',
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  document.getElementById('savePhotoBtn').addEventListener('click', async () => {
-    const error = document.getElementById('editPhotoError');
-    const btn = document.getElementById('savePhotoBtn');
-    
-    if (!cropper) {
-      error.textContent = 'Por favor, selecione e corte uma imagem primeiro.';
-      error.style.display = 'block';
-      return;
-    }
-
-    error.style.display = 'none';
-    btn.disabled = true;
-    btn.textContent = 'Salvando...';
-
-    const formData = new FormData();
-
-    try {
-      await new Promise((resolve) => {
-        const canvas = cropper.getCroppedCanvas({ width: 400, height: 400, fillColor: '#fff' });
-        canvas.toBlob((blob) => { formData.append('photo', blob, 'perfil.jpg'); resolve(); }, 'image/jpeg', 0.9);
-      });
-
-      const response = await apiFetch('/api/users/me/update/', { method: 'PATCH', body: formData });
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        error.textContent = getApiError(data, 'Erro ao salvar a foto.');
-        error.style.display = 'block';
-        return;
-      }
-      
-      editPhotoModal.hide();
-      await loadLoggedUser(true);
-      await loadProfile();
-    } catch (err) {
-      console.error(err);
-      error.textContent = 'Erro de conexão com o servidor.';
-      error.style.display = 'block';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Cortar e Salvar';
     }
   });
 

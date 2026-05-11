@@ -25,7 +25,7 @@
       }
     };
   </script>
- 
+
   <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
 
@@ -88,12 +88,12 @@
 
         <div class="sidebar-actions">
           <a href="profile.html" class="logged-user">
-          <div class="user-avatar" id="sidebar-avatar">U</div>
-          <div>
-            <strong id="sidebar-name">Carregando...</strong>
-            <span id="sidebar-username">@usuario</span>
-          </div>
-        </a>
+            <div class="user-avatar" id="sidebar-avatar">U</div>
+            <div>
+              <strong id="sidebar-name">Carregando...</strong>
+              <span id="sidebar-username">@usuario</span>
+            </div>
+          </a>
         </div>
       </aside>
 
@@ -116,7 +116,8 @@
           </a>
         </header>
 
-        <article class="feed-create-card" id="feed-create-post-card" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#newPostModal">
+        <article class="feed-create-card" id="feed-create-post-card" role="button" tabindex="0" data-bs-toggle="modal"
+          data-bs-target="#newPostModal">
           <div class="feed-create-card-text">
             <strong>Criar publicação</strong>
             <span>Compartilhe uma ideia, dúvida ou atualização com os alunos.</span>
@@ -128,9 +129,24 @@
           <div class="feed-control-text">
             <h2>Publicações</h2>
           </div>
-          <div class="feed-tabs" role="tablist">
-            <button class="feed-tab active" id="general-tab" type="button">Geral</button>
-            <button class="feed-tab" id="friends-tab" type="button">Amigos</button>
+
+          <div class="d-flex align-items-center gap-2">
+            <button id="refreshFeedBtn"
+              class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center"
+              style="width: 36px; height: 36px; padding: 0; background: var(--surface-color); border-color: var(--line-color); color: var(--text-muted);"
+              title="Atualizar feed">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="refresh-icon">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+
+            <div class="feed-tabs" role="tablist">
+              <button class="feed-tab active" id="general-tab" type="button">Geral</button>
+              <button class="feed-tab" id="friends-tab" type="button">Amigos</button>
+            </div>
           </div>
         </section>
 
@@ -166,13 +182,12 @@
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
   </script>
 
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/feed.js"></script>
 </body>
+
 </html>

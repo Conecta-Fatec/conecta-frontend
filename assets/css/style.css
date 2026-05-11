@@ -2599,4 +2599,11 @@ body.theme-dark .logo-dark { display: block; }
   text-decoration: underline;
   color: var(--primary-color);
 }
+/* Animação do botão de Refresh */
+@keyframes spin-refresh {
+  100% { transform: rotate(360deg); }
+}
+.spin-animation {
+  animation: spin-refresh 1s linear infinite;
+}
 
