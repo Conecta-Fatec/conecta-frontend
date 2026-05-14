@@ -775,6 +775,83 @@ body.theme-dark .logo-dark { display: block; }
 .register-rules-check a:hover,
 .cookie-banner a:hover { text-decoration: underline; }
 
+
+.register-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.register-steps span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: .45rem .55rem;
+  border: var(--hairline) solid var(--border-color);
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.register-steps span.active,
+.register-steps span.completed {
+  border-color: var(--border-strong);
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.register-step-panel[hidden] { display: none !important; }
+
+.register-step-hint {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: .92rem;
+  line-height: 1.5;
+}
+
+.register-email-preview {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.register-inline-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-top: .75rem;
+}
+
+.register-text-btn {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary-color);
+  font-size: .9rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.register-text-btn:hover { text-decoration: underline; }
+
+#regVerifiedEmail,
+.community-form-area input:disabled,
+.community-form-area input[readonly] {
+  opacity: 1;
+  color: var(--text-muted) !important;
+  background: var(--surface-muted) !important;
+  cursor: not-allowed;
+}
+
 .cookie-banner {
   position: fixed;
   inset: auto 2% 2%;

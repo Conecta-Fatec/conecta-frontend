@@ -82,6 +82,7 @@ function escapeHTML(value) {
 function getApiError(data, fallback = 'Não foi possível concluir a ação.') {
   if (!data) return fallback;
   if (typeof data === 'string') return data;
+  if (data.message) return Array.isArray(data.message) ? data.message[0] : data.message;
   if (data.detail) return Array.isArray(data.detail) ? data.detail[0] : data.detail;
 
   const firstKey = Object.keys(data)[0];
@@ -339,11 +340,9 @@ function setupProfilePhotoViewer() {
 
 function setupRegisterRules() {
   const rules = document.getElementById('registerRulesAccepted');
-  const button = document.getElementById('regSubmitBtn');
-  if (!rules || !button) return;
-  const sync = () => { button.disabled = !rules.checked; };
-  rules.addEventListener('change', sync);
-  sync();
+  if (!rules) return;
+  rules.addEventListener('change', syncRegisterSubmitState);
+  syncRegisterSubmitState();
 }
 
 applyTheme();
@@ -422,73 +421,352 @@ if (loginForm) {
   });
 }
 
+const REGISTER_STEP = {
+  EMAIL: 'email',
+  CODE: 'code',
+  FORM: 'form',
+};
+
+const REGISTER_STEP_LABELS = {
+  [REGISTER_STEP.EMAIL]: 'Enviar código',
+  [REGISTER_STEP.CODE]: 'Verificar código',
+  [REGISTER_STEP.FORM]: 'Finalizar cadastro',
+};
+
+const REGISTER_STEP_TITLES = {
+  [REGISTER_STEP.EMAIL]: 'Verificar Email Institucional',
+  [REGISTER_STEP.CODE]: 'Confirmar Código',
+  [REGISTER_STEP.FORM]: 'Criar Nova Conta',
+};
+
+const registerState = {
+  step: REGISTER_STEP.EMAIL,
+  email: '',
+  verificationId: '',
+  registrationToken: '',
+  isLoading: false,
+};
+
 const registerForm = document.getElementById('registerForm');
+
+function getRegisterInput(id) {
+  return document.getElementById(id);
+}
+
+function setRegisterMessage(type, message) {
+  const error = document.getElementById('registerError');
+  const success = document.getElementById('registerSuccess');
+  if (!error || !success) return;
+
+  error.style.display = 'none';
+  success.style.display = 'none';
+  error.textContent = '';
+  success.textContent = '';
+
+  if (!message) return;
+
+  const target = type === 'success' ? success : error;
+  target.textContent = message;
+  target.style.display = 'block';
+}
+
+function updateRegisterStepInputs() {
+  document.querySelectorAll('[data-register-step]').forEach((panel) => {
+    const isActive = panel.dataset.registerStep === registerState.step;
+    panel.hidden = !isActive;
+    panel.querySelectorAll('input, textarea, select, button').forEach((control) => {
+      if (control.id === 'regVerifiedEmail') return;
+      control.disabled = !isActive || registerState.isLoading;
+    });
+  });
+}
+
+function syncRegisterSubmitState() {
+  const button = document.getElementById('regSubmitBtn');
+  if (!button) return;
+
+  const rules = document.getElementById('registerRulesAccepted');
+  const needsRules = registerState.step === REGISTER_STEP.FORM;
+  const rulesBlocked = needsRules && rules && !rules.checked;
+
+  button.disabled = registerState.isLoading || Boolean(rulesBlocked);
+  button.textContent = registerState.isLoading
+    ? 'Processando...'
+    : REGISTER_STEP_LABELS[registerState.step];
+}
+
+function setRegisterStep(step, options = {}) {
+  registerState.step = step;
+
+  document.querySelectorAll('[data-register-step-dot]').forEach((dot) => {
+    const dotStep = dot.dataset.registerStepDot;
+    dot.classList.toggle('active', dotStep === step);
+    dot.classList.toggle('completed',
+      (step === REGISTER_STEP.CODE && dotStep === REGISTER_STEP.EMAIL) ||
+      (step === REGISTER_STEP.FORM && dotStep !== REGISTER_STEP.FORM)
+    );
+  });
+
+  const title = document.getElementById('registerModalLabel');
+  if (title) title.textContent = REGISTER_STEP_TITLES[step];
+
+  const backButton = document.getElementById('regBackBtn');
+  if (backButton) backButton.style.display = step === REGISTER_STEP.EMAIL ? 'none' : 'inline-flex';
+
+  const emailPreview = document.getElementById('registerEmailPreview');
+  if (emailPreview) emailPreview.textContent = registerState.email;
+
+  const verifiedEmail = document.getElementById('regVerifiedEmail');
+  if (verifiedEmail) verifiedEmail.value = registerState.email;
+
+  updateRegisterStepInputs();
+  syncRegisterSubmitState();
+
+  if (!options.keepMessage) setRegisterMessage('', '');
+}
+
+function setRegisterLoading(isLoading) {
+  registerState.isLoading = isLoading;
+  updateRegisterStepInputs();
+  syncRegisterSubmitState();
+}
+
+function resetRegisterFlow() {
+  registerState.step = REGISTER_STEP.EMAIL;
+  registerState.email = '';
+  registerState.verificationId = '';
+  registerState.registrationToken = '';
+  registerState.isLoading = false;
+
+  registerForm?.reset();
+  const actions = document.getElementById('registerExistingEmailActions');
+  if (actions) actions.style.display = 'none';
+  const verifiedEmail = document.getElementById('regVerifiedEmail');
+  if (verifiedEmail) verifiedEmail.value = '';
+
+  setRegisterStep(REGISTER_STEP.EMAIL);
+}
+
+async function readResponseJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function startEmailVerification() {
+  const emailInput = getRegisterInput('regEmail');
+  const email = emailInput?.value.trim().toLowerCase() || '';
+
+  if (!email) {
+    setRegisterMessage('error', 'Digite seu email institucional para continuar.');
+    return;
+  }
+
+  const actions = document.getElementById('registerExistingEmailActions');
+  if (actions) actions.style.display = 'none';
+
+  setRegisterLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/email-verification/start/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+      setRegisterMessage('error', getApiError(data, 'Não foi possível enviar o código.'));
+
+      if (data?.code === 'email_already_registered' && actions) {
+        actions.style.display = 'flex';
+      }
+
+      return;
+    }
+
+    registerState.email = email;
+    registerState.verificationId = data?.verification_id || '';
+    registerState.registrationToken = '';
+
+    setRegisterStep(REGISTER_STEP.CODE, { keepMessage: true });
+    setRegisterMessage('success', data?.message || 'Código enviado para o email institucional.');
+    getRegisterInput('regVerificationCode')?.focus();
+  } catch (error) {
+    console.error('Erro ao iniciar verificação:', error);
+    setRegisterMessage('error', 'Erro de conexão com o servidor.');
+  } finally {
+    setRegisterLoading(false);
+  }
+}
+
+async function confirmEmailVerification() {
+  const codeInput = getRegisterInput('regVerificationCode');
+  const code = codeInput?.value.trim() || '';
+
+  if (!registerState.verificationId) {
+    setRegisterMessage('error', 'Solicite um novo código para continuar.');
+    setRegisterStep(REGISTER_STEP.EMAIL);
+    return;
+  }
+
+  if (!/^\d{6}$/.test(code)) {
+    setRegisterMessage('error', 'Digite o código de 6 dígitos enviado para o email.');
+    return;
+  }
+
+  setRegisterLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/email-verification/confirm/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        verification_id: registerState.verificationId,
+        code,
+      }),
+    });
+
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+      const attempts = Number.isInteger(data?.attempts_left)
+        ? ` Tentativas restantes: ${data.attempts_left}.`
+        : '';
+      setRegisterMessage('error', `${getApiError(data, 'Código inválido.')}${attempts}`);
+      return;
+    }
+
+    registerState.email = data?.email || registerState.email;
+    registerState.registrationToken = data?.registration_token || '';
+
+    setRegisterStep(REGISTER_STEP.FORM, { keepMessage: true });
+    setRegisterMessage('success', data?.message || 'Email verificado com sucesso.');
+    getRegisterInput('regFirstName')?.focus();
+  } catch (error) {
+    console.error('Erro ao confirmar código:', error);
+    setRegisterMessage('error', 'Erro de conexão com o servidor.');
+  } finally {
+    setRegisterLoading(false);
+  }
+}
+
+async function finishRegistration() {
+  const password = getRegisterInput('regPassword')?.value || '';
+  const passwordConfirm = getRegisterInput('regPasswordConfirm')?.value || '';
+  const rulesAccepted = getRegisterInput('registerRulesAccepted');
+
+  setRegisterMessage('', '');
+
+  if (!registerState.registrationToken) {
+    setRegisterMessage('error', 'Confirme o email antes de finalizar o cadastro.');
+    setRegisterStep(REGISTER_STEP.EMAIL);
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    setRegisterMessage('error', 'As senhas não coincidem. Tente novamente.');
+    return;
+  }
+
+  if (rulesAccepted && !rulesAccepted.checked) {
+    setRegisterMessage('error', 'Você precisa aceitar as regras de convivência para criar a conta.');
+    return;
+  }
+
+  const userData = {
+    first_name: getRegisterInput('regFirstName')?.value.trim() || '',
+    last_name: getRegisterInput('regLastName')?.value.trim() || '',
+    nickname: getRegisterInput('regNickname')?.value.trim() || '',
+    registration_token: registerState.registrationToken,
+    password,
+    confirm_password: passwordConfirm,
+  };
+
+  setRegisterLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/register/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+      setRegisterMessage('error', getApiError(data, 'Erro ao cadastrar.'));
+      return;
+    }
+
+    setRegisterMessage('success', data?.message || 'Conta criada com sucesso!');
+
+    setTimeout(() => {
+      document.querySelector('#registerModal .btn-close')?.click();
+    }, 1400);
+  } catch (error) {
+    console.error('Erro ao finalizar cadastro:', error);
+    setRegisterMessage('error', 'Erro de conexão com o servidor.');
+  } finally {
+    setRegisterLoading(false);
+  }
+}
 
 if (registerForm) {
   registerForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    const btn = document.getElementById('regSubmitBtn');
-    const errDiv = document.getElementById('registerError');
-    const sucDiv = document.getElementById('registerSuccess');
-    const password = document.getElementById('regPassword').value;
-    const passwordConfirm = document.getElementById('regPasswordConfirm').value;
-
-    errDiv.style.display = 'none';
-    sucDiv.style.display = 'none';
-
-    if (password !== passwordConfirm) {
-      errDiv.textContent = 'As senhas não coincidem. Tente novamente.';
-      errDiv.style.display = 'block';
+    if (registerState.step === REGISTER_STEP.EMAIL) {
+      await startEmailVerification();
       return;
     }
 
-    const rulesAccepted = document.getElementById('registerRulesAccepted');
-    if (rulesAccepted && !rulesAccepted.checked) {
-      errDiv.textContent = 'Você precisa aceitar as regras de convivência para criar a conta.';
-      errDiv.style.display = 'block';
+    if (registerState.step === REGISTER_STEP.CODE) {
+      await confirmEmailVerification();
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Cadastrando...';
-
-    const userData = {
-      first_name: document.getElementById('regFirstName').value.trim(),
-      last_name: document.getElementById('regLastName').value.trim(),
-      email: document.getElementById('regEmail').value.trim(),
-      nickname: document.getElementById('regNickname').value.trim(),
-      password,
-      confirm_password: passwordConfirm,
-    };
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/users/register/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        sucDiv.style.display = 'block';
-        registerForm.reset();
-        setTimeout(() => {
-          document.querySelector('#registerModal .btn-close')?.click();
-        }, 1600);
-      } else {
-        errDiv.textContent = getApiError(data, 'Erro ao cadastrar.');
-        errDiv.style.display = 'block';
-      }
-    } catch (error) {
-      errDiv.textContent = 'Erro de conexão com o servidor.';
-      errDiv.style.display = 'block';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Finalizar Cadastro';
-    }
+    await finishRegistration();
   });
+
+  document.getElementById('regBackBtn')?.addEventListener('click', () => {
+    if (registerState.step === REGISTER_STEP.FORM) {
+      setRegisterStep(REGISTER_STEP.CODE);
+      return;
+    }
+
+    setRegisterStep(REGISTER_STEP.EMAIL);
+  });
+
+  document.getElementById('regChangeEmailBtn')?.addEventListener('click', () => {
+    registerState.email = '';
+    registerState.verificationId = '';
+    registerState.registrationToken = '';
+    getRegisterInput('regVerificationCode').value = '';
+    setRegisterStep(REGISTER_STEP.EMAIL);
+    getRegisterInput('regEmail')?.focus();
+  });
+
+  document.getElementById('registerBackFromExisting')?.addEventListener('click', () => {
+    const actions = document.getElementById('registerExistingEmailActions');
+    if (actions) actions.style.display = 'none';
+    setRegisterMessage('', '');
+    getRegisterInput('regEmail')?.focus();
+  });
+
+  document.getElementById('registerForgotPasswordBtn')?.addEventListener('click', () => {
+    setRegisterMessage('error', 'A recuperação de senha ainda não está conectada no frontend. Use o login se já souber sua senha.');
+  });
+
+  document.getElementById('regVerificationCode')?.addEventListener('input', (event) => {
+    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 6);
+  });
+
+  document.getElementById('registerModal')?.addEventListener('hidden.bs.modal', resetRegisterFlow);
+  resetRegisterFlow();
 }
 
 function toApiUrl(url) {

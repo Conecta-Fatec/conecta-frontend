@@ -131,70 +131,111 @@
         </div>
         
         <div class="modal-body post-modal-body">
-          <form id="registerForm" class="community-form-area">
-            <div class="d-flex gap-3 mb-3">
-              <div class="flex-grow-1">
-                <label for="regFirstName" class="fw-bold small mb-1">Nome</label>
-                <input type="text" id="regFirstName" class="w-100" placeholder="Nome" required />
+          <form id="registerForm" class="community-form-area" novalidate>
+            <div class="register-steps" aria-label="Etapas do cadastro">
+              <span data-register-step-dot="email" class="active">1. Email</span>
+              <span data-register-step-dot="code">2. Código</span>
+              <span data-register-step-dot="form">3. Dados</span>
+            </div>
+
+            <section class="register-step-panel" data-register-step="email">
+              <p class="register-step-hint">
+                Primeiro, informe seu email institucional. Enviaremos um código para confirmar que ele pertence a você.
+              </p>
+
+              <div class="mb-3">
+                <label for="regEmail" class="fw-bold small mb-1">Email Institucional</label>
+                <input type="email" id="regEmail" class="w-100" placeholder="usuario@fatec.sp.gov.br" autocomplete="email" required />
               </div>
-              <div class="flex-grow-1">
-                <label for="regLastName" class="fw-bold small mb-1">Sobrenome</label>
-                <input type="text" id="regLastName" class="w-100" placeholder="Sobrenome" required />
+
+              <div id="registerExistingEmailActions" class="register-inline-actions" style="display: none;">
+                <button type="button" class="modal-cancel-btn" id="registerBackFromExisting">Voltar</button>
+                <button type="button" class="modal-publish-btn" id="registerForgotPasswordBtn">Esqueci minha senha</button>
               </div>
-            </div>
+            </section>
 
-            <div class="mb-3">
-              <label for="regEmail" class="fw-bold small mb-1">Email Institucional</label>
-              <input type="email" id="regEmail" class="w-100" placeholder="usuario@fatec.sp.gov.br" required />
-            </div>
+            <section class="register-step-panel" data-register-step="code" hidden>
+              <p class="register-step-hint">
+                Digite o código de 6 dígitos enviado para
+                <strong id="registerEmailPreview" class="register-email-preview"></strong>.
+              </p>
 
-            <div class="mb-3">
-              <label for="regNickname" class="fw-bold small mb-1">Nickname</label>
-              <input type="text" id="regNickname" class="w-100" placeholder="Ex: matheus.dsm" required />
-            </div>
+              <div class="mb-3">
+                <label for="regVerificationCode" class="fw-bold small mb-1">Código de verificação</label>
+                <input type="text" id="regVerificationCode" class="w-100" placeholder="000000" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required />
+              </div>
 
-            <div class="mb-3">
-              <label for="regPassword" class="fw-bold small mb-1">Senha</label>
-              <input type="password" id="regPassword" class="w-100" placeholder="Mínimo 8 caracteres" required />
-            </div>
+              <button type="button" class="register-text-btn" id="regChangeEmailBtn">Usar outro email</button>
+            </section>
 
-            <div class="mb-3">
-              <label for="regPasswordConfirm" class="fw-bold small mb-1">Confirmar Senha</label>
-              <input type="password" id="regPasswordConfirm" class="w-100" placeholder="Digite novamente" required />
-            </div>
+            <section class="register-step-panel" data-register-step="form" hidden>
+              <p class="register-step-hint">
+                Email confirmado. Agora finalize seus dados de cadastro. O email verificado ficará travado por segurança.
+              </p>
 
-            <div class="register-rules-box mb-3">
-              <strong>Regras para participar</strong>
+              <div class="mb-3">
+                <label for="regVerifiedEmail" class="fw-bold small mb-1">Email Institucional Verificado</label>
+                <input type="email" id="regVerifiedEmail" class="w-100" placeholder="Email verificado" readonly disabled />
+              </div>
 
-              <ul>
-                <li>Usar informações verdadeiras e respeitar outros alunos.</li>
-                <li>Não publicar spam, ofensas, dados sensíveis ou conteúdo comercial.</li>
-                <li>Manter o foco acadêmico e comunitário do Conecta Fatec.</li>
-              </ul>
+              <div class="d-flex gap-3 mb-3 register-name-row">
+                <div class="flex-grow-1">
+                  <label for="regFirstName" class="fw-bold small mb-1">Nome</label>
+                  <input type="text" id="regFirstName" class="w-100" placeholder="Nome" autocomplete="given-name" required />
+                </div>
+                <div class="flex-grow-1">
+                  <label for="regLastName" class="fw-bold small mb-1">Sobrenome</label>
+                  <input type="text" id="regLastName" class="w-100" placeholder="Sobrenome" autocomplete="family-name" required />
+                </div>
+              </div>
 
-              <label class="register-rules-check">
-                <input type="checkbox" id="registerRulesAccepted" required />
-                <span>
-                  Li e aceito as
-                  <a href="pages/terms.html" target="_blank" rel="noopener noreferrer">regras de convivência</a>,
-                  os
-                  <a href="pages/terms.html" target="_blank" rel="noopener noreferrer">termos de uso</a>
-                  e a
-                  <a href="pages/cookies.html" target="_blank" rel="noopener noreferrer">política de cookies</a>.
-                </span>
-              </label>
-            </div>
+              <div class="mb-3">
+                <label for="regNickname" class="fw-bold small mb-1">Nickname</label>
+                <input type="text" id="regNickname" class="w-100" placeholder="Ex: matheusdsm" autocomplete="username" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="regPassword" class="fw-bold small mb-1">Senha</label>
+                <input type="password" id="regPassword" class="w-100" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="regPasswordConfirm" class="fw-bold small mb-1">Confirmar Senha</label>
+                <input type="password" id="regPasswordConfirm" class="w-100" placeholder="Digite novamente" autocomplete="new-password" required />
+              </div>
+
+              <div class="register-rules-box mb-3">
+                <strong>Regras para participar</strong>
+
+                <ul>
+                  <li>Usar informações verdadeiras e respeitar outros alunos.</li>
+                  <li>Não publicar spam, ofensas, dados sensíveis ou conteúdo comercial.</li>
+                  <li>Manter o foco acadêmico e comunitário do Conecta Fatec.</li>
+                </ul>
+
+                <label class="register-rules-check">
+                  <input type="checkbox" id="registerRulesAccepted" required />
+                  <span>
+                    Li e aceito as
+                    <a href="pages/terms.html" target="_blank" rel="noopener noreferrer">regras de convivência</a>,
+                    os
+                    <a href="pages/terms.html" target="_blank" rel="noopener noreferrer">termos de uso</a>
+                    e a
+                    <a href="pages/cookies.html" target="_blank" rel="noopener noreferrer">política de cookies</a>.
+                  </span>
+                </label>
+              </div>
+            </section>
 
             <div id="registerError" class="text-danger small mt-2" style="display: none;"></div>
-            <div id="registerSuccess" class="text-success small mt-2" style="display: none;">
-              Conta criada com sucesso!
-            </div>
+            <div id="registerSuccess" class="text-success small mt-2" style="display: none;"></div>
           </form>
         </div>
 
         <div class="modal-footer post-modal-footer border-0">
+          <button type="button" class="modal-cancel-btn" id="regBackBtn" style="display: none;">Voltar</button>
           <button type="button" class="modal-cancel-btn" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" form="registerForm" class="modal-publish-btn" id="regSubmitBtn">Cadastrar</button>
+          <button type="submit" form="registerForm" class="modal-publish-btn" id="regSubmitBtn">Enviar código</button>
         </div>
       </div>
     </div>
