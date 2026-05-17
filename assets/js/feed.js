@@ -256,6 +256,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Event Listeners
   publishBtn?.addEventListener('click', publishFeedPost);
+  postInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      publishFeedPost();
+    }
+  });
+
   inlineComposer?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault(); bootstrap.Modal.getOrCreateInstance(document.getElementById('newPostModal')).show();

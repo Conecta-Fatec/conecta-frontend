@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { response, data };
   }
 
-  publishBtn?.addEventListener('click', async () => {
+  async function publishCommunityPost() {
     const contentEl = document.getElementById('communityPostContent');
     const error = document.getElementById('communityPostError');
     const content = contentEl.value.trim();
@@ -461,6 +461,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     } finally {
       publishBtn.disabled = false;
       publishBtn.textContent = 'Publicar';
+    }
+  }
+
+  publishBtn?.addEventListener('click', publishCommunityPost);
+
+  document.getElementById('communityPostContent')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      publishCommunityPost();
     }
   });
 
