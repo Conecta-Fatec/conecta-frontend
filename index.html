@@ -56,70 +56,62 @@
       document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
     })();
   </script>
-  <main class="login-page min-vh-100 d-flex align-items-center">
-    <div class="container">
-      <div class="row align-items-center justify-content-between">
-        
-        <div class="col-lg-6 mb-5 mb-lg-0 text-center text-lg-start">
-          <img src="assets/img/logo-light.png" alt="Logo Conecta Fatec" class="logo-light mb-4 login-brand-logo" width="300" />
-          <img src="assets/img/logo-dark.png" alt="Logo Conecta Fatec" class="logo-dark mb-4 login-brand-logo" width="300" />
-          
-          <h1 class="display-5 fw-bold mb-3" style="color: var(--text-color);">
-            Conecte-se com nossos usuários fatecanos.
-          </h1>
-          <p class="lead mb-4" style="color: var(--text-muted); font-size: 1.15rem;">
-            A rede social acadêmica feita para alunos da <strong>Faculdade de Tecnologia de São Paulo</strong>. Compartilhe posts, participe de comunidades e fortaleça conexões dentro da Fatec.
-          </p>
 
-          <div class="login-feature-list mt-4" aria-label="Diferenciais do Conecta Fatec">
-            <div class="login-feature-item">
-              <strong>Foco acadêmico</strong>
-              <small>Conteúdo feito por estudantes e para estudantes.</small>
-            </div>
-
-            <div class="login-feature-item">
-              <strong>Comunidades ativas</strong>
-              <small>Espaços para cursos, grupos de estudo e interesses.</small>
-            </div>
-
-            <div class="login-feature-item">
-              <strong>Projetos em grupo</strong>
-              <small>Encontre colegas para trocar ideias e evoluir trabalhos.</small>
-            </div>
-          </div>
+  <main class="login-page min-vh-100">
+    <section class="login-shell" aria-label="Login do Conecta Fatec">
+      <div class="login-container card p-4 w-100">
+        <div class="login-card-brand text-center">
+          <img
+            src="assets/img/logo-light.png"
+            alt="Logo Conecta Fatec"
+            class="login-card-logo"
+            width="280"
+          />
         </div>
 
-        <div class="col-lg-5">
-          <div class="login-container card p-4 w-100">
-            <form id="loginForm">
-              <div class="mb-3">
-                <label for="username" class="form-label fw-bold">E-mail ou Nickname</label>
-                <input type="text" class="form-control custom-input" id="username" placeholder="Seu e-mail institucional ou nick" required />
-              </div>
-
-              <div class="mb-3">
-                <label for="password" class="form-label fw-bold">Senha</label>
-                <input type="password" class="form-control custom-input" id="password" placeholder="Sua senha secreta" required />
-              </div>
-
-              <div id="loginError" class="text-danger small mb-3" style="display: none;"></div>
-
-              <button type="submit" class="btn login-btn w-100 py-2 fw-bold" id="submitBtn">
-                Entrar
-              </button>
-            </form>
-
-            <div class="text-center mt-4 border-top pt-3">
-              <p class="small mb-1">Ainda não faz parte da rede?</p>
-              <a href="#" class="text-decoration-none small fw-bold text-primary-custom" data-bs-toggle="modal" data-bs-target="#registerModal">
-                Cadastre-se agora
-              </a>
-            </div>
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="username" class="form-label fw-bold">E-mail ou Nickname</label>
+            <input
+              type="text"
+              class="form-control custom-input"
+              id="username"
+              placeholder="Seu e-mail institucional ou nick"
+              required
+            />
           </div>
-        </div>
 
+          <div class="mb-3">
+            <label for="password" class="form-label fw-bold">Senha</label>
+            <input
+              type="password"
+              class="form-control custom-input"
+              id="password"
+              placeholder="Sua senha secreta"
+              required
+            />
+          </div>
+
+          <div id="loginError" class="text-danger small mb-3" style="display: none;"></div>
+
+          <button type="submit" class="btn login-btn w-100 py-2 fw-bold" id="submitBtn">
+            Entrar
+          </button>
+        </form>
+
+        <div class="text-center mt-4 border-top pt-3">
+          <p class="small mb-1">Ainda não faz parte da rede?</p>
+          <a
+            href="#"
+            class="text-decoration-none small fw-bold text-primary-custom"
+            data-bs-toggle="modal"
+            data-bs-target="#registerModal"
+          >
+            Cadastre-se agora
+          </a>
+        </div>
       </div>
-    </div>
+    </section>
   </main>
 
   <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">

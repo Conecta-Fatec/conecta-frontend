@@ -691,60 +691,228 @@ body.theme-dark .logo-dark { display: block; }
 /* =========================================================
    07. Login / Index
 ========================================================= */
+html:has(.login-page),
+body:has(.login-page) {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: #020617;
+}
+
+body:has(.login-page) {
+  margin: 0;
+}
+
 .login-page {
+  --primary-color: #2563eb;
+  --primary-strong: #1d4ed8;
+  --primary-soft: rgba(37, 99, 235, .13);
+
+  --surface-color: rgba(255, 255, 255, .74);
+  --surface-solid: rgba(255, 255, 255, .94);
+  --surface-muted: rgba(248, 250, 252, .82);
+  --surface-hover: rgba(37, 99, 235, .08);
+
+  --border-color: rgba(148, 163, 184, .38);
+  --border-strong: rgba(37, 99, 235, .42);
+  --line-color: rgba(100, 116, 139, .22);
+
+  --text-color: #0f172a;
+  --text-soft: #334155;
+  --text-muted: #64748b;
+
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
-  padding: 4% 0;
+  min-height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  padding: clamp(1rem, 4vw, 3rem);
+  overflow: hidden;
   color: var(--text-color);
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, .48), rgba(15, 23, 42, .22)),
+    url("../img/login-desktop.jpg") center / cover no-repeat;
 }
 
-.login-page .display-5 {
-  max-width: 92%;
-  letter-spacing: -.045em;
-  line-height: 1;
+.login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .18), transparent 34rem),
+    linear-gradient(180deg, rgba(15, 23, 42, .12), rgba(15, 23, 42, .36));
+  pointer-events: none;
 }
 
-.description-text,
-.muted-text,
-.fake-warning,
-.login-page .lead,
-.login-page .small { color: var(--text-muted) !important; }
+.login-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  width: min(92%, 34rem);
+  margin-inline: auto;
+}
 
 .login-container {
+  width: 100%;
+  max-width: 31rem;
+  padding: clamp(1.35rem, 5vw, 2rem) !important;
+  border: var(--hairline) solid rgba(255, 255, 255, .48) !important;
   border-radius: var(--radius-xl) !important;
-  padding: clamp(1.35rem, 5%, 2rem) !important;
+  background: rgba(255, 255, 255, .72) !important;
   color: var(--text-color);
+  box-shadow: 0 1.5rem 4rem rgba(15, 23, 42, .22) !important;
+  backdrop-filter: blur(1.35rem) saturate(1.2);
+  -webkit-backdrop-filter: blur(1.35rem) saturate(1.2);
 }
 
-.login-feature-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.login-card-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.35rem;
+}
+
+.login-card-logo {
+  display: block;
+  width: min(78%, 17rem);
+  height: auto;
+  margin-inline: auto;
+}
+
+.login-page .form-label,
+.login-page .small {
+  color: var(--text-color) !important;
+}
+
+.login-page .small {
+  color: var(--text-muted) !important;
+}
+
+.login-page .custom-input,
+.login-page .form-control {
+  border-color: rgba(148, 163, 184, .44) !important;
+  background: rgba(255, 255, 255, .72) !important;
+  color: var(--text-color) !important;
+}
+
+.login-page .custom-input:focus,
+.login-page .form-control:focus {
+  border-color: var(--border-strong) !important;
+  background: rgba(255, 255, 255, .92) !important;
+  box-shadow: 0 0 0 .18rem rgba(37, 99, 235, .12) !important;
+}
+
+.login-page .border-top {
+  border-color: rgba(100, 116, 139, .22) !important;
+}
+
+.login-page .login-btn {
+  background: rgba(37, 99, 235, .12) !important;
+  color: var(--primary-strong) !important;
+  border-color: rgba(37, 99, 235, .34) !important;
+}
+
+.login-page .login-btn:hover {
+  background: rgba(37, 99, 235, .18) !important;
+  border-color: rgba(37, 99, 235, .48) !important;
+  color: var(--primary-strong) !important;
+  transform: translateY(-.06rem);
+}
+
+/* Cadastro na mesma identidade visual clara do login */
+#registerModal .modal-dialog {
+  filter: drop-shadow(0 1.5rem 3rem rgba(15, 23, 42, .34));
+}
+
+#registerModal .post-modal-content,
+#registerModal .modal-content {
   overflow: hidden;
-  margin-top: 1.5rem;
-  border: var(--hairline) solid var(--border-color);
+  border: var(--hairline) solid rgba(255, 255, 255, .68) !important;
+  border-radius: var(--radius-xl) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .84)) !important;
+  color: var(--text-color);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .78),
+    0 1.5rem 4rem rgba(15, 23, 42, .28) !important;
+  backdrop-filter: blur(1.15rem) saturate(1.15);
+  -webkit-backdrop-filter: blur(1.15rem) saturate(1.15);
+}
+
+#registerModal .post-modal-header,
+#registerModal .post-modal-body,
+#registerModal .post-modal-footer,
+#registerModal .modal-header,
+#registerModal .modal-body,
+#registerModal .modal-footer {
+  background: transparent !important;
+}
+
+#registerModal .post-modal-header,
+#registerModal .modal-header {
+  border-bottom: var(--hairline) solid rgba(100, 116, 139, .18) !important;
+}
+
+#registerModal .post-modal-footer,
+#registerModal .modal-footer {
+  border-top: var(--hairline) solid rgba(100, 116, 139, .18) !important;
+}
+
+#registerModal .register-step-panel,
+#registerModal .community-form-area,
+#registerModal .register-rules-box {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .78), rgba(255, 255, 255, .62)) !important;
+  border: var(--hairline) solid rgba(255, 255, 255, .62) !important;
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--surface-solid) 34%, transparent);
+  backdrop-filter: blur(.75rem) saturate(1.08);
+  -webkit-backdrop-filter: blur(.75rem) saturate(1.08);
 }
 
-.login-feature-item {
-  min-height: 6.25rem;
+#registerModal .register-step-panel {
   padding: 1rem;
-  border-right: var(--hairline) solid var(--line-color);
 }
 
-.login-feature-item:last-child { border-right: 0; }
-.login-feature-item strong { display: block; margin-bottom: .35rem; line-height: 1.2; }
-.login-feature-item small { display: block; color: var(--text-muted); font-size: .84rem; line-height: 1.4; }
-.feature-dot { display: none; }
+#registerModal .register-step-panel[hidden] {
+  display: none !important;
+}
+
+#registerModal .community-form-area {
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 
 .register-rules-box {
   padding: 1rem;
-  border: var(--hairline) solid var(--border-color);
+  border: var(--hairline) solid rgba(255, 255, 255, .62);
   border-radius: var(--radius-md);
-  background: var(--surface-muted);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .66));
 }
 
-.register-rules-box > strong { display: block; margin-bottom: .55rem; }
-.register-rules-box ul { margin: 0 0 .9rem 1.05rem; padding: 0; color: var(--text-muted); font-size: .9rem; line-height: 1.55; }
+.register-rules-box > strong {
+  display: block;
+  margin-bottom: .55rem;
+}
+
+.register-rules-box ul {
+  margin: 0 0 .9rem 1.05rem;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: .9rem;
+  line-height: 1.55;
+}
 
 .register-rules-check {
   display: flex;
@@ -769,12 +937,23 @@ body.theme-dark .logo-dark { display: block; }
   box-shadow: none !important;
 }
 
-.register-rules-check span { flex: 1; color: var(--text-muted); font-size: .9rem; line-height: 1.42; }
-.register-rules-check a,
-.cookie-banner a { color: var(--primary-color); font-weight: 700; }
-.register-rules-check a:hover,
-.cookie-banner a:hover { text-decoration: underline; }
+.register-rules-check span {
+  flex: 1;
+  color: var(--text-muted);
+  font-size: .9rem;
+  line-height: 1.42;
+}
 
+.register-rules-check a,
+.cookie-banner a {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.register-rules-check a:hover,
+.cookie-banner a:hover {
+  text-decoration: underline;
+}
 
 .register-steps {
   display: grid;
@@ -806,7 +985,9 @@ body.theme-dark .logo-dark { display: block; }
   color: var(--primary-strong);
 }
 
-.register-step-panel[hidden] { display: none !important; }
+.register-step-panel[hidden] {
+  display: none !important;
+}
 
 .register-step-hint {
   margin: 0 0 1rem;
@@ -841,7 +1022,9 @@ body.theme-dark .logo-dark { display: block; }
   line-height: 1.3;
 }
 
-.register-text-btn:hover { text-decoration: underline; }
+.register-text-btn:hover {
+  text-decoration: underline;
+}
 
 #regVerifiedEmail,
 .community-form-area input:disabled,
@@ -850,6 +1033,82 @@ body.theme-dark .logo-dark { display: block; }
   color: var(--text-muted) !important;
   background: var(--surface-muted) !important;
   cursor: not-allowed;
+}
+
+@media (max-width: 48rem) {
+  .login-page {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    padding: 1rem;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, .30), rgba(15, 23, 42, .52)),
+      url("../img/login-mobile.jpg") center / cover no-repeat;
+  }
+
+  .login-shell {
+    width: 100%;
+  }
+
+  .login-container {
+    max-width: 100%;
+    padding: 1.15rem !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .login-card-brand {
+    margin-bottom: 1rem;
+  }
+
+  .login-card-logo {
+    width: min(80%, 13rem);
+  }
+
+  .login-page .mb-3 {
+    margin-bottom: .85rem !important;
+  }
+
+  .login-page .form-label {
+    margin-bottom: .35rem;
+    font-size: .82rem;
+  }
+
+  .login-page .custom-input,
+  .login-page .form-control {
+    min-height: 2.55rem;
+    font-size: .86rem;
+  }
+
+  .login-page .login-btn {
+    min-height: 2.45rem;
+    padding-block: .45rem !important;
+    font-size: .84rem;
+  }
+
+  .login-page .text-center.mt-4 {
+    margin-top: 1rem !important;
+    padding-top: .9rem !important;
+  }
+
+  .register-steps {
+    gap: .4rem;
+  }
+
+  .register-steps span {
+    min-height: 1.9rem;
+    padding: .42rem .45rem;
+    font-size: .72rem;
+  }
+
+  .register-name-row {
+    flex-direction: column;
+    gap: .75rem !important;
+  }
 }
 
 .cookie-banner {
