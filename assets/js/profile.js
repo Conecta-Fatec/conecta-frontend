@@ -135,17 +135,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
+      const whenCompact = post.created_at ? compactRelativeTime(post.created_at) : '';
       const destination = postDestinationUrl(post);
+      const fullName = userDisplayName(currentUser);
+      const shortName = truncateText(fullName, 20);
+      const fullNick = currentUser.nickname || 'usuario';
+      const shortNick = truncateText(fullNick, 20);
 
       return `
         <article class="post-card profile-post-item clickable-post post-card-clickable" id="post-${post.id}" data-post-url="${escapeHTML(destination)}" data-can-interact="false">
           <a href="profile.html" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(currentUser)}</a>
           <div class="post-body">
             <div class="post-header">
-              <div>
-                <strong class="post-author">${escapeHTML(userDisplayName(currentUser))}</strong>
-                <span class="post-username">@${escapeHTML(currentUser.nickname || 'usuario')}</span>
-                ${when ? `<span> · ${escapeHTML(when)}</span>` : ''}
+              <div class="post-header-main">
+                <strong class="post-author" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</strong>
+                <span class="post-username" title="@${escapeHTML(fullNick)}">@${escapeHTML(shortNick)}</span>
+                ${when ? `<span class="post-date-link" title="${escapeHTML(when)}"><span class="date-full"> · ${escapeHTML(when)}</span><span class="date-short"> · ${escapeHTML(whenCompact)}</span></span>` : ''}
               </div>
             </div>
             <p class="post-text">${escapeHTML(post.content)}</p>

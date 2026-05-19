@@ -5,6 +5,107 @@
 
 const API_BASE_URL = 'https://conecta-fatec-api.onrender.com';
 
+
+// =========================================================
+// Cache leve de imagens e pré-carregamento visual
+// =========================================================
+const IMAGE_CACHE_KEY = 'conecta_image_cache_v1';
+const IMAGE_CACHE_LIMIT = 80;
+const IMAGE_CACHE_STORAGE = 'conecta-image-cache-v1';
+
+const ConectaImageCache = (() => {
+  const memory = new Map();
+
+  function readStoredUrls() {
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(IMAGE_CACHE_KEY) || '[]');
+      return Array.isArray(stored) ? stored.filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeStoredUrls(urls) {
+    try {
+      sessionStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(urls.slice(-IMAGE_CACHE_LIMIT)));
+    } catch {
+      // Se o armazenamento estiver indisponível, o navegador mantém o cache HTTP normal.
+    }
+  }
+
+  function remember(url) {
+    if (!url) return '';
+    const normalized = String(url);
+    const stored = readStoredUrls().filter((item) => item !== normalized);
+    stored.push(normalized);
+    writeStoredUrls(stored);
+    return normalized;
+  }
+
+  function storeResponse(url) {
+    if (!('caches' in window)) return;
+
+    caches.open(IMAGE_CACHE_STORAGE)
+      .then(async (cache) => {
+        const cached = await cache.match(url);
+        if (!cached) await cache.add(url);
+      })
+      .catch(() => {
+        // URLs externas sem CORS ainda ficam com o cache HTTP normal do navegador.
+      });
+  }
+
+  function preload(url) {
+    if (!url) return '';
+    const normalized = remember(url);
+    if (memory.has(normalized)) return normalized;
+
+    const image = new Image();
+    image.decoding = 'async';
+    image.loading = 'eager';
+    image.src = normalized;
+    memory.set(normalized, image);
+    storeResponse(normalized);
+    return normalized;
+  }
+
+  function get(url) {
+    return preload(url);
+  }
+
+  function hydratePageImages() {
+    const run = () => {
+      document.querySelectorAll('img[src]').forEach((img) => {
+        if (!img.decoding) img.decoding = 'async';
+        if (!img.loading) img.loading = 'lazy';
+        preload(img.currentSrc || img.src);
+      });
+    };
+
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1200 });
+    else window.setTimeout(run, 250);
+  }
+
+  function preloadStoredImages() {
+    const run = () => readStoredUrls().forEach(preload);
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1500 });
+    else window.setTimeout(run, 350);
+  }
+
+  function preloadLogos() {
+    const prefix = window.location.pathname.includes('/pages/') ? '../' : '';
+    [`${prefix}assets/img/logo-light.svg`, `${prefix}assets/img/logo-dark.svg`].forEach(preload);
+  }
+
+  return { get, preload, remember, hydratePageImages, preloadStoredImages, preloadLogos };
+})();
+
+function cachedImageUrl(url) {
+  return window.ConectaImageCache?.get(url) || ConectaImageCache.get(url);
+}
+
+window.ConectaImageCache = ConectaImageCache;
+
 function getAccessToken() {
   return localStorage.getItem('access_token');
 }
@@ -131,8 +232,9 @@ function updateSidebarUser(user) {
   });
 
   document.querySelectorAll('#sidebar-avatar, #modal-avatar, #post-input-avatar').forEach((el) => {
-    if (userPhoto(user)) {
-      el.innerHTML = `<img src="${escapeHTML(toApiUrl(userPhoto(user)))}" alt="Foto de ${escapeHTML(name)}">`;
+    const photo = cachedImageUrl(toApiUrl(userPhoto(user)));
+    if (photo) {
+      el.innerHTML = `<img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async">`;
       el.classList.add('has-image');
     } else {
       el.textContent = initials;
@@ -271,7 +373,7 @@ function setupMobileBottomNav() {
     { href: 'communities.html', label: 'Comunidades', icon: '<svg viewBox="0 0 24 24"><path d="M7.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm9 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20.5a4.5 4.5 0 0 1 9 0m0 0a4.5 4.5 0 0 1 9 0" /></svg>', pages: ['communities.html', 'community.html'] },
     { href: 'friends.html', label: 'Amizades', icon: '<svg viewBox="0 0 24 24"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-5.5 9a5.5 5.5 0 0 1 11 0m4-9v6m-3-3h6" /></svg>', pages: ['friends.html'] },
     { href: 'profile.html', label: 'Perfil', icon: '<svg viewBox="0 0 24 24"><path d="M12 12.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM4 21a8 8 0 0 1 16 0" /></svg>', pages: ['profile.html', 'profileuser.html'] },
-    { href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7Z" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2a1 1 0 0 0-.6.9V20a2 2 0 0 1-4 0v-.2a1 1 0 0 0-.6-.9a1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1.1a1 1 0 0 0 1.1.2a1 1 0 0 0 .6-.9V4a2 2 0 0 1 4 0v.2a1 1 0 0 0 .6.9a1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1a1 1 0 0 0 .9.6H4a2 2 0 0 1 0-4h.2a1 1 0 0 0 .9-.6a1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2a1 1 0 0 0 .6-.9V4a2 2 0 0 1 4 0v.2a1 1 0 0 0 .6.9a1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1a1 1 0 0 0 .9.6H20a2 2 0 0 1 0 4h-.2a1 1 0 0 0-.9.6Z" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html'] },
+    {href: 'settings.html', label: 'Config.', icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7a3.5 3.5 0 0 0 0 7Z" /><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.6-.22l-2.49 1a7.4 7.4 0 0 0-1.69-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42l-.38 2.65c-.6.24-1.17.56-1.69.98l-2.49-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.02.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .6.22l2.49-1c.52.42 1.08.74 1.69.98l.38 2.65a.5.5 0 0 0 .5.42h4a.5.5 0 0 0 .5-.42l.38-2.65c.6-.24 1.17-.56 1.69-.98l2.49 1a.5.5 0 0 0 .6-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65Z" /></svg>', pages: ['settings.html', 'about.html', 'notifications.html']},
   ];
   const nav = document.createElement('nav');
   nav.className = 'mobile-bottom-nav';
@@ -331,7 +433,7 @@ function setupProfilePhotoViewer() {
     const modalImg = document.getElementById('photoViewerImage');
     const modalTitle = document.getElementById('photoViewerTitle');
     if (!modal || !modalImg) return;
-    modalImg.src = img.src;
+    modalImg.src = cachedImageUrl(img.currentSrc || img.src);
     modalImg.alt = img.alt || 'Foto ampliada';
     if (modalTitle) modalTitle.textContent = trigger.dataset.photoTitle || 'Foto';
     bootstrap.Modal.getOrCreateInstance(modal).show();
@@ -358,6 +460,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCookieBanner();
   setupProfilePhotoViewer();
   setupRegisterRules();
+  ConectaImageCache.preloadStoredImages();
+  ConectaImageCache.preloadLogos();
+  ConectaImageCache.hydratePageImages();
 
   if (window.location.pathname.includes('/pages/') && getAccessToken()) {
     const storedUser = getLoggedUserFromStorage();
@@ -846,6 +951,12 @@ function userDisplayName(user = {}) {
   return source.full_name || source.name || `${source.first_name || ''} ${source.last_name || ''}`.trim() || source.nickname || source.username || 'Usuário';
 }
 
+function truncateText(value = '', limit = 20) {
+  const text = String(value || '').trim();
+  if (text.length <= limit) return text;
+  return `${text.slice(0, Math.max(0, limit - 1)).trim()}…`;
+}
+
 function userPhoto(user = {}) {
   const source = userProfileSource(user);
   return photoFromObject(source) || photoFromObject(nestedUserFrom(user));
@@ -863,10 +974,10 @@ function avatarHTML(user = {}, sizeClass = 'user-avatar') {
   const source = userProfileSource(user);
   const name = userDisplayName(source);
   const nickname = source.nickname || source.username || name;
-  const photo = toApiUrl(userPhoto(source));
+  const photo = cachedImageUrl(toApiUrl(userPhoto(source)));
 
   if (photo) {
-    return `<div class="${sizeClass} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy"></div>`;
+    return `<div class="${sizeClass} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async"></div>`;
   }
 
   return `<div class="${sizeClass} static-avatar ${avatarColorClass(nickname)}">${escapeHTML(getInitials(name || nickname))}</div>`;
@@ -926,9 +1037,9 @@ function communityPhoto(community = {}) {
 
 function communityAvatarHTML(community = {}, sizeClass = 'community-card-avatar') {
   const name = community.name || 'Comunidade';
-  const photo = toApiUrl(communityPhoto(community));
+  const photo = cachedImageUrl(toApiUrl(communityPhoto(community)));
   if (photo) {
-    return `<div class="${sizeClass} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy"></div>`;
+    return `<div class="${sizeClass} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async"></div>`;
   }
   return `<div class="${sizeClass} static-avatar ${avatarColorClass(community.slug || name)}">${escapeHTML(getInitials(name))}</div>`;
 }
@@ -946,23 +1057,51 @@ function relativeTime(value, prefix = 'feito') {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
 
+  const withPrefix = (text) => (prefix ? `${prefix} ${text}` : text);
   const diffMs = Date.now() - date.getTime();
-  if (diffMs < 0) return `${prefix} agora`;
+  if (diffMs < 0) return withPrefix('agora');
 
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 45) return `${prefix} agora`;
+  if (seconds < 45) return withPrefix('agora');
 
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${prefix} há ${minutes} min`;
+  if (minutes < 60) return withPrefix(`há ${minutes} min`);
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${prefix} há ${hours}h`;
+  if (hours < 24) return withPrefix(`há ${hours}h`);
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${prefix} há ${days} ${days === 1 ? 'dia' : 'dias'}`;
+  if (days < 7) return withPrefix(`há ${days} ${days === 1 ? 'dia' : 'dias'}`);
 
   const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `${prefix} há ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+  if (weeks < 5) return withPrefix(`há ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`);
+
+  return date.toLocaleDateString('pt-BR');
+}
+
+function compactRelativeTime(value, prefix = '') {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const diffMs = Date.now() - date.getTime();
+  const join = (text) => (prefix ? `${prefix} ${text}` : text);
+  if (diffMs < 0) return join('agora');
+
+  const seconds = Math.floor(diffMs / 1000);
+  if (seconds < 45) return join('agora');
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return join(`${minutes}m`);
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return join(`${hours}h`);
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return join(`${days}d`);
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return join(`${weeks}sem`);
 
   return date.toLocaleDateString('pt-BR');
 }

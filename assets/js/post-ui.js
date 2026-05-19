@@ -102,15 +102,44 @@
     return author.nickname || author.username || 'usuario';
   }
 
+  // =======================================================
+  // Textos compactos para cabeçalhos responsivos
+  // =======================================================
+  const HEADER_TEXT_LIMIT = 20;
+
+  function truncateHeaderText(value = '', limit = HEADER_TEXT_LIMIT) {
+    const text = String(value || '').trim();
+    if (text.length <= limit) return text;
+    return `${text.slice(0, Math.max(0, limit - 1)).trim()}…`;
+  }
+
+  function headerDisplayName(author = {}) {
+    return truncateHeaderText(userDisplayName(author));
+  }
+
+  function headerNickname(author = {}) {
+    return truncateHeaderText(authorNickname(author));
+  }
+
+  function safeCompactTime(value) {
+    if (typeof compactRelativeTime === 'function') return compactRelativeTime(value);
+    return relativeTime(value, '').replace('há ', '').replace(' min', 'm').replace(/ dias?/, 'd').trim();
+  }
+
   function renderThreadItem(item, options, isReply = false, parentAuthor = null, hasNext = false) {
     const author = item.author || {};
     const currentNickname = options.currentUser?.nickname || window.ConectaPosts.currentUserNickname || '';
     const isOwner = Boolean(author.nickname && author.nickname === currentNickname);
     const canInteract = options.canInteract !== false && options.showActions !== false;
-    const when = relativeTime(item.created_at || item.updated_at, '');
+    const rawDate = item.created_at || item.updated_at;
+    const when = relativeTime(rawDate, '');
+    const whenCompact = safeCompactTime(rawDate);
     const likeIcon = item.liked_by_me ? ICONS.likeSolid : ICONS.likeOutline;
     const likesCount = item.total_likes ?? item.likes_count ?? item.likes ?? 0;
-    const parentNick = parentAuthor ? authorNickname(parentAuthor) : '';
+    const parentNick = parentAuthor ? headerNickname(parentAuthor) : '';
+    const fullName = userDisplayName(author);
+    const shortName = headerDisplayName(author);
+    const nick = headerNickname(author);
 
     return `
       <div class="tw-comment-wrapper ${isReply ? 'tw-reply-wrapper' : 'tw-root-comment-wrapper'}">
@@ -123,14 +152,14 @@
 
         <div class="tw-content-col">
           <div class="tw-header">
-            <a href="${profileUrlFor(author)}" class="tw-author-name" onclick="event.stopPropagation()">${escapeHTML(userDisplayName(author))}</a>
+            <a href="${profileUrlFor(author)}" class="tw-author-name" onclick="event.stopPropagation()" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</a>
             ${isReply && parentAuthor ? `
               <span class="tw-reply-arrow" aria-hidden="true">›</span>
-              <a href="${profileUrlFor(parentAuthor)}" class="tw-reply-target" onclick="event.stopPropagation()">@${escapeHTML(parentNick)}</a>
+              <a href="${profileUrlFor(parentAuthor)}" class="tw-reply-target" onclick="event.stopPropagation()" title="@${escapeHTML(authorNickname(parentAuthor))}">@${escapeHTML(parentNick)}</a>
             ` : `
-              <a href="${profileUrlFor(author)}" class="tw-username" onclick="event.stopPropagation()">@${escapeHTML(authorNickname(author))}</a>
+              <a href="${profileUrlFor(author)}" class="tw-username" onclick="event.stopPropagation()" title="@${escapeHTML(authorNickname(author))}">@${escapeHTML(nick)}</a>
             `}
-            ${when ? `<span class="tw-date"> · ${escapeHTML(when)}</span>` : ''}
+            ${when ? `<span class="tw-date" title="${escapeHTML(when)}"> · <span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></span>` : ''}
             ${item.edited ? '<span class="tw-date"> · editado</span>' : ''}
           </div>
 
@@ -174,7 +203,7 @@
       return renderThreadItem(item, options, isReply, item.parentAuthor || null, hasNext);
     }).join('');
 
-    if (replies.length > defaultLimit) {
+    if (!options.hideReplyPagination && replies.length > defaultLimit) {
       const remaining = replies.length - clampedVisible;
       const canHide = clampedVisible > defaultLimit;
 
@@ -247,32 +276,12 @@
     };
   }
 
-  function pickPostFromResponse(data, postId) {
-    if (!data) return null;
-
-    if (Array.isArray(data)) {
-      return data.find((post) => String(post.id) === String(postId)) || null;
-    }
-
-    const directPost = data.post || data.publication || data.item || data.result;
-    if (directPost && typeof directPost === 'object' && !Array.isArray(directPost)) return directPost;
-
-    const possibleLists = [data.posts, data.results, data.feed, data.items];
-    for (const list of possibleLists) {
-      const items = normalizeArray(list, 'results', 'items');
-      const found = items.find((post) => String(post.id) === String(postId));
-      if (found) return found;
-    }
-
-    return data;
+  // Usa o post que já veio da listagem para evitar chamadas extras e 404 em rotas inexistentes.
+  async function fetchPostForInlinePreview(postId, cachedPost = {}) {
+    return cachedPost && Object.keys(cachedPost).length
+      ? cachedPost
+      : { id: postId, comments: [], top_level_comments: [] };
   }
-
-async function fetchPostForInlinePreview(postId, cachedPost = {}) {
-
-  return cachedPost && Object.keys(cachedPost).length
-    ? cachedPost
-    : { id: postId, comments: [], top_level_comments: [] };
-}
 
   function renderInlineCommentsPreview(post = {}, options = {}) {
     const commentsTree = buildCommentsTree(post);
@@ -283,6 +292,7 @@ async function fetchPostForInlinePreview(postId, cachedPost = {}) {
       ? visibleComments.map((comment) => renderComment(comment, {
           ...options,
           replyLimit: 1,
+          hideReplyPagination: true,
         })).join('')
       : '<p class="inline-comments-empty">Nenhum comentário ainda.</p>';
 
@@ -293,8 +303,6 @@ async function fetchPostForInlinePreview(postId, cachedPost = {}) {
         </div>
 
         <div class="inline-post-actions">
-          <span class="tk-replies-line" aria-hidden="true"></span>
-
           <a href="${escapeHTML(postLink)}" class="post-full-link inline-post-full-link" onclick="event.stopPropagation()">
             Ver post completo
           </a>
@@ -313,8 +321,13 @@ async function fetchPostForInlinePreview(postId, cachedPost = {}) {
     const author = options.author || post.author || {};
     const currentUser = options.currentUser || null;
     const isOwner = Boolean(author.nickname && author.nickname === currentUser?.nickname);
-    const when = relativeTime(post.created_at || post.updated_at, 'feito');
+    const rawDate = post.created_at || post.updated_at;
+    const when = relativeTime(rawDate, 'feito');
+    const whenCompact = safeCompactTime(rawDate);
     const postLink = postLinkFor(post);
+    const fullName = userDisplayName(author);
+    const shortName = headerDisplayName(author);
+    const nick = headerNickname(author);
     const canOpenCard = options.isSingleView !== true && options.disableCardLink !== true;
     const cardClick = canOpenCard ? `onclick="window.ConectaPosts.handlePostCardClick(event, ${post.id})"` : '';
     const shouldShowFullButton = options.showFullPostButton === true && !options.isSingleView;
@@ -324,11 +337,11 @@ async function fetchPostForInlinePreview(postId, cachedPost = {}) {
         <a href="${profileUrlFor(author)}" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(author)}</a>
         <div class="post-body" style="min-width:0;">
           <div class="post-header">
-            <div class="text-truncate">
-              <a href="${profileUrlFor(author)}" class="post-author" onclick="event.stopPropagation()">${escapeHTML(userDisplayName(author))}</a>
-              <a href="${profileUrlFor(author)}" class="post-username text-decoration-none" onclick="event.stopPropagation()">@${escapeHTML(author.nickname || 'usuario')}</a>
-              ${when ? `<span> · <a href="${postLink}" class="text-muted text-decoration-none" onclick="event.stopPropagation()">${escapeHTML(when)}</a></span>` : ''}
-              ${post.edited ? ' · <small>(editado)</small>' : ''}
+            <div class="post-header-main">
+              <a href="${profileUrlFor(author)}" class="post-author" onclick="event.stopPropagation()" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</a>
+              <a href="${profileUrlFor(author)}" class="post-username text-decoration-none" onclick="event.stopPropagation()" title="@${escapeHTML(author.nickname || author.username || 'usuario')}">@${escapeHTML(nick)}</a>
+              ${when ? `<a href="${postLink}" class="post-date-link text-muted text-decoration-none" onclick="event.stopPropagation()" title="${escapeHTML(when)}"><span class="date-full"> · ${escapeHTML(when)}</span><span class="date-short"> · ${escapeHTML(whenCompact)}</span></a>` : ''}
+              ${post.edited ? '<small class="post-edited-label"> · editado</small>' : ''}
             </div>
           </div>
           ${options.showCommunityLabel ? renderCommunityChip(post) : ''}
@@ -389,7 +402,10 @@ async function fetchPostForInlinePreview(postId, cachedPost = {}) {
       placeholder.innerHTML = `
         <div class="inline-comments-wrapper" onclick="event.stopPropagation()">
           <p class="inline-comments-empty">Não foi possível carregar os comentários agora.</p>
-          <a href="${escapeHTML(card.dataset.postUrl || '#')}" class="post-full-link inline-post-full-link" onclick="event.stopPropagation()">Ver post completo</a>
+          <div class="inline-post-actions">
+            <a href="${escapeHTML(card.dataset.postUrl || '#')}" class="post-full-link inline-post-full-link" onclick="event.stopPropagation()">Ver post completo</a>
+            <button class="tk-replies-btn inline-close-btn" onclick="event.stopPropagation(); window.ConectaPosts.closeInlineComments(${postId})" type="button">Fechar</button>
+          </div>
         </div>
       `;
     } finally {

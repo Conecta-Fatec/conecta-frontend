@@ -58,12 +58,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Renderiza a foto do utilizador (ou as iniciais caso não tenha foto)
   function profileUserAvatarHTML(user = {}, classes = 'user-avatar') {
     const name = userDisplayName(user);
-    const photo = toApiUrl(userPhoto(user));
+    const photo = cachedImageUrl(toApiUrl(userPhoto(user)));
 
     if (photo) {
       return `
         <div class="${escapeHTML(classes)} has-image">
-          <img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}">
+          <img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async">
         </div>
       `;
     }
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     avatar.dataset.photoTitle = name;
 
     if (photo) {
-      avatar.innerHTML = `<img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}">`;
+      avatar.innerHTML = `<img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async">`;
       avatar.classList.add('has-image');
       return;
     }
@@ -254,8 +254,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
+      const whenCompact = post.created_at ? compactRelativeTime(post.created_at) : '';
       const destination = postDestinationUrl(post);
       const source = renderPostSource(post);
+      const fullName = userDisplayName(publicUser);
+      const shortName = truncateText(fullName, 20);
+      const fullNick = publicUser.nickname || 'usuario';
+      const shortNick = truncateText(fullNick, 20);
 
       return `
         <article class="post-card profile-post-item clickable-post post-card-clickable" id="post-${post.id}" data-post-url="${escapeHTML(destination)}" data-can-interact="false">
@@ -265,10 +270,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           <div class="post-body">
             <div class="post-header">
-              <div>
-                <strong class="post-author">${escapeHTML(userDisplayName(publicUser))}</strong>
-                <span class="post-username">@${escapeHTML(publicUser.nickname || 'usuario')}</span>
-                ${when ? `<span> · ${escapeHTML(when)}</span>` : ''}
+              <div class="post-header-main">
+                <strong class="post-author" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</strong>
+                <span class="post-username" title="@${escapeHTML(fullNick)}">@${escapeHTML(shortNick)}</span>
+                ${when ? `<span class="post-date-link" title="${escapeHTML(when)}"><span class="date-full"> · ${escapeHTML(when)}</span><span class="date-short"> · ${escapeHTML(whenCompact)}</span></span>` : ''}
               </div>
             </div>
 

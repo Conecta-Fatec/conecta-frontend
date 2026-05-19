@@ -11,9 +11,9 @@ body.theme-light {
   --app-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Inter, system-ui, sans-serif;
   --app-font-size: 1rem;
 
-  --weight-heading: 700;
-  --weight-title: 650;
-  --weight-strong: 600;
+  --weight-heading: 680;
+  --weight-title: 620;
+  --weight-strong: 560;
   --weight-medium: 500;
 
   --primary-color: #2563eb;
@@ -3637,5 +3637,200 @@ body:has(.login-page) {
   .inline-comments-empty,
   .inline-comments-loading {
     padding-left: 2.55rem;
+  }
+}
+
+
+/* =========================================================
+   24. Ajustes finais V1 — responsividade, headers e cache visual
+========================================================= */
+.date-short {
+  display: none;
+}
+
+.post-header-main {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: .24rem;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: top;
+}
+
+.post-header-main .post-author,
+.post-header-main .post-username,
+.post-header-main .post-date-link,
+.post-header-main .post-edited-label,
+.tw-header .tw-author-name,
+.tw-header .tw-username,
+.tw-header .tw-reply-target,
+.tw-header .tw-date {
+  min-width: 0;
+}
+
+.post-header-main .post-author,
+.tw-header .tw-author-name {
+  flex: 0 1 auto;
+  max-width: 20ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-header-main .post-username,
+.tw-header .tw-username,
+.tw-header .tw-reply-target {
+  flex: 1 1 auto;
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-header-main .post-date-link,
+.post-header-main .post-edited-label,
+.tw-header .tw-date,
+.tw-header .tw-reply-arrow {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.inline-comments-wrapper .tk-replies-actions {
+  display: none !important;
+}
+
+.inline-post-actions {
+  justify-content: center !important;
+  gap: .85rem !important;
+  padding-inline: 0 !important;
+}
+
+.inline-post-actions .inline-post-full-link,
+.inline-post-actions .inline-close-btn {
+  flex: 0 0 auto;
+}
+
+#profile-posts-container > .profile-posts-footer,
+#public-posts-container > .profile-posts-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: auto !important;
+  margin: .25rem 0 0 !important;
+  padding: .25rem 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#profile-posts-container > .profile-posts-footer:hover,
+#public-posts-container > .profile-posts-footer:hover {
+  border: 0 !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+#profile-posts-container > .profile-posts-footer .load-more-btn,
+#public-posts-container > .profile-posts-footer .load-more-btn {
+  min-width: 0 !important;
+  min-height: auto !important;
+  width: fit-content !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  box-shadow: none !important;
+}
+
+#profile-posts-container > .profile-posts-footer .load-more-btn:hover,
+#public-posts-container > .profile-posts-footer .load-more-btn:hover {
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+}
+
+@media (max-width: 48rem) {
+  .post-card,
+  .profile-post-card,
+  .profile-post-item,
+  #posts-container > *,
+  #feed-posts-container > *,
+  #general-posts-container > *,
+  #friends-posts-container > *,
+  #profile-posts-container > *,
+  #public-posts-container > *,
+  #community-posts-container > *,
+  #community-posts-list > * {
+    gap: .65rem !important;
+    padding: .78rem !important;
+  }
+
+  .post-card .avatar-link,
+  .profile-post-item .avatar-link {
+    flex: 0 0 auto;
+  }
+
+  .post-card .user-avatar,
+  .profile-post-item .user-avatar {
+    width: 2.35rem !important;
+    height: 2.35rem !important;
+    min-width: 2.35rem !important;
+  }
+
+  .post-body {
+    min-width: 0 !important;
+  }
+
+  .post-header,
+  .comment-header {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .post-header-main {
+    width: 100%;
+    gap: .18rem;
+  }
+
+  .post-header-main .post-author {
+    max-width: min(20ch, 42vw);
+  }
+
+  .post-header-main .post-username {
+    max-width: min(18ch, 22vw);
+  }
+
+  .date-full {
+    display: none !important;
+  }
+
+  .date-short {
+    display: inline !important;
+  }
+
+  .tw-header {
+    flex-wrap: nowrap !important;
+    max-width: 100%;
+    min-width: 0;
+    gap: .16rem .26rem;
+  }
+
+  .tw-header .tw-author-name {
+    max-width: min(20ch, 38vw);
+  }
+
+  .tw-header .tw-username,
+  .tw-header .tw-reply-target {
+    max-width: min(18ch, 24vw);
+  }
+
+  .inline-post-actions {
+    gap: .7rem !important;
+    padding: .5rem 0 .7rem !important;
   }
 }
