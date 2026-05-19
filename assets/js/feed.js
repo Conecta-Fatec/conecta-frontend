@@ -111,15 +111,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (highlightedPostId) ConectaPosts.openPostComments(highlightedPostId);
     scrollToHighlightedPost();
   }
+  
+window.loadPosts = async function loadPosts(silent = false) {
+    // Definimos uma chave de cache diferente para a aba Geral e para a aba Amigos
+    const cacheKey = currentMode === 'friends' ? '@conecta:cache_feed_friends' : '@conecta:cache_feed_general';
 
-  window.loadPosts = async function loadPosts(silent = false) {
     try {
-      if (!silent) postsContainer.innerHTML = '<p class="text-center mt-4 text-muted">Carregando publicações...</p>';
+      // 1. TENTATIVA DE CACHE (Carregamento instantâneo)
+      const cacheSalvo = localStorage.getItem(cacheKey);
+      if (cacheSalvo && !silent) {
+        const postsEmCache = JSON.parse(cacheSalvo);
+        renderPosts(postsEmCache);
+        console.log(`[Cache] Feed (${currentMode}) carregado instantaneamente!`);
+        // Ativamos o modo silencioso para a mensagem "Carregando..." não piscar na tela
+        silent = true; 
+      }
+
+      // 2. ESTADO DE LOADING (Só aparece no primeiríssimo acesso da vida do usuário)
+      if (!silent) {
+        postsContainer.innerHTML = '<p class="text-center mt-4 text-muted">Carregando publicações...</p>';
+      }
+
+      // 3. BUSCA NA API (Trabalho em segundo plano usando a sua lógica original)
       const posts = await fetchPosts(currentMode);
-      renderPosts(posts);
+
+      // 4. VALIDAÇÃO E ATUALIZAÇÃO (Stale-While-Revalidate)
+      if (JSON.stringify(posts) !== cacheSalvo) {
+        localStorage.setItem(cacheKey, JSON.stringify(posts));
+        renderPosts(posts);
+        console.log(`[API] Tela atualizada com novos posts na aba ${currentMode}!`);
+      }
+
     } catch (error) {
       console.error(error);
-      if (!silent) postsContainer.innerHTML = '<p class="text-danger text-center mt-4">Erro ao carregar publicações.</p>';
+      // Se não tiver cache e der erro na API, mostra a mensagem de erro
+      if (!silent) {
+        postsContainer.innerHTML = '<p class="text-danger text-center mt-4">Erro ao carregar publicações.</p>';
+      }
     }
   };
 
