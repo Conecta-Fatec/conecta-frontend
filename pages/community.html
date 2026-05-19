@@ -114,14 +114,16 @@
 
         <div class="community-page-layout">
           <section class="community-main">
-            <article class="community-create-card" id="community-create-post-card">
-              <div class="d-flex gap-3 align-items-start">
-                <button class="form-control text-start text-muted community-post-trigger" data-bs-toggle="modal"
-                  data-bs-target="#newCommunityPostModal">
-                  Compartilhe algo com esta comunidade...
-                </button>
-              </div>
-            </article>
+          <div class="community-create-card" data-bs-toggle="modal" data-bs-target="#postModal">
+            <div class="feed-create-card-text">
+              <strong>Criar publicação</strong>
+              <span>Compartilhe uma ideia, dúvida ou atualização com esta comunidade.</span>
+            </div>
+
+            <button class="feed-create-card-btn" type="button">
+              Postar
+            </button>
+          </div>
 
             <section class="community-posts-section">
               <section

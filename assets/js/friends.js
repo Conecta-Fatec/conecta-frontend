@@ -77,20 +77,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
-  // Cartão da lista Explorar (com botão de Adicionar)
+  // Cartão da lista Explorar, igual ao card de Minhas amizades
   function exploreCard(user = {}) {
     const source = userProfileSource(user);
-    const nickname = source.nickname || source.username || '';
-    const sentNicknames = new Set(state.sent.map((req) => userProfileSource(req.receiver || req).nickname).filter(Boolean));
-    const isSent = sentNicknames.has(nickname);
 
     return `
       <article class="friend-card community-card friend-card-link-card" data-profile-href="${profileUrlFor(source)}" role="link" tabindex="0">
         ${userCardContent(
           source,
-          isSent
-            ? '<span class="friend-status-pill">Solicitação enviada</span>'
-            : `<button type="button" class="community-card-btn" onclick="sendFriendRequest('${escapeHTML(nickname)}')">Adicionar</button>`,
+          `<a class="friend-text-link" href="${profileUrlFor(source)}" onclick="event.stopPropagation()">Ver perfil</a>`,
           'Aluno'
         )}
       </article>
