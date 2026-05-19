@@ -19,7 +19,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   let editCommunityModal = null;
   let commCropper = null;
 
-  if (window.ConectaPosts) ConectaPosts.currentUserNickname = currentUser?.nickname || '';
+  if (window.ConectaPosts) {
+    ConectaPosts.currentUser = currentUser;
+    ConectaPosts.currentUserNickname = currentUser?.nickname || '';
+  }
 
   const commName = document.getElementById('comm-name');
   const commDesc = document.getElementById('comm-desc');
@@ -245,8 +248,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    if (highlightedPostId && window.ConectaPosts) ConectaPosts.openPostComments(highlightedPostId);
-
     postsContainer.innerHTML = posts.map((post) => ConectaPosts.renderPostCard(post, {
       currentUser,
       showCommunityLabel: false,
@@ -254,6 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       canInteract: isMember,
     })).join('') + '<footer class="feed-footer community-posts-end">Fim dos posts</footer>';
 
+    if (highlightedPostId && window.ConectaPosts) ConectaPosts.openPostComments(highlightedPostId);
     scrollToHighlightedPost();
   }
 
@@ -486,17 +488,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   window.addComment = async (postId) => {
-    const input = document.getElementById(`comment-input-${postId}`);
-    const content = input?.value.trim();
-    if (!content) return;
-    const response = await apiFetch(`/api/posts/post/${postId}/comment/`, {
-      method: 'POST',
-      body: JSON.stringify({ content }),
-    });
-    if (response.ok) {
-      ConectaPosts.openPostComments(postId);
-      await loadCommunityDetails();
-    }
+    window.openPostCommentBox(null, postId);
   };
 
   window.toggleCommentLike = async (commentId, btnElement = null) => {

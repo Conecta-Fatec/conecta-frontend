@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const destination = postDestinationUrl(post);
 
       return `
-        <article class="post-card profile-post-item clickable-post" data-post-url="${escapeHTML(destination)}">
+        <article class="post-card profile-post-item clickable-post post-card-clickable" id="post-${post.id}" data-post-url="${escapeHTML(destination)}" data-can-interact="false">
           <a href="profile.html" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(currentUser)}</a>
           <div class="post-body">
             <div class="post-header">
@@ -150,6 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <p class="post-text">${escapeHTML(post.content)}</p>
             ${postSourceHTML(post)}
+            <div class="inline-comments-placeholder" id="inline-comments-${post.id}"></div>
           </div>
         </article>
       `;
@@ -327,6 +328,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   postsContainer.addEventListener('click', (event) => {
     const card = event.target.closest('[data-post-url]');
     if (!card || event.target.closest('a,button')) return;
+
+    if (window.ConectaPosts?.handlePostCardClick && card.id?.startsWith('post-')) {
+      window.ConectaPosts.handlePostCardClick(event, card.id.replace('post-', ''));
+      return;
+    }
+
     window.location.href = card.dataset.postUrl;
   });
 

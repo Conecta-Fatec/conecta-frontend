@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     currentUser = await loadLoggedUser() || currentUser;
+    ConectaPosts.currentUser = currentUser;
     ConectaPosts.currentUserNickname = currentUser?.nickname || '';
   } catch (error) {
     console.error(error);
@@ -64,25 +65,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       || (authorNickname && friendsIndex.nicknames.has(authorNickname));
   }
 
-  // OTIMIZAÇÃO: Busca o feed de amigos. Se der 404, faz um fallback 
-  // usando Promise.all para carregar TUDO ao mesmo tempo sem lentidão.
+  // Busca posts de amigos sem chamar a rota inexistente /api/posts/feed/friends/.
+  // Enquanto o backend não possui essa requisição, filtramos o feed geral localmente.
   async function fetchFriendsPostsWithFallback() {
-    try {
-      const data = await apiJSON('/api/posts/feed/friends/');
-      return normalizePostsPayload(data).filter((post) => !isCommunityPost(post));
-    } catch (error) {
-      if (!error.response || ![404, 405].includes(error.response.status)) {
-        console.error('Erro ao buscar feed de amigos no backend:', error);
-      }
+    const [allPosts, friendsIndex] = await Promise.all([
+      apiJSON('/api/posts/feed/').then(normalizePostsPayload),
+      loadFriendsIndex(),
+    ]);
 
-      // Executa as duas requisições simultaneamente
-      const [allPosts, friendsIndex] = await Promise.all([
-        apiJSON('/api/posts/feed/').then(normalizePostsPayload),
-        loadFriendsIndex(),
-      ]);
-
-      return allPosts.filter((post) => !isCommunityPost(post) && isPostFromFriend(post, friendsIndex));
-    }
+    return allPosts.filter((post) => !isCommunityPost(post) && isPostFromFriend(post, friendsIndex));
   }
 
   // Define qual rota usar dependendo da Aba selecionada (Geral ou Amigos)
@@ -110,8 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    if (highlightedPostId) ConectaPosts.openPostComments(highlightedPostId);
-
     postsContainer.innerHTML = posts.map((post) => ConectaPosts.renderPostCard(post, {
       currentUser,
       showCommunityLabel: false,
@@ -119,6 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       canInteract: true,
     })).join('') + '<footer class="feed-footer">Fim dos posts</footer>';
 
+    if (highlightedPostId) ConectaPosts.openPostComments(highlightedPostId);
     scrollToHighlightedPost();
   }
 
@@ -221,12 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   window.addComment = async function(postId) {
-    const input = document.getElementById(`comment-input-${postId}`);
-    const content = input?.value.trim();
-    if (!content) return;
-    const response = await apiFetch(`/api/posts/post/${postId}/comment/`, { method: 'POST', body: JSON.stringify({ content }) });
-    if (response.ok) { input.value = ''; ConectaPosts.openPostComments(postId); await loadPosts(true); } 
-    else { alert('Erro ao comentar.'); }
+    window.openPostCommentBox(null, postId);
   };
 
   window.toggleCommentLike = async function(commentId, btnElement) {

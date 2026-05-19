@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const source = renderPostSource(post);
 
       return `
-        <article class="post-card profile-post-item clickable-post" data-post-url="${escapeHTML(destination)}">
+        <article class="post-card profile-post-item clickable-post post-card-clickable" id="post-${post.id}" data-post-url="${escapeHTML(destination)}" data-can-interact="false">
           <a href="${profileUrlFor(publicUser)}" class="avatar-link" onclick="event.stopPropagation()">
             ${profileUserAvatarHTML(publicUser, 'user-avatar')}
           </a>
@@ -274,6 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             <p class="post-text">${escapeHTML(post.content)}</p>
             ${source}
+            <div class="inline-comments-placeholder" id="inline-comments-${post.id}"></div>
           </div>
         </article>
       `;
@@ -467,6 +468,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const card = event.target.closest('[data-post-url]');
     // Impede redirecionamento se a pessoa clicou no avatar ou noutro botão
     if (!card || event.target.closest('a,button')) return;
+
+    if (window.ConectaPosts?.handlePostCardClick && card.id?.startsWith('post-')) {
+      window.ConectaPosts.handlePostCardClick(event, card.id.replace('post-', ''));
+      return;
+    }
+
     window.location.href = card.dataset.postUrl;
   });
 
