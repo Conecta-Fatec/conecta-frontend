@@ -827,52 +827,128 @@ body:has(.login-page) {
   transform: translateY(-.06rem);
 }
 
-/* Cadastro na mesma identidade visual clara do login */
+/* Cadastro do index sempre em tema claro + liquid glass */
+#registerModal {
+  color-scheme: light;
+
+  --primary-color: #2563eb;
+  --primary-strong: #1d4ed8;
+  --primary-soft: rgba(37, 99, 235, .14);
+
+  --register-text: #0f172a;
+  --register-soft: #334155;
+  --register-muted: #64748b;
+  --register-border: rgba(148, 163, 184, .34);
+  --register-line: rgba(100, 116, 139, .18);
+  --register-field: rgba(255, 255, 255, .9);
+  --register-field-focus: rgba(255, 255, 255, .98);
+
+  color: var(--register-text) !important;
+}
+
 #registerModal .modal-dialog {
   filter: drop-shadow(0 1.5rem 3rem rgba(15, 23, 42, .34));
 }
 
-#registerModal .post-modal-content,
-#registerModal .modal-content {
+#registerModal .modal-content,
+#registerModal .post-modal-content {
   overflow: hidden;
-  border: var(--hairline) solid rgba(255, 255, 255, .68) !important;
+  border: var(--hairline) solid rgba(255, 255, 255, .72) !important;
   border-radius: var(--radius-xl) !important;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .84)) !important;
-  color: var(--text-color);
+    linear-gradient(135deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .86)) !important;
+  color: var(--register-text) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .78),
-    0 1.5rem 4rem rgba(15, 23, 42, .28) !important;
-  backdrop-filter: blur(1.15rem) saturate(1.15);
-  -webkit-backdrop-filter: blur(1.15rem) saturate(1.15);
+    inset 0 1px 0 rgba(255, 255, 255, .82),
+    0 1.5rem 4rem rgba(15, 23, 42, .30) !important;
+  backdrop-filter: blur(1.15rem) saturate(1.12);
+  -webkit-backdrop-filter: blur(1.15rem) saturate(1.12);
 }
 
-#registerModal .post-modal-header,
-#registerModal .post-modal-body,
-#registerModal .post-modal-footer,
 #registerModal .modal-header,
 #registerModal .modal-body,
-#registerModal .modal-footer {
-  background: transparent !important;
-}
-
+#registerModal .modal-footer,
 #registerModal .post-modal-header,
-#registerModal .modal-header {
-  border-bottom: var(--hairline) solid rgba(100, 116, 139, .18) !important;
+#registerModal .post-modal-body,
+#registerModal .post-modal-footer {
+  background: transparent !important;
+  color: var(--register-text) !important;
 }
 
-#registerModal .post-modal-footer,
-#registerModal .modal-footer {
-  border-top: var(--hairline) solid rgba(100, 116, 139, .18) !important;
+#registerModal .modal-header,
+#registerModal .post-modal-header {
+  border-bottom: var(--hairline) solid var(--register-line) !important;
+}
+
+#registerModal .modal-footer,
+#registerModal .post-modal-footer {
+  border-top: var(--hairline) solid var(--register-line) !important;
+}
+
+#registerModal h1,
+#registerModal h2,
+#registerModal h3,
+#registerModal h4,
+#registerModal h5,
+#registerModal h6,
+#registerModal label,
+#registerModal strong,
+#registerModal .modal-title,
+#registerModal .register-email-preview {
+  color: var(--register-text) !important;
+}
+
+#registerModal p,
+#registerModal span,
+#registerModal li,
+#registerModal .small,
+#registerModal .register-step-hint,
+#registerModal .register-rules-check span {
+  color: var(--register-muted) !important;
+}
+
+#registerModal .btn-close {
+  filter: none !important;
+  opacity: .72;
+}
+
+.register-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+#registerModal .register-steps span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: .45rem .55rem;
+  border: var(--hairline) solid rgba(148, 163, 184, .32) !important;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, .72) !important;
+  color: var(--register-muted) !important;
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+#registerModal .register-steps span.active,
+#registerModal .register-steps span.completed {
+  border-color: rgba(37, 99, 235, .38) !important;
+  background: rgba(37, 99, 235, .12) !important;
+  color: var(--primary-strong) !important;
 }
 
 #registerModal .register-step-panel,
-#registerModal .community-form-area,
 #registerModal .register-rules-box {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, .78), rgba(255, 255, 255, .62)) !important;
-  border: var(--hairline) solid rgba(255, 255, 255, .62) !important;
+  border: var(--hairline) solid rgba(255, 255, 255, .68) !important;
   border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .84), rgba(255, 255, 255, .70)) !important;
+  color: var(--register-text) !important;
   backdrop-filter: blur(.75rem) saturate(1.08);
   -webkit-backdrop-filter: blur(.75rem) saturate(1.08);
 }
@@ -886,19 +962,57 @@ body:has(.login-page) {
 }
 
 #registerModal .community-form-area {
-  padding: 0;
+  padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  color: var(--register-text) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#registerModal input,
+#registerModal textarea,
+#registerModal select,
+#registerModal .form-control,
+#registerModal .form-select,
+#registerModal .custom-input {
+  border: var(--hairline) solid var(--register-border) !important;
+  background: var(--register-field) !important;
+  color: var(--register-text) !important;
+  box-shadow: none !important;
+}
+
+#registerModal input::placeholder,
+#registerModal textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
+}
+
+#registerModal input:focus,
+#registerModal textarea:focus,
+#registerModal select:focus,
+#registerModal .form-control:focus,
+#registerModal .form-select:focus,
+#registerModal .custom-input:focus {
+  border-color: rgba(37, 99, 235, .44) !important;
+  background: var(--register-field-focus) !important;
+  color: var(--register-text) !important;
+  box-shadow: 0 0 0 .18rem rgba(37, 99, 235, .12) !important;
+}
+
+#registerModal input:disabled,
+#registerModal input[readonly],
+#registerModal textarea:disabled,
+#registerModal select:disabled,
+#registerModal #regVerifiedEmail {
+  background: rgba(241, 245, 249, .88) !important;
+  color: var(--register-muted) !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
 }
 
 .register-rules-box {
   padding: 1rem;
-  border: var(--hairline) solid rgba(255, 255, 255, .62);
-  border-radius: var(--radius-md);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .66));
 }
 
 .register-rules-box > strong {
@@ -909,7 +1023,7 @@ body:has(.login-page) {
 .register-rules-box ul {
   margin: 0 0 .9rem 1.05rem;
   padding: 0;
-  color: var(--text-muted);
+  color: var(--register-muted);
   font-size: .9rem;
   line-height: 1.55;
 }
@@ -919,8 +1033,8 @@ body:has(.login-page) {
   align-items: flex-start;
   gap: .7rem;
   padding-top: .75rem;
-  border-top: var(--hairline) solid var(--line-color);
-  color: var(--text-color);
+  border-top: var(--hairline) solid var(--register-line) !important;
+  color: var(--register-text);
   cursor: pointer;
 }
 
@@ -933,13 +1047,13 @@ body:has(.login-page) {
   margin: .18rem 0 0 !important;
   appearance: auto !important;
   -webkit-appearance: checkbox !important;
+  background: #ffffff !important;
   accent-color: var(--primary-color);
   box-shadow: none !important;
 }
 
 .register-rules-check span {
   flex: 1;
-  color: var(--text-muted);
   font-size: .9rem;
   line-height: 1.42;
 }
@@ -955,49 +1069,15 @@ body:has(.login-page) {
   text-decoration: underline;
 }
 
-.register-steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .5rem;
-  margin-bottom: 1rem;
-}
-
-.register-steps span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2rem;
-  padding: .45rem .55rem;
-  border: var(--hairline) solid var(--border-color);
-  border-radius: var(--radius-pill);
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  font-size: .78rem;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
-}
-
-.register-steps span.active,
-.register-steps span.completed {
-  border-color: var(--border-strong);
-  background: var(--primary-soft);
-  color: var(--primary-strong);
-}
-
-.register-step-panel[hidden] {
-  display: none !important;
-}
-
 .register-step-hint {
   margin: 0 0 1rem;
-  color: var(--text-muted);
+  color: var(--register-muted);
   font-size: .92rem;
   line-height: 1.5;
 }
 
 .register-email-preview {
-  color: var(--text-color);
+  color: var(--register-text);
   font-weight: 700;
 }
 
@@ -1026,14 +1106,31 @@ body:has(.login-page) {
   text-decoration: underline;
 }
 
-#regVerifiedEmail,
-.community-form-area input:disabled,
-.community-form-area input[readonly] {
-  opacity: 1;
-  color: var(--text-muted) !important;
-  background: var(--surface-muted) !important;
-  cursor: not-allowed;
+#registerModal .modal-cancel-btn {
+  border-color: rgba(148, 163, 184, .38) !important;
+  background: rgba(255, 255, 255, .76) !important;
+  color: var(--register-soft) !important;
 }
+
+#registerModal .modal-publish-btn {
+  border-color: rgba(37, 99, 235, .38) !important;
+  background: rgba(37, 99, 235, .12) !important;
+  color: var(--primary-strong) !important;
+}
+
+#registerModal .modal-cancel-btn:hover,
+#registerModal .modal-publish-btn:hover {
+  transform: translateY(-.04rem);
+}
+
+#registerModal .text-danger {
+  color: #dc2626 !important;
+}
+
+#registerModal .text-success {
+  color: #16a34a !important;
+}
+
 
 @media (max-width: 48rem) {
   .login-page {
