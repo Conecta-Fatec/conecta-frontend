@@ -1293,6 +1293,7 @@ body:has(.login-page) {
   width: .18rem;
   border-radius: var(--radius-pill);
   background: transparent;
+  
 }
 
 .sidebar-link:hover { background: var(--surface-hover); color: var(--text-color); transform: translateX(.06rem); }
