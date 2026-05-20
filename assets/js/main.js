@@ -284,6 +284,7 @@ const PREFERENCE_KEYS = {
   theme: 'conecta_theme_mode',
   fontFamily: 'conecta_font_family',
   fontSize: 'conecta_font_size',
+  animations: 'conecta_animations', // NOVO: Controle de animações
 };
 
 const FONT_FAMILIES = {
@@ -355,23 +356,47 @@ function setFontSizeMode(mode) {
   applyFontPreferences();
 }
 
+// NOVO: Gerenciamento de Animações
+function getAnimationsMode() {
+  const saved = localStorage.getItem(PREFERENCE_KEYS.animations);
+  return saved === 'disabled' ? 'disabled' : 'enabled';
+}
+
+function applyAnimationsPreference() {
+  const mode = getAnimationsMode();
+  body.classList.remove('animations-enabled', 'animations-disabled');
+  body.classList.add(`animations-${mode}`);
+  updatePreferenceControls();
+}
+
+function setAnimationsMode(mode) {
+  const safeMode = mode === 'disabled' ? 'disabled' : 'enabled';
+  localStorage.setItem(PREFERENCE_KEYS.animations, safeMode);
+  applyAnimationsPreference();
+}
+
 function resetAppearancePreferences() {
   localStorage.removeItem(PREFERENCE_KEYS.theme);
   localStorage.removeItem(PREFERENCE_KEYS.fontFamily);
   localStorage.removeItem(PREFERENCE_KEYS.fontSize);
+  localStorage.removeItem(PREFERENCE_KEYS.animations);
   applyTheme('light');
   applyFontPreferences();
+  applyAnimationsPreference();
 }
 
 function updatePreferenceControls() {
   const themeSelect = document.getElementById('themeMode');
   const fontSelect = document.getElementById('fontFamilyMode');
   const sizeSelect = document.getElementById('fontSizeMode');
+  const animSelect = document.getElementById('animationsMode');
   const themePreview = document.getElementById('themeModePreview');
 
   if (themeSelect) themeSelect.value = getThemeMode();
   if (fontSelect) fontSelect.value = getFontFamilyMode();
   if (sizeSelect) sizeSelect.value = getFontSizeMode();
+  if (animSelect) animSelect.value = getAnimationsMode();
+  
   if (themePreview) {
     const resolved = getResolvedTheme() === 'dark' ? 'escuro' : 'claro';
     themePreview.textContent = `Tema ${resolved} selecionado.`;
@@ -382,11 +407,14 @@ function initSettingsControls() {
   const themeSelect = document.getElementById('themeMode');
   const fontSelect = document.getElementById('fontFamilyMode');
   const sizeSelect = document.getElementById('fontSizeMode');
+  const animSelect = document.getElementById('animationsMode');
   const resetBtn = document.getElementById('resetAppearancePreferences');
 
   themeSelect?.addEventListener('change', (event) => setThemeMode(event.target.value));
   fontSelect?.addEventListener('change', (event) => setFontFamilyMode(event.target.value));
   sizeSelect?.addEventListener('change', (event) => setFontSizeMode(event.target.value));
+  animSelect?.addEventListener('change', (event) => setAnimationsMode(event.target.value));
+  
   resetBtn?.addEventListener('click', resetAppearancePreferences);
   updatePreferenceControls();
 }
@@ -477,6 +505,7 @@ function setupRegisterRules() {
 
 applyTheme();
 applyFontPreferences();
+applyAnimationsPreference(); // Aplica a regra de animação no boot do JS
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-logout], #logoutBtn').forEach((button) => {

@@ -4858,3 +4858,49 @@ body:has(.login-page) {
     padding: 0.5rem 0 0.7rem !important;
   }
 }
+/* =========================================================
+   25. Animações de Transição e Acessibilidade
+========================================================= */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Animações de entrada nas áreas principais quando ativadas */
+body.animations-enabled .feed-content,
+body.animations-enabled .communities-content,
+body.animations-enabled .friends-content,
+body.animations-enabled .community-page-content,
+body.animations-enabled .profile-layout,
+body.animations-enabled .settings-layout,
+body.animations-enabled .about-layout {
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+body.animations-enabled .sidebar {
+  animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Animações para Modais e Menus Mobile */
+body.animations-enabled .modal-content,
+body.animations-enabled .mobile-offcanvas {
+  animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Trava de Acessibilidade (Desativar Animações)
+  usar 0.01ms em vez de 'none' para não quebrar o JS do Bootstrap(a única solução que encotrei ;-;)
+  que aguarda o fim das transições (transitionend) para fechar modais.
+*/
+body.animations-disabled *,
+body.animations-disabled *::before,
+body.animations-disabled *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
