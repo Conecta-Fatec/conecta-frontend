@@ -1299,7 +1299,7 @@ body:has(.login-page) {
 .sidebar-link.active { background: var(--primary-soft); color: var(--primary-strong); }
 .sidebar-link.active::before { background: var(--primary-color); }
 
-.new-post-btn { width: 100%; }
+.new-post-btn { width: 100%; white-space: normal;}
 .sidebar-actions { display: flex; flex-direction: column; gap: .75rem; margin-top: auto; }
 
 .logged-user {
