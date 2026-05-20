@@ -33,14 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function fetchPostData(id, slug) {
     const endpoints = [];
 
-    if (slug) {
-      endpoints.push(`/api/posts/communities/${slug}/post/${id}/`);
-      endpoints.push(`/api/posts/community/${slug}/post/${id}/`);
-    } else {
-      endpoints.push(`/api/posts/post/${id}/`);
-      endpoints.push(`/api/posts/${id}/`);
-      endpoints.push(`/api/posts/feed/${id}/`);
-    }
 
     for (const endpoint of endpoints) {
       try {
