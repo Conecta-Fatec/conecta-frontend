@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const createBtn = document.getElementById('createCommunityBtn');
   const errorP = document.getElementById('communityError');
 
-  // Estado que controla as listas e a pesquisa
   const state = {
     myCommunities: [],
     otherCommunities: [],
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     exploreVisible: 3,
   };
 
-  // Filtra e classifica as comunidades que vieram da API
   function normalizeCommunitiesData(data = {}) {
     const mineRaw = normalizeArray(data.my_communities, 'results').concat(normalizeArray(data.joined_communities, 'results'));
 
@@ -80,7 +78,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
-  // Função genérica de renderização com botão Ver Mais
   function renderLimitedList(container, items, visible, type, emptyText, moreAction) {
     if (!items.length) {
       container.innerHTML = `<div class="api-empty-state">${emptyText}</div>`;
@@ -140,10 +137,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) { alert('Erro de conexão com o servidor.'); }
   }
 
-  // Escuta os cliques no botão "Ver Mais"
-  document.addEventListener('click', (event) => {
+  // Escuta os cliques no botão "Ver Mais" e de "Entrar" com trava visual
+  document.addEventListener('click', async (event) => {
     const joinButton = event.target.closest('[data-join-community]');
-    if (joinButton) { event.preventDefault(); event.stopPropagation(); joinCommunity(joinButton.dataset.joinCommunity); return; }
+    if (joinButton) { 
+        event.preventDefault(); 
+        event.stopPropagation(); 
+        window.travarBotao(joinButton);
+        await joinCommunity(joinButton.dataset.joinCommunity); 
+        window.destravarBotao(joinButton);
+        return; 
+    }
 
     const moreButton = event.target.closest('[data-more]');
     if (!moreButton) return;
@@ -152,7 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCommunities();
   });
 
-  // Filtra em tempo real (Pesquisa sem apertar ENTER)
   searchInput?.addEventListener('input', (event) => {
     state.query = event.target.value.trim().toLowerCase();
     state.myVisible = 3;
@@ -170,7 +173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (!name) { errorP.textContent = 'O nome da comunidade é obrigatório.'; errorP.style.display = 'block'; return; }
 
-      createBtn.disabled = true; createBtn.textContent = 'Criando...';
+      window.travarBotao(createBtn, true);
 
       try {
         let body;
@@ -193,7 +196,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (error) {
         console.error(error); errorP.textContent = 'Erro de conexão com o servidor.'; errorP.style.display = 'block';
       } finally {
-        createBtn.disabled = false; createBtn.textContent = 'Criar';
+        window.destravarBotao(createBtn, true);
+        createBtn.textContent = 'Criar';
       }
     });
   }

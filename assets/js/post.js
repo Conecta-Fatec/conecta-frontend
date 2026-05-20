@@ -46,9 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await apiFetch(endpoint);
         if (response.ok) return await response.json();
-      } catch (error) {
-        // Continua para o próximo endpoint disponível.
-      }
+      } catch (error) {}
     }
 
     try {
@@ -61,9 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const found = posts.find((post) => String(post.id) === String(id));
         if (found) return found;
       }
-    } catch (error) {
-      // Fallback final tratado abaixo.
-    }
+    } catch (error) {}
 
     throw new Error('Publicação não encontrada ou excluída.');
   }
@@ -128,26 +124,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  window.deletePost = async function(id) {
+  window.deletePost = async function(id, btnElement) {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
-    const response = await apiFetch(`/api/posts/post/${id}/delete/`, { method: 'DELETE' });
-    if (response.ok) window.location.href = 'feed.html';
+    if (btnElement) window.travarBotao(btnElement);
+    try {
+      const response = await apiFetch(`/api/posts/post/${id}/delete/`, { method: 'DELETE' });
+      if (response.ok) window.location.href = 'feed.html';
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
   window.toggleLike = async function(id, btnElement) {
-    const response = await apiFetch(`/api/posts/post/${id}/like/`, { method: 'POST' });
-    if (!response.ok) return;
+    if (btnElement && !window.travarBotao(btnElement, false)) return;
+    try {
+      const response = await apiFetch(`/api/posts/post/${id}/like/`, { method: 'POST' });
+      if (!response.ok) return;
 
-    const data = await response.json().catch(() => null);
-    const liked = Boolean(data?.liked);
-    const svg = btnElement.querySelector('svg');
+      const data = await response.json().catch(() => null);
+      const liked = Boolean(data?.liked);
+      const svg = btnElement.querySelector('svg');
 
-    btnElement.classList.toggle('liked', liked);
-    btnElement.classList.toggle('text-primary-custom', liked);
-    if (svg) svg.style.fill = liked ? 'currentColor' : 'none';
+      btnElement.classList.toggle('liked', liked);
+      btnElement.classList.toggle('text-primary-custom', liked);
+      if (svg) svg.style.fill = liked ? 'currentColor' : 'none';
 
-    const count = btnElement.querySelector('.like-count');
-    if (count) count.textContent = data?.total_likes ?? data?.likes_count ?? 0;
+      const count = btnElement.querySelector('.like-count');
+      if (count) count.textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, false);
+    }
   };
 
   window.enablePostEdit = function(id) {
@@ -159,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="mb-3 mt-2">
         <textarea id="edit-post-input-${id}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
         <div class="d-flex gap-2 mt-2">
-          <button class="btn btn-sm btn-primary" onclick="savePostEdit(${id})" type="button">Salvar</button>
+          <button class="btn btn-sm btn-primary" onclick="savePostEdit(${id}, this)" type="button">Salvar</button>
           <button class="btn btn-sm btn-secondary" onclick="loadSinglePost(true)" type="button">Cancelar</button>
         </div>
       </div>
@@ -167,41 +173,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById(`edit-post-input-${id}`).value = text;
   };
 
-  window.savePostEdit = async function(id) {
+  window.savePostEdit = async function(id, btnElement) {
     const content = document.getElementById(`edit-post-input-${id}`)?.value.trim();
     if (!content) return;
+    if (btnElement && !window.travarBotao(btnElement, true)) return;
 
-    const response = await apiFetch(`/api/posts/post/${id}/update/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ content }),
-    });
-
-    if (response.ok) await loadSinglePost(true);
+    try {
+      const response = await apiFetch(`/api/posts/post/${id}/update/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ content }),
+      });
+      if (response.ok) await loadSinglePost(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
   window.toggleCommentLike = async function(id, btnElement) {
-    const response = await apiFetch(`/api/posts/comment/${id}/like/`, { method: 'POST' });
-    if (!response.ok) return;
+    if (btnElement && !window.travarBotao(btnElement, false)) return;
+    try {
+      const response = await apiFetch(`/api/posts/comment/${id}/like/`, { method: 'POST' });
+      if (!response.ok) return;
 
-    const data = await response.json().catch(() => null);
-    const liked = Boolean(data?.liked);
-    const svg = btnElement.querySelector('svg');
+      const data = await response.json().catch(() => null);
+      const liked = Boolean(data?.liked);
+      const svg = btnElement.querySelector('svg');
 
-    btnElement.classList.toggle('liked', liked);
-    btnElement.classList.toggle('text-primary-custom', liked);
-    if (svg) {
-      svg.style.fill = liked ? 'currentColor' : 'none';
-      svg.style.stroke = liked ? 'none' : 'currentColor';
+      btnElement.classList.toggle('liked', liked);
+      btnElement.classList.toggle('text-primary-custom', liked);
+      if (svg) {
+        svg.style.fill = liked ? 'currentColor' : 'none';
+        svg.style.stroke = liked ? 'none' : 'currentColor';
+      }
+
+      const count = btnElement.querySelector('.comment-like-count');
+      if (count) count.textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, false);
     }
-
-    const count = btnElement.querySelector('.comment-like-count');
-    if (count) count.textContent = data?.total_likes ?? data?.likes_count ?? 0;
   };
 
-  window.deleteComment = async function(id) {
+  window.deleteComment = async function(id, btnElement) {
     if (!confirm('Excluir este comentário?')) return;
-    const response = await apiFetch(`/api/posts/comment/${id}/delete/`, { method: 'DELETE' });
-    if (response.ok) await loadSinglePost(true);
+    if (btnElement) window.travarBotao(btnElement);
+    try {
+      const response = await apiFetch(`/api/posts/comment/${id}/delete/`, { method: 'DELETE' });
+      if (response.ok) await loadSinglePost(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
   window.enableCommentEdit = function(id) {
@@ -212,32 +232,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     container.innerHTML = `
       <div class="comment-edit-inline mt-2">
         <input type="text" id="edit-comment-input-${id}" class="form-control form-control-sm custom-input" maxlength="200">
-        <button class="btn btn-sm btn-primary" onclick="saveCommentEdit(${id})" type="button">Salvar</button>
+        <button class="btn btn-sm btn-primary" onclick="saveCommentEdit(${id}, this)" type="button">Salvar</button>
         <button class="btn btn-sm btn-secondary" onclick="loadSinglePost(true)" type="button">Cancelar</button>
       </div>
     `;
     document.getElementById(`edit-comment-input-${id}`).value = text;
   };
 
-  window.saveCommentEdit = async function(id) {
+  window.saveCommentEdit = async function(id, btnElement) {
     const content = document.getElementById(`edit-comment-input-${id}`)?.value.trim();
     if (!content) return;
+    if (btnElement && !window.travarBotao(btnElement, true)) return;
 
-    const response = await apiFetch(`/api/posts/comment/${id}/update/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ content }),
-    });
-
-    if (response.ok) await loadSinglePost(true);
+    try {
+      const response = await apiFetch(`/api/posts/comment/${id}/update/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ content }),
+      });
+      if (response.ok) await loadSinglePost(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
   refreshCommentsBtn?.addEventListener('click', async () => {
     const icon = refreshCommentsBtn.querySelector('.refresh-icon');
     if (icon) icon.classList.add('spin-animation');
     refreshCommentsBtn.disabled = true;
-
     await loadSinglePost(true);
-
     refreshCommentsBtn.disabled = false;
     if (icon) icon.classList.remove('spin-animation');
   });

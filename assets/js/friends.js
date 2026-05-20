@@ -1,6 +1,6 @@
 /* =========================================================
    Amizades: listagem, busca instantânea e paginação
-   - Otimizado com Promessas Paralelas
+   - Otimizado com Promessas Paralelas e travas contra duplo clique
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const addFriendModal = document.getElementById('addFriendModal');
 
-  // Limpa o modal de Adicionar Amigo ao abrir
   addFriendModal?.addEventListener('show.bs.modal', () => {
     if (addInput) addInput.value = '';
     if (friendError) { friendError.textContent = ''; friendError.style.display = 'none'; }
@@ -51,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return Boolean((first.id && second.id && Number(first.id) === Number(second.id)) || (first.nickname && second.nickname && first.nickname === second.nickname));
   }
 
-  // Desenha as informações visuais do cartão do utilizador
   function userCardContent(user = {}, actionHTML = '', tag = '') {
     const source = userProfileSource(user);
     const name = userDisplayName(source);
@@ -77,7 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
-  // Cartão da lista Explorar, igual ao card de Minhas amizades
   function exploreCard(user = {}) {
     const source = userProfileSource(user);
 
@@ -92,13 +89,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
-  // Cartão da aba de solicitações (Aceitar / Recusar)
   function requestCard(user = {}, type = 'received') {
     const source = userProfileSource(user);
     const nickname = source.nickname || source.username || '';
     const actions = type === 'received'
-      ? `<div class="request-actions"><button type="button" class="friend-card-btn" onclick="acceptFriend('${escapeHTML(nickname)}')">Aceitar</button><button type="button" class="friend-card-btn cancel-request-btn" onclick="rejectFriend('${escapeHTML(nickname)}')">Recusar</button></div>`
-      : `<div class="request-actions"><button type="button" class="friend-card-btn cancel-request-btn" onclick="cancelRequest('${escapeHTML(nickname)}')">Cancelar</button></div>`;
+      ? `<div class="request-actions"><button type="button" class="friend-card-btn" onclick="acceptFriend('${escapeHTML(nickname)}', this)">Aceitar</button><button type="button" class="friend-card-btn cancel-request-btn" onclick="rejectFriend('${escapeHTML(nickname)}', this)">Recusar</button></div>`
+      : `<div class="request-actions"><button type="button" class="friend-card-btn cancel-request-btn" onclick="cancelRequest('${escapeHTML(nickname)}', this)">Cancelar</button></div>`;
 
     return `
       <article class="friend-card community-card friend-card-link-card request-card" data-profile-href="${profileUrlFor(source)}" role="link" tabindex="0">
@@ -121,7 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('users-count').textContent = state.totalUsers ?? '—';
   }
 
-  // Renderizador genérico com botão de "Ver Mais"
   function renderLimited(container, items, visible, renderer, emptyText, moreKey) {
     if (!items.length) {
       container.innerHTML = `<div class="api-empty-state">${emptyText}</div>`;
@@ -165,12 +160,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     setStatusCounts(); renderFriends(); renderExplore(); renderRequests();
   }
 
-  // --- Funções de requisição à API ---
   async function loadFriends() { state.friends = normalizeList(await apiJSON('/api/users/friends/'), 'friends'); }
   async function loadReceivedRequests() { state.received = normalizeList(await apiJSON('/api/users/friend-requests/received/'), 'requests'); }
   async function loadSentRequests() { state.sent = normalizeList(await apiJSON('/api/users/friend-requests/sent/'), 'requests'); }
 
-  // OTIMIZAÇÃO: Esta função agora usa o novo tryApiJSON do main.js (Velocidade Extrema)
   async function loadExploreUsers(query = '') {
     const encoded = encodeURIComponent(query);
     try {
@@ -189,7 +182,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Executa todas as cargas iniciais ao mesmo tempo
   async function refreshAll() {
     try {
       await Promise.all([loadFriends(), loadReceivedRequests(), loadSentRequests(), loadExploreUsers(state.query)]);
@@ -201,7 +193,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   let searchTimer = null;
-  // Sistema de digitação inteligente (espera o utilizador parar de digitar por 350ms antes de buscar)
   searchInput?.addEventListener('input', () => {
     state.query = searchInput.value.trim().toLowerCase();
     state.friendsVisible = 3; state.exploreVisible = 3;
@@ -235,11 +226,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   requestsReceivedTab?.addEventListener('click', () => { state.requestMode = 'received'; renderRequests(); });
   requestsSentTab?.addEventListener('click', () => { state.requestMode = 'sent'; renderRequests(); });
 
-  window.sendFriendRequest = async function(nicknameArg = '') {
-    const nickname = (nicknameArg || addInput?.value || searchInput?.value || '').trim();
+  window.sendFriendRequest = async function() {
+    const nickname = (addInput?.value || searchInput?.value || '').trim();
     friendError.style.display = 'none'; friendSuccess.style.display = 'none';
 
     if (!nickname) { friendError.textContent = 'Informe um nickname para enviar a solicitação.'; friendError.style.display = 'block'; return; }
+
+    const submitBtn = document.getElementById('sendFriendRequestBtn');
+    if (submitBtn) window.travarBotao(submitBtn, true);
 
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/send/`, { method: 'POST' });
@@ -255,6 +249,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (modalEl) setTimeout(() => { bootstrap.Modal.getOrCreateInstance(modalEl).hide(); }, 650);
     } catch (error) {
       console.error(error); friendError.textContent = 'Erro de conexão com o servidor.'; friendError.style.display = 'block';
+    } finally {
+      if (submitBtn) window.destravarBotao(submitBtn, true);
     }
   };
 
@@ -267,28 +263,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) { console.error(error); alert('Erro de conexão com o servidor.'); }
   };
 
-  window.acceptFriend = async function(nickname) {
+  window.acceptFriend = async function(nickname, btnElement) {
+    if (btnElement) window.travarBotao(btnElement);
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/accept/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao aceitar solicitação.'));
       await refreshAll();
-    } catch (error) { console.error(error); alert('Erro de conexão com o servidor.'); }
+    } catch (error) { 
+      console.error(error); alert('Erro de conexão com o servidor.'); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
-  window.rejectFriend = async function(nickname) {
+  window.rejectFriend = async function(nickname, btnElement) {
+    if (btnElement) window.travarBotao(btnElement);
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/reject/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao recusar solicitação.'));
       await refreshAll();
-    } catch (error) { console.error(error); alert('Erro de conexão com o servidor.'); }
+    } catch (error) { 
+      console.error(error); alert('Erro de conexão com o servidor.'); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
-  window.cancelRequest = async function(nickname) {
+  window.cancelRequest = async function(nickname, btnElement) {
+    if (btnElement) window.travarBotao(btnElement);
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/cancel/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao cancelar solicitação.'));
       await refreshAll();
-    } catch (error) { console.error(error); alert('Erro de conexão com o servidor.'); }
+    } catch (error) { 
+      console.error(error); alert('Erro de conexão com o servidor.'); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
   await refreshAll();

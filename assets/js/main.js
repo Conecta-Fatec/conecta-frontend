@@ -5,6 +5,34 @@
 
 const API_BASE_URL = 'https://conecta-fatec-api.onrender.com';
 
+// =========================================================
+// Utilitários de Controle de Interface (Prevenção de Duplo Clique)
+// =========================================================
+window.travarBotao = function(botao, mudarTexto = false) {
+  if (!botao || botao.disabled) return false;
+  
+  botao.disabled = true;
+  botao.classList.add('opacity-50', 'cursor-not-allowed');
+  botao.style.pointerEvents = 'none';
+
+  if (mudarTexto) {
+    botao.dataset.conteudoOriginal = botao.innerHTML;
+    botao.innerHTML = 'Aguarde...';
+  }
+  return true;
+};
+
+window.destravarBotao = function(botao, mudarTexto = false) {
+  if (!botao) return;
+  
+  botao.disabled = false;
+  botao.classList.remove('opacity-50', 'cursor-not-allowed');
+  botao.style.pointerEvents = 'auto';
+
+  if (mudarTexto && botao.dataset.conteudoOriginal) {
+    botao.innerHTML = botao.dataset.conteudoOriginal;
+  }
+};
 
 // =========================================================
 // Cache leve de imagens e pré-carregamento visual

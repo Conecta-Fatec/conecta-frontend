@@ -1,6 +1,6 @@
 /* =========================================================
    Feed: posts gerais, posts de amigos e interação principal
-   - Otimizado para não gerar estrangulamento de requisições
+   - Otimizado com travas de duplo clique
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return Boolean(post.community || post.community_data || post.community_slug || post.community_name);
   }
 
-  // Cache da lista de amigos para filtrar os posts rapidamente
   async function loadFriendsIndex() {
     if (cachedFriends.ids?.size || cachedFriends.nicknames?.size) return cachedFriends;
     try {
@@ -65,8 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       || (authorNickname && friendsIndex.nicknames.has(authorNickname));
   }
 
-  // Busca posts de amigos sem chamar a rota inexistente /api/posts/feed/friends/.
-  // Enquanto o backend não possui essa requisição, filtramos o feed geral localmente.
   async function fetchFriendsPostsWithFallback() {
     const [allPosts, friendsIndex] = await Promise.all([
       apiJSON('/api/posts/feed/').then(normalizePostsPayload),
@@ -76,7 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return allPosts.filter((post) => !isCommunityPost(post) && isPostFromFriend(post, friendsIndex));
   }
 
-  // Define qual rota usar dependendo da Aba selecionada (Geral ou Amigos)
   async function fetchPosts(mode) {
     if (mode === 'friends') return fetchFriendsPostsWithFallback();
     return normalizePostsPayload(await apiJSON('/api/posts/feed/')).filter((post) => !isCommunityPost(post));
@@ -90,7 +86,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
-  // Renderiza no ecrã utilizando o post-ui.js global
   function renderPosts(posts) {
     postsContainer.innerHTML = '';
 
@@ -112,30 +107,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrollToHighlightedPost();
   }
   
-window.loadPosts = async function loadPosts(silent = false) {
-    // Definimos uma chave de cache diferente para a aba Geral e para a aba Amigos
+  window.loadPosts = async function loadPosts(silent = false) {
     const cacheKey = currentMode === 'friends' ? '@conecta:cache_feed_friends' : '@conecta:cache_feed_general';
 
     try {
-      // 1. TENTATIVA DE CACHE (Carregamento instantâneo)
       const cacheSalvo = localStorage.getItem(cacheKey);
       if (cacheSalvo && !silent) {
         const postsEmCache = JSON.parse(cacheSalvo);
         renderPosts(postsEmCache);
         console.log(`[Cache] Feed (${currentMode}) carregado instantaneamente!`);
-        // Ativamos o modo silencioso para a mensagem "Carregando..." não piscar na tela
         silent = true; 
       }
 
-      // 2. ESTADO DE LOADING (Só aparece no primeiríssimo acesso da vida do usuário)
       if (!silent) {
         postsContainer.innerHTML = '<p class="text-center mt-4 text-muted">Carregando publicações...</p>';
       }
 
-      // 3. BUSCA NA API (Trabalho em segundo plano usando a sua lógica original)
       const posts = await fetchPosts(currentMode);
 
-      // 4. VALIDAÇÃO E ATUALIZAÇÃO (Stale-While-Revalidate)
       if (JSON.stringify(posts) !== cacheSalvo) {
         localStorage.setItem(cacheKey, JSON.stringify(posts));
         renderPosts(posts);
@@ -144,20 +133,17 @@ window.loadPosts = async function loadPosts(silent = false) {
 
     } catch (error) {
       console.error(error);
-      // Se não tiver cache e der erro na API, mostra a mensagem de erro
       if (!silent) {
         postsContainer.innerHTML = '<p class="text-danger text-center mt-4">Erro ao carregar publicações.</p>';
       }
     }
   };
 
-  // Acção de criar um novo post no Modal
   async function publishFeedPost() {
     const content = postInput.value.trim();
     if (!content) return;
 
-    publishBtn.disabled = true;
-    publishBtn.textContent = 'Publicando...';
+    if (!window.travarBotao(publishBtn, true)) return;
 
     try {
       const response = await apiFetch('/api/posts/feed/create/', {
@@ -172,70 +158,98 @@ window.loadPosts = async function loadPosts(silent = false) {
     } catch (error) {
       alert('Erro ao publicar.');
     } finally {
-      publishBtn.disabled = false;
-      publishBtn.textContent = 'Publicar';
+      window.destravarBotao(publishBtn, true);
     }
   }
 
-  // Funções Globais da página de Feed
-  window.deletePost = async function(postId) {
+  window.deletePost = async function(postId, btnElement) {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
+    if (btnElement && !window.travarBotao(btnElement)) return;
+    
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/delete/`, { method: 'DELETE' });
       if (response.ok) await loadPosts(true);
-    } catch (error) { alert('Erro ao excluir o post.'); }
+    } catch (error) { 
+      alert('Erro ao excluir o post.'); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
-  window.deleteComment = async function(commentId) {
+  window.deleteComment = async function(commentId, btnElement) {
     if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
+    if (btnElement && !window.travarBotao(btnElement)) return;
+    
     try {
       const response = await apiFetch(`/api/posts/comment/${commentId}/delete/`, { method: 'DELETE' });
       if (response.ok) await loadPosts(true);
-    } catch (error) { alert('Erro ao excluir o comentário.'); }
+    } catch (error) { 
+      alert('Erro ao excluir o comentário.'); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
   window.enablePostEdit = function(postId) {
     const contentDiv = document.getElementById(`post-text-content-${postId}`);
     if (!contentDiv) return;
     const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.getAttribute('data-raw') || '';
-    contentDiv.innerHTML = `<div class="mb-3 mt-2"><textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea><div class="d-flex gap-2 mt-2"><button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId})">Salvar</button><button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">Cancelar</button></div></div>`;
+    contentDiv.innerHTML = `<div class="mb-3 mt-2"><textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea><div class="d-flex gap-2 mt-2"><button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button><button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">Cancelar</button></div></div>`;
     document.getElementById(`edit-post-input-${postId}`).value = originalText;
   };
 
-  window.savePostEdit = async function(postId) {
+  window.savePostEdit = async function(postId, btnElement) {
     const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
     if (!content) return;
+    if (btnElement && !window.travarBotao(btnElement, true)) return;
+
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/update/`, { method: 'PATCH', body: JSON.stringify({ content }) });
       if (response.ok) await loadPosts(true);
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+      console.error(error); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
   window.enableCommentEdit = function(commentId) {
     const textSpan = document.getElementById(`comment-text-content-${commentId}`);
     if (!textSpan) return;
     const originalText = textSpan.textContent || textSpan.getAttribute('data-raw') || '';
-    textSpan.innerHTML = `<span class="comment-edit-inline"><input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200"><button class="btn btn-sm btn-primary" type="button" onclick="saveCommentEdit(${commentId})">Salvar</button><button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">✕</button></span>`;
+    textSpan.innerHTML = `<span class="comment-edit-inline"><input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200"><button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId}, this)">Salvar</button><button class="btn btn-sm btn-secondary py-0 px-2" type="button" onclick="loadPosts(true)">✕</button></span>`;
     document.getElementById(`edit-comment-input-${commentId}`).value = originalText;
   };
 
-  window.saveCommentEdit = async function(commentId) {
+  window.saveCommentEdit = async function(commentId, btnElement) {
     const content = document.getElementById(`edit-comment-input-${commentId}`)?.value.trim();
     if (!content) return;
+    if (btnElement && !window.travarBotao(btnElement, true)) return;
+
     try {
       const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, { method: 'PATCH', body: JSON.stringify({ content }) });
       if (response.ok) await loadPosts(true);
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+      console.error(error); 
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
   window.toggleLike = async function(postId, btnElement) {
-    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    if (btnElement && !window.travarBotao(btnElement, false)) return;
+    
+    try {
+      const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
+      if (!response.ok) return;
+      const data = await response.json().catch(() => null);
+      const svg = btnElement.querySelector('svg');
+      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, false);
+    }
   };
 
   window.addComment = async function(postId) {
@@ -243,13 +257,19 @@ window.loadPosts = async function loadPosts(silent = false) {
   };
 
   window.toggleCommentLike = async function(commentId, btnElement) {
-    const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    if (btnElement && !window.travarBotao(btnElement, false)) return;
+
+    try {
+      const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
+      if (!response.ok) return;
+      const data = await response.json().catch(() => null);
+      const svg = btnElement.querySelector('svg');
+      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, false);
+    }
   };
 
   window.toggleReplyInput = function(commentId) {
@@ -258,16 +278,25 @@ window.loadPosts = async function loadPosts(silent = false) {
     if (box && !box.classList.contains('d-none')) document.getElementById(`reply-input-${commentId}`)?.focus();
   };
 
-  window.addReply = async function(commentId) {
+  window.addReply = async function(commentId, btnElement) {
     const input = document.getElementById(`reply-input-${commentId}`);
     const content = input?.value.trim();
     if (!content) return;
-    const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, { method: 'POST', body: JSON.stringify({ content }) });
-    if (response.ok) { input.value = ''; await loadPosts(true); } 
-    else { alert('Erro ao responder.'); }
+    if (btnElement && !window.travarBotao(btnElement, true)) return;
+
+    try {
+      const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, { method: 'POST', body: JSON.stringify({ content }) });
+      if (response.ok) { 
+        input.value = ''; 
+        await loadPosts(true); 
+      } else { 
+        alert('Erro ao responder.'); 
+      }
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
-  // Event Listeners
   publishBtn?.addEventListener('click', publishFeedPost);
   postInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
@@ -285,19 +314,13 @@ window.loadPosts = async function loadPosts(silent = false) {
   generalTab?.addEventListener('click', () => { setActiveTab('general'); loadPosts(); });
   friendsTab?.addEventListener('click', () => { setActiveTab('friends'); loadPosts(); });
 
-  // ==========================================
-  // LÓGICA DO BOTÃO DE REFRESH NO FEED GERAL
-  // ==========================================
   const refreshFeedBtn = document.getElementById('refreshFeedBtn');
   if (refreshFeedBtn) {
     refreshFeedBtn.addEventListener('click', async () => {
       const icon = refreshFeedBtn.querySelector('.refresh-icon');
       if (icon) icon.classList.add('spin-animation');
       refreshFeedBtn.disabled = true;
-
-      // Executa a busca em modo "silencioso" para não piscar a tela
       await window.loadPosts(true);
-
       if (icon) icon.classList.remove('spin-animation');
       refreshFeedBtn.disabled = false;
     });

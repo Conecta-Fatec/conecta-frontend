@@ -178,7 +178,7 @@
 
               ${isOwner ? `
                 <button class="thread-text-action" onclick="event.stopPropagation(); enableCommentEdit(${item.id})" type="button">Editar</button>
-                <button class="thread-text-action delete-action" onclick="event.stopPropagation(); deleteComment(${item.id})" type="button">Excluir</button>
+                <button class="thread-text-action delete-action" onclick="event.stopPropagation(); deleteComment(${item.id}, this)" type="button">Excluir</button>
               ` : ''}
             </div>
           ` : ''}
@@ -261,7 +261,7 @@
 
       ${isOwner ? `
         <button class="post-action-btn owner-action" onclick="event.stopPropagation(); enablePostEdit(${post.id})" type="button">Editar</button>
-        <button class="post-action-btn owner-action delete-action" onclick="event.stopPropagation(); deletePost(${post.id})" type="button">Excluir</button>
+        <button class="post-action-btn owner-action delete-action" onclick="event.stopPropagation(); deletePost(${post.id}, this)" type="button">Excluir</button>
       ` : ''}
     `;
   }
@@ -276,7 +276,6 @@
     };
   }
 
-  // Usa o post que já veio da listagem para evitar chamadas extras e 404 em rotas inexistentes.
   async function fetchPostForInlinePreview(postId, cachedPost = {}) {
     return cachedPost && Object.keys(cachedPost).length
       ? cachedPost

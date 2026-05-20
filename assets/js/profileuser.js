@@ -2,12 +2,10 @@
    Perfil público: cabeçalho, listas e posts (OTIMIZADO)
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Impede o acesso se o utilizador não estiver autenticado
   if (!requireAuth()) return;
 
   await loadLoggedUser();
 
-  // Pega o nickname da pessoa a partir da URL (ex: ?nickname=joao123)
   const params = new URLSearchParams(window.location.search);
   const nickname = params.get('nickname');
 
@@ -18,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let publicUser = null;
 
-  // Elementos DOM
   const avatar = document.getElementById('public-avatar');
   const nameEl = document.getElementById('public-name');
   const bioEl = document.getElementById('public-bio');
@@ -31,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const communitiesContainer = document.getElementById('public-communities-container');
   const friendsContainer = document.getElementById('public-friends-container');
 
-  // Estado da Paginação local (Controla os "Ver Mais")
   const state = {
     communitiesVisible: 3,
     friendsVisible: 3,
@@ -42,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     posts: [],
   };
 
-  // Cores de avatar de utilizadores sem foto
   const staticAvatarClasses = [
     'static-avatar-blue', 'static-avatar-green', 'static-avatar-purple',
     'static-avatar-orange', 'static-avatar-red', 'static-avatar-indigo',
@@ -55,27 +50,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     element.classList.remove(...staticAvatarClasses);
   }
 
-  // Renderiza a foto do utilizador (ou as iniciais caso não tenha foto)
   function profileUserAvatarHTML(user = {}, classes = 'user-avatar') {
     const name = userDisplayName(user);
     const photo = cachedImageUrl(toApiUrl(userPhoto(user)));
 
     if (photo) {
-      return `
-        <div class="${escapeHTML(classes)} has-image">
-          <img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async">
-        </div>
-      `;
+      return `<div class="${escapeHTML(classes)} has-image"><img src="${escapeHTML(photo)}" alt="Foto de ${escapeHTML(name)}" loading="lazy" decoding="async"></div>`;
     }
-
-    return `
-      <div class="${escapeHTML(classes)}">
-        ${escapeHTML(getInitials(name))}
-      </div>
-    `;
+    return `<div class="${escapeHTML(classes)}">${escapeHTML(getInitials(name))}</div>`;
   }
 
-  // Agrupa as comunidades criadas e as quais o utilizador participa, removendo duplicatas
   function mergeCommunities(user = {}) {
     const created = normalizeArray(user.created_communities, 'results')
       .map((community) => ({ ...community, __created: true }));
@@ -92,7 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       .sort((a, b) => Number(Boolean(b.__created || b.is_creator)) - Number(Boolean(a.__created || a.is_creator)) || getCommunityMemberCount(b) - getCommunityMemberCount(a));
   }
 
-  // Atualiza o Avatar principal no topo do perfil
   function renderAvatar(user = {}) {
     const name = userDisplayName(user);
     const photo = toApiUrl(userPhoto(user));
@@ -111,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     avatar.innerHTML = escapeHTML(getInitials(name));
   }
 
-  // Renderiza a caixa de Comunidades do lado direito
   function renderCommunities() {
     const communities = state.communities;
 
@@ -150,7 +132,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Renderiza a caixa de Amigos do lado direito
   function renderFriends() {
     const friends = state.friends;
 
@@ -186,7 +167,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Descobre se um post pertence ao Feed aberto ou a uma Comunidade
   function getPostCommunityInfo(post = {}) {
     const rawCommunity = post.community || post.community_data || post.group || null;
     const isObject = rawCommunity && typeof rawCommunity === 'object';
@@ -206,7 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { name, slug };
   }
 
-  // Escreve "Feito no Feed" ou "Feito em Comunidade X"
   function renderPostSource(post = {}) {
     const community = getPostCommunityInfo(post);
 
@@ -232,7 +211,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
-  // Renderiza o resumo dos posts no perfil
   function renderPosts() {
     const posts = state.posts;
 
@@ -244,11 +222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const shown = posts.slice(0, state.postsVisible);
 
     postsContainer.innerHTML = shown.map((post) => {
-      // =========================================================
-      // OTIMIZAÇÃO DE MEMÓRIA (Cache)
-      // Garante que os posts de perfis públicos entrem no nosso
-      // Cache Instantâneo para os comentários inline abrirem na hora!
-      // =========================================================
       if (window.ConectaPosts && window.ConectaPosts.postCache) {
          window.ConectaPosts.postCache.set(String(post.id), post);
       }
@@ -285,7 +258,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
     }).join('');
 
-    // Cria o botão de Ver Mais se houver mais publicações
     if (posts.length > shown.length) {
       postsContainer.insertAdjacentHTML(
         'beforeend',
@@ -303,16 +275,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     postsContainer.insertAdjacentHTML('beforeend', '<div class="feed-footer profile-posts-end">Fim dos posts</div>');
   }
 
-  // =========================================================
-  // OTIMIZAÇÃO EXTREMA: PROMISE.ANY
-  // Executa múltiplas requisições ao mesmo tempo e utiliza
-  // a primeira que responder com sucesso. Reduz a espera e
-  // elimina a "fila de erros" no servidor.
-  // =========================================================
   async function loadPublicFriends(user) {
     let friends = normalizeArray(user.friends || user.friends_list, 'friends', 'results');
 
-    // Se a API já mandou os amigos no primeiro request, não faz nada
     if (friends.length || Number(user.friends_count || 0) === 0) {
       state.friends = friends;
       renderFriends();
@@ -327,16 +292,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       `/api/users/friends/${userNickname}/`,
     ];
 
-    // Mapeia todas as URLs em requisições paralelas
     const fetchPromises = possibleEndpoints.map(ep => 
         apiFetch(ep).then(res => {
             if (res.ok) return res.json();
-            throw new Error('404'); // Força a promise a falhar para a Promise.any tentar a próxima
+            throw new Error('404');
         })
     );
 
     try {
-        // Promise.any retorna apenas a primeira que der certo!
         const data = await Promise.any(fetchPromises);
         const loadedFriends = normalizeArray(data, 'friends', 'results', 'users');
 
@@ -345,15 +308,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           renderFriends();
           return;
         }
-    } catch (error) {
-        console.warn('Endpoints alternativos de amizade vazios ou indisponíveis.');
-    }
+    } catch (error) {}
 
     state.friends = friends;
     renderFriends();
   }
 
-  // Lógica do botão principal do perfil (Adicionar, Aceitar, Remover)
   function configureFriendButton(user) {
     actionBtn.style.display = 'inline-block';
     actionBtn.disabled = false;
@@ -370,12 +330,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.className = 'btn btn-outline-danger';
       actionBtn.onclick = async () => {
         if (!confirm(`Remover @${user.nickname} dos seus amigos?`)) return;
-
-        const response = await apiFetch(`/api/users/friend/${user.nickname}/remove/`, {
-          method: 'POST',
-        });
-
+        window.travarBotao(actionBtn, true);
+        const response = await apiFetch(`/api/users/friend/${user.nickname}/remove/`, { method: 'POST' });
         if (response.ok) loadPublicProfile();
+        else window.destravarBotao(actionBtn, true);
       };
       return;
     }
@@ -384,11 +342,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.textContent = 'Cancelar pedido';
       actionBtn.className = 'btn btn-outline-secondary';
       actionBtn.onclick = async () => {
-        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/cancel/`, {
-          method: 'POST',
-        });
-
+        window.travarBotao(actionBtn, true);
+        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/cancel/`, { method: 'POST' });
         if (response.ok) loadPublicProfile();
+        else window.destravarBotao(actionBtn, true);
       };
       return;
     }
@@ -397,28 +354,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.textContent = 'Aceitar amizade';
       actionBtn.className = 'btn btn-primary';
       actionBtn.onclick = async () => {
-        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/accept/`, {
-          method: 'POST',
-        });
-
+        window.travarBotao(actionBtn, true);
+        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/accept/`, { method: 'POST' });
         if (response.ok) loadPublicProfile();
+        else window.destravarBotao(actionBtn, true);
       };
       return;
     }
 
-    // Default: não são amigos
     actionBtn.textContent = 'Adicionar amigo';
     actionBtn.className = 'btn btn-primary';
     actionBtn.onclick = async () => {
-      const response = await apiFetch(`/api/users/friend-request/${user.nickname}/send/`, {
-        method: 'POST',
-      });
-
+      window.travarBotao(actionBtn, true);
+      const response = await apiFetch(`/api/users/friend-request/${user.nickname}/send/`, { method: 'POST' });
       if (response.ok) loadPublicProfile();
+      else window.destravarBotao(actionBtn, true);
     };
   }
 
-  // Preenche a página com os dados carregados
   async function renderProfile(user) {
     publicUser = user;
 
@@ -445,7 +398,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadPublicFriends(user);
   }
 
-  // Faz a requisição inicial para a API com o nickname da URL
   async function loadPublicProfile() {
     try {
       const response = await apiFetch(`/api/users/profile/${encodeURIComponent(nickname)}/`);
@@ -468,10 +420,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Adiciona o redirecionamento ao clicar em algum post da lista
   postsContainer.addEventListener('click', (event) => {
     const card = event.target.closest('[data-post-url]');
-    // Impede redirecionamento se a pessoa clicou no avatar ou noutro botão
     if (!card || event.target.closest('a,button')) return;
 
     if (window.ConectaPosts?.handlePostCardClick && card.id?.startsWith('post-')) {
@@ -482,6 +432,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = card.dataset.postUrl;
   });
 
-  // Dá o pontapé inicial na aplicação
   await loadPublicProfile();
 });
