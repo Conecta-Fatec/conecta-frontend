@@ -1,6 +1,6 @@
 /* =========================================================
    Amizades: listagem, busca instantânea e paginação
-   - Otimizado com Promessas Paralelas e travas contra duplo clique
+   - OTIMIZADO COM SKELETON LOADER EM GRID E CACHE
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -182,13 +182,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function refreshAll() {
+  async function refreshAll(silent = false) {
+    const cacheKey = '@conecta:cache_friends_state';
+
     try {
-      await Promise.all([loadFriends(), loadReceivedRequests(), loadSentRequests(), loadExploreUsers(state.query)]);
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached && !silent) {
+        Object.assign(state, JSON.parse(cached));
+        renderAll();
+        silent = true;
+      }
+
+      if (!silent) {
+        const skeletonGridCard = `
+          <div class="friend-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--surface-color); padding: 1.125rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--card-gap);">
+            <div class="placeholder rounded-circle" style="width: 86px; height: 86px; background-color: var(--line-color);"></div>
+            <div class="d-flex flex-column w-100 h-100">
+              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-75 mb-3" style="height: 18px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-100 mb-1" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-50 mt-auto" style="height: 12px; background-color: var(--line-color);"></div>
+            </div>
+          </div>
+        `;
+        friendsContainer.innerHTML = skeletonGridCard.repeat(3);
+        exploreContainer.innerHTML = skeletonGridCard.repeat(3);
+        receivedContainer.innerHTML = skeletonGridCard.repeat(2);
+        sentContainer.innerHTML = skeletonGridCard.repeat(2);
+      }
+
+      await Promise.all([
+        loadFriends(), 
+        loadReceivedRequests(), 
+        loadSentRequests(), 
+        loadExploreUsers(state.query)
+      ]);
+
+      sessionStorage.setItem(cacheKey, JSON.stringify(state));
       renderAll();
+
     } catch (error) {
       console.error(error);
-      friendsContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar amizades.</div>';
+      if (!silent) friendsContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar amizades.</div>';
     }
   }
 
@@ -198,6 +233,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.friendsVisible = 3; state.exploreVisible = 3;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(async () => {
+      // Como a busca é ativada manualmente, mostramos skeleton no container de exploração
+      exploreContainer.innerHTML = `
+        <div class="friend-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--surface-color); padding: 1.125rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--card-gap);">
+          <div class="placeholder rounded-circle" style="width: 86px; height: 86px; background-color: var(--line-color);"></div>
+          <div class="d-flex flex-column w-100 h-100"><div class="placeholder rounded w-75 mb-3" style="height: 18px; background-color: var(--line-color);"></div><div class="placeholder rounded w-50 mt-auto" style="height: 12px; background-color: var(--line-color);"></div></div>
+        </div>
+      `.repeat(3);
       await loadExploreUsers(state.query);
       renderAll();
     }, 350);
@@ -243,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       friendSuccess.textContent = 'Solicitação enviada com sucesso.'; friendSuccess.style.display = 'block';
       if (addInput) addInput.value = '';
-      await refreshAll();
+      await refreshAll(true); // Recarrega silenciosamente
 
       const modalEl = document.getElementById('addFriendModal');
       if (modalEl) setTimeout(() => { bootstrap.Modal.getOrCreateInstance(modalEl).hide(); }, 650);
@@ -259,7 +301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await apiFetch(`/api/users/friend/${encodeURIComponent(nickname)}/remove/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao remover amizade.'));
-      await refreshAll();
+      await refreshAll(true);
     } catch (error) { console.error(error); alert('Erro de conexão com o servidor.'); }
   };
 
@@ -268,7 +310,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/accept/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao aceitar solicitação.'));
-      await refreshAll();
+      await refreshAll(true);
     } catch (error) { 
       console.error(error); alert('Erro de conexão com o servidor.'); 
     } finally {
@@ -281,7 +323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/reject/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao recusar solicitação.'));
-      await refreshAll();
+      await refreshAll(true);
     } catch (error) { 
       console.error(error); alert('Erro de conexão com o servidor.'); 
     } finally {
@@ -294,7 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await apiFetch(`/api/users/friend-request/${encodeURIComponent(nickname)}/cancel/`, { method: 'POST' });
       if (!response.ok) alert(getApiError(await response.json().catch(()=>null), 'Erro ao cancelar solicitação.'));
-      await refreshAll();
+      await refreshAll(true);
     } catch (error) { 
       console.error(error); alert('Erro de conexão com o servidor.'); 
     } finally {

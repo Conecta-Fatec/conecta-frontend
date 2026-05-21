@@ -1,6 +1,7 @@
 /* =========================================================
    Feed: posts gerais, posts de amigos e interação principal
-   - Otimizado com travas de duplo clique
+   - Otimizado com travas de duplo clique, Sidebar de sugestões
+   - E SKELETON LOADER para carregamento suave
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -115,12 +116,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (cacheSalvo && !silent) {
         const postsEmCache = JSON.parse(cacheSalvo);
         renderPosts(postsEmCache);
-        console.log(`[Cache] Feed (${currentMode}) carregado instantaneamente!`);
         silent = true; 
       }
 
+      // =======================================================
+      // IMPLEMENTAÇÃO DO SKELETON LOADER
+      // =======================================================
       if (!silent) {
-        postsContainer.innerHTML = '<p class="text-center mt-4 text-muted">Carregando publicações...</p>';
+        // Mostra 3 Skeletons enquanto a API processa
+        postsContainer.innerHTML = `
+          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-75 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+            </div>
+          </div>
+          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%; opacity: 0.85;">
+            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-25 mb-4" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-50 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+            </div>
+          </div>
+          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%; opacity: 0.65;">
+            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-75 mb-2 mt-4" style="height: 16px; background-color: var(--line-color);"></div>
+            </div>
+          </div>
+        `;
       }
 
       const posts = await fetchPosts(currentMode);
@@ -128,7 +157,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (JSON.stringify(posts) !== cacheSalvo) {
         localStorage.setItem(cacheKey, JSON.stringify(posts));
         renderPosts(posts);
-        console.log(`[API] Tela atualizada com novos posts na aba ${currentMode}!`);
       }
 
     } catch (error) {
@@ -328,4 +356,68 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setActiveTab('general');
   loadPosts();
+
+  // ==========================================
+  // CARREGAR COMUNIDADES SUGERIDAS NA SIDEBAR DIREITA (C/ CACHE)
+  // ==========================================
+  async function loadSuggestedCommunities() {
+    const container = document.getElementById('right-sidebar-communities');
+    if (!container) return;
+
+    const cacheKey = '@conecta:suggested_communities_html';
+    const cachedHTML = sessionStorage.getItem(cacheKey);
+    
+    if (cachedHTML) {
+      container.innerHTML = cachedHTML;
+    }
+
+    try {
+      const response = await apiFetch('/api/posts/communities/');
+      if (!response.ok) throw new Error('Erro na API');
+      const data = await response.json();
+      
+      let communities = [];
+      if (data.other_communities && data.other_communities.length > 0) {
+        communities = normalizeArray(data.other_communities, 'results');
+      } else if (data.communities && data.communities.length > 0) {
+        communities = normalizeArray(data.communities, 'results');
+      } else {
+         communities = normalizeArray(data.my_communities, 'results');
+      }
+
+      const suggested = communities.slice(0, 3);
+      
+      if (suggested.length === 0) {
+        if (!cachedHTML) container.innerHTML = '<p class="text-muted small mb-0 mt-2">Nenhuma sugestão no momento.</p>';
+        return;
+      }
+
+      const generatedHTML = suggested.map((comm, idx) => {
+        const isLast = idx === suggested.length - 1;
+        const avatar = communityAvatarHTML(comm, 'side-community-avatar');
+        const membersCount = getCommunityMemberCount(comm);
+        
+        return `
+          <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item text-decoration-none ${isLast ? 'border-0 pb-0' : 'border-bottom'}">
+            ${avatar}
+            <div style="min-width: 0;">
+              <strong class="d-block text-truncate" style="color: var(--text-color);">${escapeHTML(comm.name)}</strong>
+              <span class="d-block text-truncate text-muted" style="font-size: 0.8rem;">${membersCount} participante(s)</span>
+            </div>
+          </a>
+        `;
+      }).join('');
+
+      if (generatedHTML !== cachedHTML) {
+        container.innerHTML = generatedHTML;
+        sessionStorage.setItem(cacheKey, generatedHTML);
+      }
+
+    } catch (error) {
+      if (!cachedHTML) container.innerHTML = '<p class="text-muted small mb-0 mt-2">Erro ao carregar.</p>';
+    }
+  }
+
+  loadSuggestedCommunities().catch(console.error);
+
 });

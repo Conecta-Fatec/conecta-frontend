@@ -66,10 +66,54 @@
   <main class="feed-page">
     <div class="feed-layout">
 
+      <div class="mobile-topbar">
+        <a href="feed.html" class="mobile-topbar-logo">
+          <img src="../assets/img/logo-light.svg" alt="Logo Conecta Fatec" class="logo-light" decoding="async" />
+          <img src="../assets/img/logo-dark.svg" alt="Logo Conecta Fatec" class="logo-dark" decoding="async" />
+        </a>
+        <button class="mobile-menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
+          aria-label="Abrir menu principal">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="offcanvas offcanvas-end mobile-offcanvas" tabindex="-1" id="mobileMenu"
+        aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title fw-bold" id="mobileMenuLabel">Conecta Fatec</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar menu"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+          <nav class="mobile-nav">
+            <a href="profile.html" class="sidebar-link">Perfil</a>
+            <a href="communities.html" class="sidebar-link">Comunidades</a>
+            <a href="friends.html" class="sidebar-link">Amizades</a>
+            <a href="notifications.html" class="sidebar-link">Notificações</a>
+            <a href="settings.html" class="sidebar-link">Configurações</a>
+            <a href="about.html" class="sidebar-link">Sobre</a>
+          </nav>
+          <a href="profile.html" class="logged-user mobile-logged-user">
+            <div class="user-avatar" id="modal-avatar">--</div>
+            <div>
+              <strong id="sidebar-name">Carregando...</strong>
+              <span id="sidebar-username">@usuario</span>
+            </div>
+          </a>
+          <button class="logout-btn mt-auto" type="button" data-logout>Sair da conta</button>
+        </div>
+      </div>
+
       <aside class="sidebar desktop-sidebar">
         <a href="feed.html" class="sidebar-logo">
-          <img src="../assets/img/logo-light.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light" decoding="async" />
-          <img src="../assets/img/logo-dark.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-dark" decoding="async" />
+          <img src="../assets/img/logo-light.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light"
+            decoding="async" />
+          <img src="../assets/img/logo-dark.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-dark"
+            decoding="async" />
         </a>
 
         <nav class="sidebar-nav">
@@ -97,65 +141,114 @@
         </div>
       </aside>
 
-      <section class="feed-content">
-        <header class="feed-header feed-hero feed-hero-actions">
-          <div>
-            <span class="feed-kicker">Feed</span>
-            <h1>Feed acadêmico</h1>
-            <p>Acompanhe publicações e atualizações dos alunos.</p>
-          </div>
-          <a href="notifications.html" class="notification-home-btn" aria-label="Notificações">
-            <span class="notification-home-btn-label">
-              <span>Notificações</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9" />
-                <path d="M10 21a2 2 0 0 0 4 0" />
-              </svg>
-            </span>
-            <strong>0</strong>
-          </a>
-        </header>
+      <section class="feed-content d-flex flex-row align-items-stretch"
+        style="padding: 0; margin: 0; min-height: 100vh;">
 
-        <article class="feed-create-card" id="feed-create-post-card" role="button" tabindex="0" data-bs-toggle="modal"
-          data-bs-target="#newPostModal">
-          <div class="feed-create-card-text">
-            <strong>Criar publicação</strong>
-            <span>Compartilhe uma ideia, dúvida ou atualização com os alunos.</span>
-          </div>
-          <button class="feed-create-card-btn" type="button">Postar</button>
-        </article>
+        <div class="flex-grow-1" style="min-width: 0;">
 
-        <section class="feed-control-card">
-          <div class="feed-control-text">
-            <h2>Publicações</h2>
-          </div>
+          <header class="feed-header feed-hero feed-hero-actions">
+            <div>
+              <span class="feed-kicker">Feed</span>
+              <h1>Feed acadêmico</h1>
+              <p>Acompanhe publicações e atualizações dos alunos.</p>
+            </div>
+            <a href="notifications.html" class="notification-home-btn" aria-label="Notificações">
+              <span class="notification-home-btn-label">
+                <span>Notificações</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9" />
+                  <path d="M10 21a2 2 0 0 0 4 0" />
+                </svg>
+              </span>
+              <strong>0</strong>
+            </a>
+          </header>
 
-          <div class="d-flex align-items-center gap-2">
-            <button id="refreshFeedBtn"
-              class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center"
-              style="width: 36px; height: 36px; padding: 0; background: var(--surface-color); border-color: var(--line-color); color: var(--text-muted);"
-              title="Atualizar feed">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="refresh-icon">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <polyline points="1 20 1 14 7 14"></polyline>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-              </svg>
-            </button>
+          <article class="feed-create-card" id="feed-create-post-card" role="button" tabindex="0" data-bs-toggle="modal"
+            data-bs-target="#newPostModal">
+            <div class="feed-create-card-text">
+              <strong>Criar publicação</strong>
+              <span>Compartilhe uma ideia, dúvida ou atualização com os alunos.</span>
+            </div>
+            <button class="feed-create-card-btn" type="button">Postar</button>
+          </article>
 
-            <div class="feed-tabs" role="tablist">
-              <button class="feed-tab active" id="general-tab" type="button">Geral</button>
-              <button class="feed-tab" id="friends-tab" type="button">Amigos</button>
+          <section class="feed-control-card">
+            <div class="feed-control-text">
+              <h2>Publicações</h2>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <button id="refreshFeedBtn"
+                class="btn btn-outline-secondary rounded-pill d-flex align-items-center justify-content-center"
+                style="width: 36px; height: 36px; padding: 0; background: var(--surface-color); border-color: var(--line-color); color: var(--text-muted);"
+                title="Atualizar feed">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" class="refresh-icon">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+              </button>
+
+              <div class="feed-tabs" role="tablist">
+                <button class="feed-tab active" id="general-tab" type="button">Geral</button>
+                <button class="feed-tab" id="friends-tab" type="button">Amigos</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="tab-content feed-tab-content">
+            <div class="tab-pane fade show active" id="general-posts">
+              <div class="posts-list" id="posts-container">
+              </div>
             </div>
           </div>
-        </section>
 
-        <div class="tab-content feed-tab-content">
-          <div class="tab-pane fade show active" id="general-posts">
-            <div class="posts-list" id="posts-container">
-            </div>
-          </div>
         </div>
+
+        <aside class="d-none d-xl-flex flex-column gap-3 p-4"
+          style="width: 320px; flex-shrink: 0; border-left: 1px solid var(--line-color); position: sticky; top: 0; height: 100vh; overflow-y: auto;">
+
+          <article class="glass-surface p-3" style="border-radius: var(--radius-lg);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h2 class="h6 fw-bold mb-0" style="color: var(--text-color);">Comunidades</h2>
+            </div>
+            <div id="right-sidebar-communities" class="d-flex flex-column gap-0">
+              <p class="text-muted small mb-0 mt-2">Carregando sugestões...</p>
+            </div>
+            <a href="communities.html" class="d-block mt-3 text-decoration-none text-primary"
+              style="font-size: 0.85rem; font-weight: 600;">Ver todas as comunidades</a>
+          </article>
+
+          <article class="glass-surface p-3" style="border-radius: var(--radius-lg);">
+            <h2 class="h6 fw-bold mb-3" style="color: var(--text-color);">Mini Games</h2>
+            <div class="d-flex flex-column gap-0">
+              <a href="https://devkevinsramos.github.io/moviearcade/index.html" target="_blank"
+                class="side-friend-item text-decoration-none border-bottom">
+                <div class="static-avatar-red d-flex align-items-center justify-content-center text-white"
+                  style="width: 42px; height: 42px; border-radius: 10px; font-size: 1.1rem; flex-shrink: 0;">🎬</div>
+                <div style="min-width: 0;">
+                  <strong class="d-block text-truncate" style="color: var(--text-color);">Movie Arcade</strong>
+                  <span class="d-block text-truncate text-muted" style="font-size: 0.8rem;">Adivinhe o filme</span>
+                </div>
+              </a>
+              <a href="https://theusbertelli.github.io/pong-evolution/" target="_blank"
+                class="side-friend-item text-decoration-none border-0 pb-0">
+                <div class="static-avatar-green d-flex align-items-center justify-content-center text-white"
+                  style="width: 42px; height: 42px; border-radius: 10px; font-size: 1.1rem; flex-shrink: 0;">🏓</div>
+                <div style="min-width: 0;">
+                  <strong class="d-block text-truncate" style="color: var(--text-color);">Pong Evolution</strong>
+                  <span class="d-block text-truncate text-muted" style="font-size: 0.8rem;">Clássico reinventado</span>
+                </div>
+              </a>
+            </div>
+          </article>
+
+         
+
+        </aside>
+
       </section>
 
     </div>
@@ -182,9 +275,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-  </script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/post-ui.js"></script>
   <script src="../assets/js/feed.js"></script>

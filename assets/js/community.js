@@ -1,5 +1,5 @@
 /* =========================================================
-   Comunidade: detalhes, membros, posts e Cropper Integrado
+   Comunidade: detalhes, membros, posts, Skeleton e Cache
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -208,11 +208,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (isMember) {
         commActionBtn.textContent = 'Sair da comunidade';
         commActionBtn.className = 'btn btn-outline-danger fw-bold';
-        commActionBtn.onclick = leaveCommunity;
+        commActionBtn.onclick = async function() {
+           window.travarBotao(this);
+           await leaveCommunity();
+           window.destravarBotao(this);
+        };
       } else {
         commActionBtn.textContent = 'Participar';
         commActionBtn.className = 'btn btn-primary fw-bold';
-        commActionBtn.onclick = joinCommunity;
+        commActionBtn.onclick = async function() {
+           window.travarBotao(this);
+           await joinCommunity();
+           window.destravarBotao(this);
+        };
       }
     }
 
@@ -259,8 +267,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrollToHighlightedPost();
   }
 
-  async function loadCommunityDetails() {
+  async function loadCommunityDetails(silent = false) {
+    const cacheKey = `@conecta:cache_community_${currentSlug}`;
+
     try {
+      // 1. Tenta carregar do Cache primeiro (0ms)
+      const cacheSalvo = sessionStorage.getItem(cacheKey);
+      if (cacheSalvo && !silent) {
+        const dataEmCache = JSON.parse(cacheSalvo);
+        renderCommunityDetails(dataEmCache || {});
+        silent = true; // Impede que o skeleton apareça se já carregou
+      }
+
+      // 2. Se não estiver silencioso, mostra os Skeletons dos Posts e Membros
+      if (!silent) {
+        const skeletonPost = `
+          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-75 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+            </div>
+          </div>
+        `;
+        
+        const skeletonMember = `
+          <div class="member-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
+            <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
+            </div>
+          </div>
+        `;
+
+        if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost + skeletonPost;
+        if (membersContainer) membersContainer.innerHTML = skeletonMember + skeletonMember + skeletonMember + skeletonMember;
+      }
+
+      // 3. Faz a requisição na API
       const response = await apiFetch(`/api/posts/communities/${currentSlug}/`);
       const data = await response.json().catch(() => null);
 
@@ -272,16 +319,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      renderCommunityDetails(data || {});
+      // 4. Se a API trouxe dados diferentes do cache, atualiza a tela e o cache
+      if (JSON.stringify(data) !== cacheSalvo) {
+        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        renderCommunityDetails(data || {});
+      }
+
     } catch (error) {
       console.error(error);
-      if (commDesc) commDesc.textContent = 'Erro ao conectar com o servidor.';
+      if (!silent) {
+        if (commDesc) commDesc.textContent = 'Erro ao conectar com o servidor.';
+      }
     }
   }
 
   async function joinCommunity() {
     const response = await apiFetch(`/api/posts/communities/${currentSlug}/join/`, { method: 'POST' });
-    if (response.ok) await loadCommunityDetails();
+    if (response.ok) await loadCommunityDetails(true);
   }
 
   async function leaveCommunity() {
@@ -290,20 +344,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (response.ok) window.location.href = 'communities.html';
   }
 
-  // ==========================================
-  // MODAL UNIFICADO: TEXTOS E FOTO
-  // ==========================================
   function openEditCommunityModal() {
     document.getElementById('editCommunityName').value = currentCommunity.name || '';
     document.getElementById('editCommunityBio').value = currentCommunity.description || '';
     document.getElementById('editCommunityError').style.display = 'none';
 
-    // Limpa o Cropper anterior
     if (commCropper) { commCropper.destroy(); commCropper = null; }
     document.getElementById('editCommPhotoInput').value = '';
     document.getElementById('commPhotoCropWrapper').classList.add('d-none');
 
-    // Define a foto atual da comunidade no modal
     const previewImg = document.getElementById('editCommAvatarPreview');
     const photoUrl = toApiUrl(communityPhoto(currentCommunity));
     
@@ -318,12 +367,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     editCommunityModal.show();
   }
 
-  // Aciona o input de arquivo quando clica no ícone de câmera
   document.getElementById('triggerCommPhotoInput')?.addEventListener('click', () => {
     document.getElementById('editCommPhotoInput').click();
   });
 
-  // Inicializa o Cropper quando a foto é selecionada
   document.getElementById('editCommPhotoInput')?.addEventListener('change', function (e) {
     const file = e.target.files[0];
     const wrapper = document.getElementById('commPhotoCropWrapper');
@@ -333,12 +380,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const reader = new FileReader();
       reader.onload = function (event) {
         imageToCrop.src = event.target.result;
-        wrapper.classList.remove('d-none'); // Mostra a caixa de recorte
+        wrapper.classList.remove('d-none');
 
         if (commCropper) commCropper.destroy();
 
         commCropper = new Cropper(imageToCrop, {
-          aspectRatio: 1, // Mantém a proporção quadrada
+          aspectRatio: 1,
           viewMode: 1,
           autoCropArea: 0.8,
           dragMode: 'move',
@@ -348,20 +395,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Salva os dados (Textos + Foto, se houver)
   saveCommunityBtn?.addEventListener('click', async () => {
     const name = document.getElementById('editCommunityName').value.trim();
     const description = document.getElementById('editCommunityBio').value.trim();
     const error = document.getElementById('editCommunityError');
 
     error.style.display = 'none';
-    saveCommunityBtn.disabled = true;
-    saveCommunityBtn.textContent = 'Salvando...';
+    window.travarBotao(saveCommunityBtn, true);
 
     try {
       let response;
 
-      // Se o usuário selecionou e cortou uma imagem nova
       if (commCropper) {
         const formData = new FormData();
         formData.append('name', name);
@@ -381,7 +425,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
       } else {
-        // Se o usuário apenas editou o nome ou a bio (envia como JSON)
         response = await apiFetch(`/api/posts/communities/${currentSlug}/update/`, {
           method: 'PATCH',
           body: JSON.stringify({ name, description }),
@@ -397,28 +440,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       editCommunityModal.hide();
-      // Atualiza o link se o nome mudar
       if (data?.community?.slug && data.community.slug !== currentSlug) {
         window.history.replaceState({}, '', `community.html?slug=${encodeURIComponent(data.community.slug)}`);
         currentSlug = data.community.slug;
       }
-      await loadCommunityDetails();
+      await loadCommunityDetails(true);
     } catch (err) {
       error.textContent = 'Erro de conexão com o servidor.';
       error.style.display = 'block';
     } finally {
-      saveCommunityBtn.disabled = false;
-      saveCommunityBtn.textContent = 'Salvar';
+      window.destravarBotao(saveCommunityBtn, true);
     }
   });
 
-  deleteCommunityBtn?.addEventListener('click', async () => {
+  deleteCommunityBtn?.addEventListener('click', async function() {
     if (!confirm('Tem certeza que deseja excluir esta comunidade?')) return;
+    window.travarBotao(this);
     const response = await apiFetch(`/api/posts/communities/${currentSlug}/delete/`, { method: 'DELETE' });
-    if (response.ok) window.location.href = 'communities.html';
+    if (response.ok) {
+      window.location.href = 'communities.html';
+    } else {
+      window.destravarBotao(this);
+    }
   });
 
-  // Criação de Posts Internos (Otimizada via main.js)
   async function createCommunityPost(content) {
     const payloadWithCommunity = buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug });
     
@@ -448,21 +493,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     error.style.display = 'none';
     if (!content) return;
 
-    publishBtn.disabled = true;
-    publishBtn.textContent = 'Publicando...';
+    window.travarBotao(publishBtn, true);
 
     try {
       await createCommunityPost(content);
       contentEl.value = '';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).hide();
-      await loadCommunityDetails();
+      await loadCommunityDetails(true);
     } catch (err) {
       console.error(err);
       error.textContent = err.message || 'Erro de conexão com o servidor.';
       error.style.display = 'block';
     } finally {
-      publishBtn.disabled = false;
-      publishBtn.textContent = 'Publicar';
+      window.destravarBotao(publishBtn, true);
     }
   }
 
@@ -477,14 +520,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Ações de Interação (Like, Comment, Edit)
   window.toggleLike = async (postId, btnElement = null) => {
-    const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    if (!btnElement) return loadCommunityDetails();
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    if (btnElement && !window.travarBotao(btnElement, false)) return;
+    try {
+      const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
+      if (!response.ok) return;
+      if (!btnElement) return loadCommunityDetails(true);
+      const data = await response.json().catch(() => null);
+      const svg = btnElement.querySelector('svg');
+      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, false);
+    }
   };
 
   window.addComment = async (postId) => {
@@ -492,20 +540,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   window.toggleCommentLike = async (commentId, btnElement = null) => {
-    const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
-    if (!response.ok) return;
-    if (!btnElement) return loadCommunityDetails();
-    const data = await response.json().catch(() => null);
-    const svg = btnElement.querySelector('svg');
-    btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-    if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-    btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    if (btnElement && !window.travarBotao(btnElement, false)) return;
+    try {
+      const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
+      if (!response.ok) return;
+      if (!btnElement) return loadCommunityDetails(true);
+      const data = await response.json().catch(() => null);
+      const svg = btnElement.querySelector('svg');
+      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
+      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, false);
+    }
   };
 
-  window.deletePost = async (postId) => {
+  window.deletePost = async (postId, btnElement) => {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
-    const response = await apiFetch(`/api/posts/post/${postId}/delete/`, { method: 'DELETE' });
-    if (response.ok) await loadCommunityDetails();
+    if (btnElement) window.travarBotao(btnElement);
+    try {
+      const response = await apiFetch(`/api/posts/post/${postId}/delete/`, { method: 'DELETE' });
+      if (response.ok) await loadCommunityDetails(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
   window.enablePostEdit = (postId) => {
@@ -516,21 +574,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="mb-3 mt-2">
         <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
         <div class="d-flex gap-2 mt-2">
-          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId})">Salvar</button>
+          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
           <button class="btn btn-sm btn-secondary" type="button" onclick="loadCommunityDetailsFromButton()">Cancelar</button>
         </div>
       </div>`;
     document.getElementById(`edit-post-input-${postId}`).value = originalText;
   };
 
-  window.savePostEdit = async (postId) => {
+  window.savePostEdit = async (postId, btnElement) => {
     const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
     if (!content) return;
-    const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ content }),
-    });
-    if (response.ok) await loadCommunityDetails();
+    if (btnElement) window.travarBotao(btnElement, true);
+    try {
+      const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ content }),
+      });
+      if (response.ok) await loadCommunityDetails(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
   window.enableCommentEdit = (commentId) => {
@@ -540,26 +603,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     textSpan.innerHTML = `
       <span class="comment-edit-inline">
         <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200">
-        <button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId})">Salvar</button>
+        <button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId}, this)">Salvar</button>
         <button class="btn btn-sm btn-secondary py-0 px-2" type="button" onclick="loadCommunityDetailsFromButton()">✕</button>
       </span>`;
     document.getElementById(`edit-comment-input-${commentId}`).value = originalText;
   };
 
-  window.saveCommentEdit = async (commentId) => {
+  window.saveCommentEdit = async (commentId, btnElement) => {
     const content = document.getElementById(`edit-comment-input-${commentId}`)?.value.trim();
     if (!content) return;
-    const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ content }),
-    });
-    if (response.ok) await loadCommunityDetails();
+    if (btnElement) window.travarBotao(btnElement, true);
+    try {
+      const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ content }),
+      });
+      if (response.ok) await loadCommunityDetails(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
-  window.deleteComment = async (commentId) => {
+  window.deleteComment = async (commentId, btnElement) => {
     if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
-    const response = await apiFetch(`/api/posts/comment/${commentId}/delete/`, { method: 'DELETE' });
-    if (response.ok) await loadCommunityDetails();
+    if (btnElement) window.travarBotao(btnElement);
+    try {
+      const response = await apiFetch(`/api/posts/comment/${commentId}/delete/`, { method: 'DELETE' });
+      if (response.ok) await loadCommunityDetails(true);
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement);
+    }
   };
 
   window.toggleReplyInput = (commentId) => {
@@ -568,19 +641,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (box && !box.classList.contains('d-none')) document.getElementById(`reply-input-${commentId}`)?.focus();
   };
 
-  window.addReply = async (commentId) => {
+  window.addReply = async (commentId, btnElement) => {
     const input = document.getElementById(`reply-input-${commentId}`);
     const content = input?.value.trim();
     if (!content) return;
-    const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, {
-      method: 'POST',
-      body: JSON.stringify({ content }),
-    });
-    if (response.ok) await loadCommunityDetails();
-    else alert('Erro ao responder.');
+    if (btnElement) window.travarBotao(btnElement, true);
+    try {
+      const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      });
+      if (response.ok) await loadCommunityDetails(true);
+      else alert('Erro ao responder.');
+    } finally {
+      if (btnElement) window.destravarBotao(btnElement, true);
+    }
   };
 
-  window.loadCommunityDetailsFromButton = loadCommunityDetails;
+  window.loadCommunityDetailsFromButton = () => loadCommunityDetails(true);
 
   communityGeneralTab?.addEventListener('click', () => {
     setActiveCommunityTab('general');
@@ -592,19 +670,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderVisibleCommunityPosts();
   });
 
-  // ==========================================
-  // LÓGICA DO BOTÃO DE REFRESH NA COMUNIDADE
-  // ==========================================
   const refreshCommBtn = document.getElementById('refreshCommunityBtn');
   if (refreshCommBtn) {
     refreshCommBtn.addEventListener('click', async () => {
       const icon = refreshCommBtn.querySelector('.refresh-icon');
       if (icon) icon.classList.add('spin-animation');
       refreshCommBtn.disabled = true;
-
-      // Executa a busca
-      await loadCommunityDetails();
-
+      await loadCommunityDetails(true);
       if (icon) icon.classList.remove('spin-animation');
       refreshCommBtn.disabled = false;
     });

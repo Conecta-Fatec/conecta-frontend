@@ -1,5 +1,6 @@
 /* =========================================================
-   Perfil público: cabeçalho, listas e posts (OTIMIZADO)
+   Perfil público: cabeçalho, listas e posts 
+   - OTIMIZADO COM SKELETON LOADER E ESTADOS MODERNOS
 ========================================================= */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
@@ -38,15 +39,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     posts: [],
   };
 
-  const staticAvatarClasses = [
-    'static-avatar-blue', 'static-avatar-green', 'static-avatar-purple',
-    'static-avatar-orange', 'static-avatar-red', 'static-avatar-indigo',
-    'static-avatar-teal', 'static-avatar-pink', 'static-avatar-gray',
-    'static-avatar-yellow', 'static-avatar-brown', 'user-avatar-alt',
-  ];
+  const modernEmptyState = (text, icon) => `
+    <div class="api-empty-state text-center py-4" style="border: 1px dashed var(--line-color); background: transparent;">
+      <span class="d-block fs-2 mb-2 opacity-75">${icon}</span>
+      <span class="text-muted fw-medium">${text}</span>
+    </div>
+  `;
 
   function clearStaticAvatarClasses(element) {
     if (!element) return;
+    const staticAvatarClasses = ['static-avatar-blue', 'static-avatar-green', 'static-avatar-purple', 'static-avatar-orange', 'static-avatar-red', 'static-avatar-indigo', 'static-avatar-teal', 'static-avatar-pink', 'static-avatar-gray', 'static-avatar-yellow', 'static-avatar-brown', 'user-avatar-alt'];
     element.classList.remove(...staticAvatarClasses);
   }
 
@@ -98,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const communities = state.communities;
 
     if (!communities.length) {
-      communitiesContainer.innerHTML = '<div class="api-empty-state">Nenhuma comunidade.</div>';
+      communitiesContainer.innerHTML = modernEmptyState('Nenhuma comunidade.', '🏢');
       return;
     }
 
@@ -120,11 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
 
     if (communities.length > shown.length) {
-      communitiesContainer.insertAdjacentHTML(
-        'beforeend',
-        '<button type="button" class="load-more-btn compact" id="publicMoreCommunities">Ver mais</button>'
-      );
-
+      communitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="publicMoreCommunities">Ver mais</button>');
       document.getElementById('publicMoreCommunities').addEventListener('click', () => {
         state.communitiesVisible += 3;
         renderCommunities();
@@ -138,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!friendsContainer) return;
 
     if (!friends.length) {
-      friendsContainer.innerHTML = '<div class="api-empty-state">Nenhuma amizade visível.</div>';
+      friendsContainer.innerHTML = modernEmptyState('Nenhuma amizade visível.', '🤝');
       return;
     }
 
@@ -155,11 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     `).join('');
 
     if (friends.length > shown.length) {
-      friendsContainer.insertAdjacentHTML(
-        'beforeend',
-        '<button type="button" class="load-more-btn compact" id="publicMoreFriends">Ver mais</button>'
-      );
-
+      friendsContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="publicMoreFriends">Ver mais</button>');
       document.getElementById('publicMoreFriends').addEventListener('click', () => {
         state.friendsVisible += 3;
         renderFriends();
@@ -167,55 +161,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function getPostCommunityInfo(post = {}) {
-    const rawCommunity = post.community || post.community_data || post.group || null;
-    const isObject = rawCommunity && typeof rawCommunity === 'object';
-
-    const name =
-      post.community_name ||
-      post.community_title ||
-      post.community_display_name ||
-      (isObject ? rawCommunity.name || rawCommunity.title : '') ||
-      (typeof rawCommunity === 'string' ? rawCommunity : '');
-
-    const slug =
-      post.community_slug ||
-      post.community_id ||
-      (isObject ? rawCommunity.slug || rawCommunity.id : '');
-
-    return { name, slug };
-  }
-
-  function renderPostSource(post = {}) {
-    const community = getPostCommunityInfo(post);
-
-    if (community.name) {
-      if (community.slug) {
-        return `
-          <a href="community.html?slug=${encodeURIComponent(community.slug)}"
-             class="profile-post-source"
-             onclick="event.stopPropagation()">
-            Feito em ${escapeHTML(community.name)}
-          </a>
-        `;
-      }
-      return `<span class="profile-post-source">Feito em ${escapeHTML(community.name)}</span>`;
-    }
-
-    return `
-      <a href="feed.html"
-         class="profile-post-source"
-         onclick="event.stopPropagation()">
-        Feito no feed
-      </a>
-    `;
-  }
-
   function renderPosts() {
     const posts = state.posts;
 
     if (!posts.length) {
-      postsContainer.innerHTML = '<div class="api-empty-state">Nenhuma publicação ainda.</div>';
+      postsContainer.innerHTML = modernEmptyState('Nenhuma publicação feita.', '📝');
       return;
     }
 
@@ -226,14 +176,15 @@ document.addEventListener('DOMContentLoaded', async () => {
          window.ConectaPosts.postCache.set(String(post.id), post);
       }
 
-      const when = post.created_at ? relativeTime(post.created_at, 'feito') : '';
-      const whenCompact = post.created_at ? compactRelativeTime(post.created_at) : '';
       const destination = postDestinationUrl(post);
-      const source = renderPostSource(post);
+      const community = post.community || post.community_data || post.group || null;
+      const commName = post.community_name || (community && typeof community === 'object' ? community.name : '');
+      const source = commName 
+        ? `<a href="community.html?slug=${encodeURIComponent(post.community_slug || community.slug)}" class="profile-post-source" onclick="event.stopPropagation()">Feito em ${escapeHTML(commName)}</a>`
+        : `<a href="feed.html" class="profile-post-source" onclick="event.stopPropagation()">Feito no feed</a>`;
+      
       const fullName = userDisplayName(publicUser);
-      const shortName = truncateText(fullName, 20);
       const fullNick = publicUser.nickname || 'usuario';
-      const shortNick = truncateText(fullNick, 20);
 
       return `
         <article class="post-card profile-post-item clickable-post post-card-clickable" id="post-${post.id}" data-post-url="${escapeHTML(destination)}" data-can-interact="false">
@@ -244,9 +195,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="post-body">
             <div class="post-header">
               <div class="post-header-main">
-                <strong class="post-author" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</strong>
-                <span class="post-username" title="@${escapeHTML(fullNick)}">@${escapeHTML(shortNick)}</span>
-                ${when ? `<span class="post-date-link" title="${escapeHTML(when)}"><span class="date-separator"> · </span><span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></span>` : ''}
+                <strong class="post-author">${escapeHTML(truncateText(fullName, 20))}</strong>
+                <span class="post-username">@${escapeHTML(truncateText(fullNick, 20))}</span>
               </div>
             </div>
 
@@ -259,16 +209,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
 
     if (posts.length > shown.length) {
-      postsContainer.insertAdjacentHTML(
-        'beforeend',
-        '<div class="profile-posts-footer"><button type="button" class="load-more-btn compact" id="publicMorePosts">Ver mais</button></div>'
-      );
-
+      postsContainer.insertAdjacentHTML('beforeend', '<div class="profile-posts-footer"><button type="button" class="load-more-btn compact" id="publicMorePosts">Ver mais</button></div>');
       document.getElementById('publicMorePosts').addEventListener('click', () => {
         state.postsVisible += state.postsBatchSize;
         renderPosts();
       });
-
       return;
     }
 
@@ -331,8 +276,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.onclick = async () => {
         if (!confirm(`Remover @${user.nickname} dos seus amigos?`)) return;
         window.travarBotao(actionBtn, true);
+        actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Removendo...';
         const response = await apiFetch(`/api/users/friend/${user.nickname}/remove/`, { method: 'POST' });
-        if (response.ok) loadPublicProfile();
+        if (response.ok) loadPublicProfile(true);
         else window.destravarBotao(actionBtn, true);
       };
       return;
@@ -343,8 +289,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.className = 'btn btn-outline-secondary';
       actionBtn.onclick = async () => {
         window.travarBotao(actionBtn, true);
+        actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Cancelando...';
         const response = await apiFetch(`/api/users/friend-request/${user.nickname}/cancel/`, { method: 'POST' });
-        if (response.ok) loadPublicProfile();
+        if (response.ok) loadPublicProfile(true);
         else window.destravarBotao(actionBtn, true);
       };
       return;
@@ -355,8 +302,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.className = 'btn btn-primary';
       actionBtn.onclick = async () => {
         window.travarBotao(actionBtn, true);
+        actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Aceitando...';
         const response = await apiFetch(`/api/users/friend-request/${user.nickname}/accept/`, { method: 'POST' });
-        if (response.ok) loadPublicProfile();
+        if (response.ok) loadPublicProfile(true);
         else window.destravarBotao(actionBtn, true);
       };
       return;
@@ -366,8 +314,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     actionBtn.className = 'btn btn-primary';
     actionBtn.onclick = async () => {
       window.travarBotao(actionBtn, true);
+      actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enviando...';
       const response = await apiFetch(`/api/users/friend-request/${user.nickname}/send/`, { method: 'POST' });
-      if (response.ok) loadPublicProfile();
+      if (response.ok) loadPublicProfile(true);
       else window.destravarBotao(actionBtn, true);
     };
   }
@@ -398,14 +347,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadPublicFriends(user);
   }
 
-  async function loadPublicProfile() {
+  async function loadPublicProfile(silent = false) {
+    const cacheKey = `@conecta:cache_profileuser_${nickname}`;
+
     try {
+      const cacheSalvo = sessionStorage.getItem(cacheKey);
+      if (cacheSalvo && !silent) {
+        await renderProfile(JSON.parse(cacheSalvo));
+        silent = true;
+      }
+
+      if (!silent) {
+        const skeletonPost = `
+          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+            </div>
+          </div>`;
+        const skeletonSideItem = `
+          <div class="side-community-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
+            <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
+            <div class="w-100 mt-1">
+              <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+              <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
+            </div>
+          </div>`;
+
+        if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost;
+        if (communitiesContainer) communitiesContainer.innerHTML = skeletonSideItem + skeletonSideItem;
+        if (friendsContainer) friendsContainer.innerHTML = skeletonSideItem + skeletonSideItem;
+      }
+
       const response = await apiFetch(`/api/users/profile/${encodeURIComponent(nickname)}/`);
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
         nameEl.textContent = 'Perfil não encontrado';
-        bioEl.textContent = getApiError(data, 'Este usuário não existe.');
+        bioEl.innerHTML = '<span class="text-danger">Este usuário não existe.</span>';
         postsContainer.innerHTML = '';
         communitiesContainer.innerHTML = '';
         friendsContainer.innerHTML = '';
@@ -413,10 +394,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      await renderProfile(data);
+      if (JSON.stringify(data) !== cacheSalvo) {
+        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        await renderProfile(data);
+      }
+
     } catch (error) {
       console.error(error);
-      bioEl.textContent = 'Erro ao conectar com o servidor.';
+      if (!silent) bioEl.innerHTML = '<span class="text-danger">Erro de conexão.</span>';
     }
   }
 
@@ -428,7 +413,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.ConectaPosts.handlePostCardClick(event, card.id.replace('post-', ''));
       return;
     }
-
     window.location.href = card.dataset.postUrl;
   });
 
