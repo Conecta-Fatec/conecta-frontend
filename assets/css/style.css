@@ -2862,20 +2862,25 @@ body:has(.login-page) {
 .community-action-stack,
 .profile-action-group {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: flex-start;
   gap: 0.55rem;
+  width: 12rem;
+  max-width: 100%;
 }
 
 .community-action-stack {
-  flex-direction: column;
   justify-self: end;
 }
 
 .community-action-stack .btn,
 .profile-action-group .btn {
-  width: fit-content !important;
-  min-width: 0 !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  min-height: 2.5rem !important;
+  padding-inline: 1rem !important;
 }
 
 .profile-hero-layout > .profile-action-group {
@@ -3683,9 +3688,12 @@ body:has(.login-page) {
 
   .community-page-header > .community-action-stack {
     grid-column: 1 / -1;
-    align-items: flex-start;
     justify-self: start;
-    width: fit-content;
+    width: min(100%, 12rem);
+  }
+
+  .profile-action-group {
+    width: min(100%, 12rem);
   }
 
   .profile-hero-layout > .profile-action-group {
@@ -5228,4 +5236,40 @@ body.animations-disabled *::after {
   align-items: center !important;
   justify-content: center !important;
   text-align: center !important;
+}
+
+/* Padroniza hover e cursor em nomes/nicks de posts e comentários */
+.post-author,
+.post-username,
+.comment-author,
+.comment-username,
+.tw-author-name,
+.tw-username,
+.tw-reply-target,
+.post-header-main a,
+.comment-header a,
+.tw-header a {
+  cursor: pointer !important;
+  transition: color 0.18s ease;
+}
+
+.post-author:hover,
+.post-username:hover,
+.comment-author:hover,
+.comment-username:hover,
+.tw-author-name:hover,
+.tw-username:hover,
+.tw-reply-target:hover,
+.post-header-main a:hover,
+.comment-header a:hover,
+.tw-header a:hover,
+.post-header-main a:hover .post-author,
+.post-header-main a:hover .post-username,
+.comment-header a:hover .comment-author,
+.comment-header a:hover .comment-username,
+.tw-header a:hover .tw-author-name,
+.tw-header a:hover .tw-username,
+.tw-header a:hover .tw-reply-target {
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
 }
