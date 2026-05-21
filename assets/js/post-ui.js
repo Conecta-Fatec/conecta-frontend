@@ -159,8 +159,8 @@
             ` : `
               <a href="${profileUrlFor(author)}" class="tw-username" onclick="event.stopPropagation()" title="@${escapeHTML(authorNickname(author))}">@${escapeHTML(nick)}</a>
             `}
-            ${when ? `<span class="tw-date" title="${escapeHTML(when)}"> · <span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></span>` : ''}
-            ${item.edited ? '<span class="tw-date"> · editado</span>' : ''}
+            ${when ? `<span class="tw-date tw-date-main" title="${escapeHTML(when)}"><span class="date-separator"> · </span><span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></span>` : ''}
+            ${item.edited ? '<span class="tw-date tw-edited-label"><span class="date-separator"> · </span>editado</span>' : ''}
           </div>
 
           <div id="comment-text-content-${item.id}" data-raw="${escapeHTML(item.content || '')}">
@@ -339,7 +339,7 @@
             <div class="post-header-main">
               <a href="${profileUrlFor(author)}" class="post-author" onclick="event.stopPropagation()" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</a>
               <a href="${profileUrlFor(author)}" class="post-username text-decoration-none" onclick="event.stopPropagation()" title="@${escapeHTML(author.nickname || author.username || 'usuario')}">@${escapeHTML(nick)}</a>
-              ${when ? `<a href="${postLink}" class="post-date-link text-muted text-decoration-none" onclick="event.stopPropagation()" title="${escapeHTML(when)}"><span class="date-full"> · ${escapeHTML(when)}</span><span class="date-short"> · ${escapeHTML(whenCompact)}</span></a>` : ''}
+              ${when ? `<a href="${postLink}" class="post-date-link text-muted text-decoration-none" onclick="event.stopPropagation()" title="${escapeHTML(when)}"><span class="date-separator"> · </span><span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></a>` : ''}
               ${post.edited ? '<small class="post-edited-label"> · editado</small>' : ''}
             </div>
           </div>

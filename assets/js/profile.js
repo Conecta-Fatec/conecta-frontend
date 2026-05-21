@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="post-header-main">
                 <strong class="post-author" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</strong>
                 <span class="post-username" title="@${escapeHTML(fullNick)}">@${escapeHTML(shortNick)}</span>
-                ${when ? `<span class="post-date-link" title="${escapeHTML(when)}"><span class="date-full"> · ${escapeHTML(when)}</span><span class="date-short"> · ${escapeHTML(whenCompact)}</span></span>` : ''}
+                ${when ? `<span class="post-date-link" title="${escapeHTML(when)}"><span class="date-separator"> · </span><span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></span>` : ''}
               </div>
             </div>
             <p class="post-text">${escapeHTML(post.content)}</p>
