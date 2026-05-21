@@ -758,15 +758,24 @@ body.theme-dark .logo-dark {
   transform: translateY(-0.1rem) scale(1.01);
 }
 
-#profile-avatar.profile-main-avatar,
-.sidebar #sidebar-avatar {
-  border: 0.125rem solid var(--primary-color);
+/* Borda azul padrão para todas as fotos/avatares */
+.user-avatar,
+.comment-avatar,
+.comment-avatar-small,
+.profile-avatar,
+.profile-main-avatar,
+.community-card-avatar,
+.community-page-avatar,
+.side-community-avatar,
+.side-friend-avatar,
+.friend-card-avatar,
+.about-dev-avatar,
+#sidebar-avatar,
+#profile-avatar,
+#public-avatar,
+#post-input-avatar {
+  border: 0.125rem solid var(--primary-color) !important;
 }
-
-#public-avatar.profile-main-avatar {
-  border: var(--hairline) solid var(--border-color);
-}
-
 .avatar-link {
   display: inline-flex;
   flex: 0 0 auto !important;
@@ -5044,3 +5053,19 @@ body.animations-disabled *::after {
   scroll-behavior: auto !important;
 }
 
+/* Ajuste: centralizar aviso e ações do preview de comentários no card inteiro */
+.inline-comments-wrapper .inline-comments-empty,
+.inline-comments-wrapper .inline-comments-loading {
+  width: calc(100% + var(--avatar-post) + var(--card-gap));
+  margin-left: calc((var(--avatar-post) + var(--card-gap)) * -1);
+  padding: 0.9rem 0 0.75rem !important;
+  text-align: center;
+}
+
+.inline-comments-wrapper .inline-post-actions {
+  width: calc(100% + var(--avatar-post) + var(--card-gap)) !important;
+  margin-left: calc((var(--avatar-post) + var(--card-gap)) * -1) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
