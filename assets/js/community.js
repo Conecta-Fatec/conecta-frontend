@@ -203,11 +203,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       commActionBtn.style.display = 'inline-flex';
       if (community.is_creator) {
         commActionBtn.textContent = 'Editar comunidade';
-        commActionBtn.className = 'btn btn-outline-primary fw-bold';
+        commActionBtn.className = 'btn btn-outline-primary';
         commActionBtn.onclick = openEditCommunityModal;
       } else if (isMember) {
         commActionBtn.textContent = 'Sair da comunidade';
-        commActionBtn.className = 'btn btn-outline-danger fw-bold';
+        commActionBtn.className = 'btn btn-outline-danger';
         commActionBtn.onclick = async function() {
            window.travarBotao(this);
            await leaveCommunity();
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       } else {
         commActionBtn.textContent = 'Participar';
-        commActionBtn.className = 'btn btn-primary fw-bold';
+        commActionBtn.className = 'btn btn-primary';
         commActionBtn.onclick = async function() {
            window.travarBotao(this);
            await joinCommunity();

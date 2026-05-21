@@ -1845,13 +1845,13 @@ body:has(.login-page) {
 }
 
 .post-action-btn svg {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .comment-action svg {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: 0.82rem;
+  height: 0.82rem;
 }
 
 .post-action-btn svg,
@@ -2226,9 +2226,33 @@ body:has(.login-page) {
 }
 
 .profile-side-stack .profile-api-card,
+.feed-content > aside > article.glass-surface,
 .side-card {
-  padding: 1.125rem;
-  border-radius: var(--radius-lg);
+  padding: 1.125rem !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-color) !important;
+  color: var(--text-color);
+  box-shadow: none !important;
+}
+
+.profile-side-stack .profile-api-card > h2,
+.feed-content > aside > article.glass-surface > h2,
+.feed-content > aside > article.glass-surface > .d-flex:first-child h2 {
+  margin: 0 0 0.65rem !important;
+  color: var(--text-color) !important;
+  font-size: clamp(1rem, 1.25vw, 1.16rem) !important;
+  font-weight: var(--weight-strong) !important;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.feed-content > aside > article.glass-surface > .d-flex:first-child {
+  margin-bottom: 0.65rem !important;
+}
+
+.feed-content > aside > article.glass-surface > .d-flex:first-child h2 {
+  margin-bottom: 0 !important;
 }
 
 .side-card-header {
@@ -2290,6 +2314,37 @@ body:has(.login-page) {
   font-size: 0.84rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+
+.profile-side-stack .profile-api-card,
+.feed-content > aside > article.glass-surface {
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.profile-side-stack .profile-api-card:hover,
+.feed-content > aside > article.glass-surface:hover {
+  border-color: var(--border-color) !important;
+  background: color-mix(in srgb, var(--surface-hover) 80%, transparent) !important;
+  transform: translateY(-0.06rem);
+}
+
+.side-community-item,
+.side-friend-item {
+  border-radius: 0.9rem;
+  transition: background-color 0.18s ease, transform 0.18s ease, color 0.18s ease;
+}
+
+.side-community-item:hover,
+.side-friend-item:hover {
+  background: color-mix(in srgb, var(--primary-soft) 72%, transparent);
+  box-shadow: none !important;
+  color: var(--text-color);
+  transform: translateX(0.08rem);
+}
+
+.side-community-item:hover strong,
+.side-friend-item:hover strong {
+  color: var(--primary-color) !important;
 }
 
 .clickable-post {
@@ -2513,6 +2568,32 @@ body:has(.login-page) {
 .friend-search-row input {
   min-height: 3.05rem;
   border-radius: 1rem !important;
+}
+
+.search-box-row {
+  position: relative;
+}
+
+.search-box-row::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  z-index: 2;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  background: currentColor;
+  color: var(--text-muted);
+  opacity: 0.82;
+  transform: translateY(-50%);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='M10.8 4a6.8 6.8 0 1 0 0 13.6 6.8 6.8 0 0 0 0-13.6ZM2 10.8a8.8 8.8 0 1 1 15.63 5.56l3.5 3.5a1 1 0 0 1-1.42 1.42l-3.5-3.5A8.8 8.8 0 0 1 2 10.8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='M10.8 4a6.8 6.8 0 1 0 0 13.6 6.8 6.8 0 0 0 0-13.6ZM2 10.8a8.8 8.8 0 1 1 15.63 5.56l3.5 3.5a1 1 0 0 1-1.42 1.42l-3.5-3.5A8.8 8.8 0 0 1 2 10.8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.search-box-row .custom-input,
+.search-box-row input {
+  padding-left: 2.75rem !important;
 }
 
 .friend-feedback-row {
@@ -2772,6 +2853,64 @@ body:has(.login-page) {
 .community-page-meta span {
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+#comm-desc {
+  margin: 0.58rem 0 0;
+}
+
+.community-action-stack,
+.profile-action-group {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0.55rem;
+}
+
+.community-action-stack {
+  flex-direction: column;
+  justify-self: end;
+}
+
+.community-action-stack .btn,
+.profile-action-group .btn {
+  width: fit-content !important;
+  min-width: 0 !important;
+}
+
+.profile-hero-layout > .profile-action-group {
+  grid-area: action;
+  justify-self: end;
+  align-self: start;
+}
+
+.community-side.side-card {
+  padding: 1.125rem !important;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.community-side.side-card:hover {
+  border-color: var(--border-color) !important;
+  background: color-mix(in srgb, var(--surface-hover) 80%, transparent) !important;
+  transform: translateY(-0.06rem);
+}
+
+.community-side.side-card .member-item,
+.community-side.side-card #community-members-container .member-item,
+.community-side.side-card #community-members-list .member-item {
+  border-radius: 0.9rem !important;
+  transition: background-color 0.18s ease, transform 0.18s ease, color 0.18s ease;
+}
+
+.community-side.side-card .member-item:hover,
+.community-side.side-card #community-members-container .member-item:hover,
+.community-side.side-card #community-members-list .member-item:hover {
+  background: color-mix(in srgb, var(--surface-hover) 80%, transparent) !important;
+  transform: translateX(0.08rem);
+}
+
+.community-side.side-card .member-item:hover strong {
+  color: var(--primary-color) !important;
 }
 
 .community-main {
@@ -3235,6 +3374,11 @@ body:has(.login-page) {
     border-top: var(--hairline) solid var(--line-color);
   }
 
+  .community-side.side-card {
+    padding: 1rem !important;
+    border-top: var(--hairline) solid var(--border-color) !important;
+  }
+
   .login-page .col-lg-6 {
     text-align: center !important;
   }
@@ -3535,6 +3679,22 @@ body:has(.login-page) {
   .community-page-header .edit-profile-btn {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .community-page-header > .community-action-stack {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+    justify-self: start;
+    width: fit-content;
+  }
+
+  .profile-hero-layout > .profile-action-group {
+    grid-area: action !important;
+    justify-self: start !important;
+    align-self: center !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap;
+    margin: 0.25rem 0 0 !important;
   }
 
   .communities-hero-content,
@@ -4391,8 +4551,8 @@ body:has(.login-page) {
 }
 
 .thread-actions .post-action-btn svg {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 0.98rem;
+  height: 0.98rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.9;

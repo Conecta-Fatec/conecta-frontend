@@ -82,8 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <article class="friend-card community-card friend-card-link-card" data-profile-href="${profileUrlFor(source)}" role="link" tabindex="0">
         ${userCardContent(
           source,
-          `<a class="friend-text-link" href="${profileUrlFor(source)}" onclick="event.stopPropagation()">Ver perfil</a>`,
-          'Aluno'
+          `<a class="friend-text-link" href="${profileUrlFor(source)}" onclick="event.stopPropagation()">Ver perfil</a>`
         )}
       </article>
     `;
@@ -98,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     return `
       <article class="friend-card community-card friend-card-link-card request-card" data-profile-href="${profileUrlFor(source)}" role="link" tabindex="0">
-        ${userCardContent(source, actions, type === 'received' ? 'Recebida' : 'Enviada')}
+        ${userCardContent(source, actions)}
       </article>
     `;
   }

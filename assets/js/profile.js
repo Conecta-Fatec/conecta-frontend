@@ -366,11 +366,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const card = event.target.closest('[data-post-url]');
     if (!card || event.target.closest('a,button')) return;
 
-    if (window.ConectaPosts?.handlePostCardClick && card.id?.startsWith('post-')) {
-      window.ConectaPosts.handlePostCardClick(event, card.id.replace('post-', ''));
-      return;
-    }
-
     window.location.href = card.dataset.postUrl;
   });
 

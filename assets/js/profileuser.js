@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const friendsCountEl = document.getElementById('public-friends-count');
   const postsCountEl = document.getElementById('public-posts-count');
   const actionBtn = document.getElementById('friendActionBtn');
+  const rejectActionBtn = document.getElementById('rejectFriendActionBtn');
   const postsContainer = document.getElementById('public-posts-container');
   const communitiesContainer = document.getElementById('public-communities-container');
   const friendsContainer = document.getElementById('public-friends-container');
@@ -260,8 +261,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function configureFriendButton(user) {
-    actionBtn.style.display = 'inline-block';
+    if (!actionBtn) return;
+
+    actionBtn.style.display = 'inline-flex';
     actionBtn.disabled = false;
+
+    if (rejectActionBtn) {
+      rejectActionBtn.style.display = 'none';
+      rejectActionBtn.disabled = false;
+      rejectActionBtn.onclick = null;
+      rejectActionBtn.textContent = 'Recusar amizade';
+      rejectActionBtn.className = 'btn btn-outline-danger';
+    }
 
     if (user.friendship_status === 'self') {
       actionBtn.textContent = 'Meu perfil';
@@ -302,11 +313,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.className = 'btn btn-primary';
       actionBtn.onclick = async () => {
         window.travarBotao(actionBtn, true);
+        if (rejectActionBtn) window.travarBotao(rejectActionBtn, true);
         actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Aceitando...';
         const response = await apiFetch(`/api/users/friend-request/${user.nickname}/accept/`, { method: 'POST' });
         if (response.ok) loadPublicProfile(true);
-        else window.destravarBotao(actionBtn, true);
+        else {
+          window.destravarBotao(actionBtn, true);
+          if (rejectActionBtn) window.destravarBotao(rejectActionBtn, true);
+        }
       };
+
+      if (rejectActionBtn) {
+        rejectActionBtn.style.display = 'inline-flex';
+        rejectActionBtn.onclick = async () => {
+          window.travarBotao(rejectActionBtn, true);
+          window.travarBotao(actionBtn, true);
+          rejectActionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Recusando...';
+          const response = await apiFetch(`/api/users/friend-request/${user.nickname}/reject/`, { method: 'POST' });
+          if (response.ok) loadPublicProfile(true);
+          else {
+            window.destravarBotao(rejectActionBtn, true);
+            window.destravarBotao(actionBtn, true);
+          }
+        };
+      }
       return;
     }
 
@@ -409,10 +439,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const card = event.target.closest('[data-post-url]');
     if (!card || event.target.closest('a,button')) return;
 
-    if (window.ConectaPosts?.handlePostCardClick && card.id?.startsWith('post-')) {
-      window.ConectaPosts.handlePostCardClick(event, card.id.replace('post-', ''));
-      return;
-    }
     window.location.href = card.dataset.postUrl;
   });
 
