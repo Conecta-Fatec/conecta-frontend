@@ -296,10 +296,10 @@ const FONT_FAMILIES = {
 };
 
 const FONT_SIZES = {
-  small: '14px',
-  normal: '16px',
-  large: '18px',
-  xlarge: '20px',
+  small: '87.5%',
+  normal: '100%',
+  large: '112.5%',
+  xlarge: '125%',
 };
 
 function getThemeMode() {
@@ -339,8 +339,15 @@ function getFontSizeMode() {
 function applyFontPreferences() {
   const familyMode = getFontFamilyMode();
   const sizeMode = getFontSizeMode();
-  body.style.setProperty('--app-font-family', FONT_FAMILIES[familyMode]);
-  body.style.setProperty('--app-font-size', FONT_SIZES[sizeMode]);
+  const fontFamily = FONT_FAMILIES[familyMode];
+  const fontScale = FONT_SIZES[sizeMode];
+
+  document.documentElement.style.setProperty('font-size', fontScale);
+  document.documentElement.style.setProperty('--app-font-family', fontFamily);
+  document.documentElement.style.setProperty('--app-font-size', '1rem');
+  body.style.setProperty('--app-font-family', fontFamily);
+  body.style.setProperty('--app-font-size', '1rem');
+
   updatePreferenceControls();
 }
 
