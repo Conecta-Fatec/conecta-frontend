@@ -305,6 +305,46 @@ function updateSidebarUser(user) {
   });
 }
 
+/* =========================================================
+   Utilitário Global: Stale-While-Revalidate (SWR)
+========================================================= */
+window.useSWR = async function(cacheKey, fetchCallback, renderCallback, options = {}) {
+  const storage = options.storage === 'local' ? localStorage : sessionStorage;
+  const silent = options.silent || false;
+  
+  const cacheSalvo = storage.getItem(cacheKey);
+  let hasCache = false;
+
+  if (cacheSalvo && !silent) {
+    try {
+      renderCallback(JSON.parse(cacheSalvo), { isCache: true });
+      hasCache = true;
+    } catch (e) { console.error(`Erro cache ${cacheKey}:`, e); }
+  }
+
+  if (!hasCache && !silent && typeof options.onLoading === 'function') {
+    options.onLoading();
+  }
+
+  try {
+    const data = await fetchCallback();
+    const newDataString = JSON.stringify(data);
+    
+    if (newDataString !== cacheSalvo) {
+      storage.setItem(cacheKey, newDataString);
+      renderCallback(data, { isCache: false });
+      // Re-hidrata o cache de imagens para evitar piscadas após a DOM ser atualizada
+      if (window.ConectaImageCache && typeof window.ConectaImageCache.hydratePageImages === 'function') {
+        window.ConectaImageCache.hydratePageImages();
+      }
+    }
+    return data;
+  } catch (error) {
+    if (typeof options.onError === 'function') options.onError(error, hasCache);
+    throw error;
+  }
+};
+
 function requireAuth() {
   if (!getAccessToken()) {
     window.location.href = '../index.html';

@@ -112,56 +112,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadCommunities(silent = false) {
     const cacheKey = '@conecta:cache_communities_list';
 
-    try {
-      // 1. Tenta carregar do Cache primeiro (0ms)
-      const cacheSalvo = sessionStorage.getItem(cacheKey);
-      if (cacheSalvo && !silent) {
-        const dataEmCache = JSON.parse(cacheSalvo);
-        const normalized = normalizeCommunitiesData(dataEmCache || {});
-        Object.assign(state, normalized);
-        renderCommunities();
-        silent = true; // Se carregou do cache, o carregamento da API será invisível
-      }
-
-      // 2. Se não tem cache (primeiro load), mostra o Skeleton Loader
-      if (!silent) {
-        const skeletonCard = `
-          <div class="community-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--surface-color); padding: 1.125rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--card-gap);">
-            <div class="placeholder" style="width: 86px; height: 86px; border-radius: var(--radius-md); background-color: var(--line-color);"></div>
-            <div class="d-flex flex-column w-100 h-100">
-              <div class="placeholder rounded w-25 mb-2" style="height: 12px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-75 mb-3" style="height: 18px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-100 mb-1" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-50 mb-3" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-50 mt-auto" style="height: 12px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-        `;
-        myCommunitiesContainer.innerHTML = skeletonCard + skeletonCard;
-        exploreCommunitiesContainer.innerHTML = skeletonCard + skeletonCard + skeletonCard;
-      }
-
-      // 3. Faz a requisição na API
-      const response = await apiFetch('/api/posts/communities/');
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) throw new Error(getApiError(data, 'Erro ao carregar comunidades.'));
-
-      // 4. Se a API trouxe dados diferentes do cache, atualiza a tela e o cache
-      if (JSON.stringify(data) !== cacheSalvo) {
-        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    await window.useSWR(
+      cacheKey,
+      async () => {
+        const response = await apiFetch('/api/posts/communities/');
+        if (!response.ok) throw new Error('Erro ao carregar comunidades.');
+        return response.json();
+      },
+      (data) => {
         const normalized = normalizeCommunitiesData(data || {});
         Object.assign(state, normalized);
         renderCommunities();
+      },
+      {
+        silent: silent,
+        storage: 'session',
+        onLoading: () => {
+          const skeletonCard = `
+            <div class="community-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--surface-color); padding: 1.125rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--card-gap);">
+              <div class="placeholder" style="width: 86px; height: 86px; border-radius: var(--radius-md); background-color: var(--line-color);"></div>
+              <div class="d-flex flex-column w-100 h-100">
+                <div class="placeholder rounded w-75 mb-3" style="height: 18px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-50 mt-auto" style="height: 12px; background-color: var(--line-color);"></div>
+              </div>
+            </div>`;
+          myCommunitiesContainer.innerHTML = skeletonCard.repeat(2);
+          exploreCommunitiesContainer.innerHTML = skeletonCard.repeat(3);
+        },
+        onError: (error, hasCache) => {
+          if (!silent && !hasCache) {
+            myCommunitiesContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar comunidades.</div>';
+            exploreCommunitiesContainer.innerHTML = '';
+          }
+        }
       }
-
-    } catch (error) {
-      console.error(error);
-      if (!silent) {
-        myCommunitiesContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar comunidades.</div>';
-        exploreCommunitiesContainer.innerHTML = '';
-      }
-    }
+    );
   }
 
   async function joinCommunity(slug) {

@@ -108,63 +108,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrollToHighlightedPost();
   }
   
-  window.loadPosts = async function loadPosts(silent = false) {
+window.loadPosts = async function loadPosts(silent = false) {
     const cacheKey = currentMode === 'friends' ? '@conecta:cache_feed_friends' : '@conecta:cache_feed_general';
 
-    try {
-      const cacheSalvo = localStorage.getItem(cacheKey);
-      if (cacheSalvo && !silent) {
-        const postsEmCache = JSON.parse(cacheSalvo);
-        renderPosts(postsEmCache);
-        silent = true; 
+    await window.useSWR(
+      cacheKey,
+      () => fetchPosts(currentMode),
+      (posts) => renderPosts(posts),
+      {
+        silent: silent,
+        storage: 'local',
+        onLoading: () => {
+          postsContainer.innerHTML = `
+            <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+              <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              </div>
+            </div>`.repeat(3);
+        },
+        onError: (error, hasCache) => {
+          if (!silent && !hasCache) postsContainer.innerHTML = '<p class="text-danger text-center mt-4">Erro ao carregar publicações.</p>';
+        }
       }
-
-      // =======================================================
-      // IMPLEMENTAÇÃO DO SKELETON LOADER
-      // =======================================================
-      if (!silent) {
-        // Mostra 3 Skeletons enquanto a API processa
-        postsContainer.innerHTML = `
-          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
-            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-75 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%; opacity: 0.85;">
-            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-25 mb-4" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-50 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%; opacity: 0.65;">
-            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-75 mb-2 mt-4" style="height: 16px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-        `;
-      }
-
-      const posts = await fetchPosts(currentMode);
-
-      if (JSON.stringify(posts) !== cacheSalvo) {
-        localStorage.setItem(cacheKey, JSON.stringify(posts));
-        renderPosts(posts);
-      }
-
-    } catch (error) {
-      console.error(error);
-      if (!silent) {
-        postsContainer.innerHTML = '<p class="text-danger text-center mt-4">Erro ao carregar publicações.</p>';
-      }
-    }
+    );
   };
 
   async function publishFeedPost() {

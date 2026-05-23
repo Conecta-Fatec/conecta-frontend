@@ -181,51 +181,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function refreshAll(silent = false) {
+ async function refreshAll(silent = false) {
     const cacheKey = '@conecta:cache_friends_state';
 
-    try {
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached && !silent) {
-        Object.assign(state, JSON.parse(cached));
+    await window.useSWR(
+      cacheKey,
+      async () => {
+        await Promise.all([
+          loadFriends(), 
+          loadReceivedRequests(), 
+          loadSentRequests(), 
+          loadExploreUsers(state.query)
+        ]);
+        return state; // Retorna o estado atualizado pelas funções de load
+      },
+      (data) => {
+        Object.assign(state, data);
         renderAll();
-        silent = true;
+      },
+      {
+        silent: silent,
+        storage: 'session',
+        onLoading: () => {
+          const skeletonGridCard = `
+            <div class="friend-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--surface-color); padding: 1.125rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--card-gap);">
+              <div class="placeholder rounded-circle" style="width: 86px; height: 86px; background-color: var(--line-color);"></div>
+              <div class="d-flex flex-column w-100 h-100">
+                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-75 mb-3" style="height: 18px; background-color: var(--line-color);"></div>
+              </div>
+            </div>`;
+          friendsContainer.innerHTML = skeletonGridCard.repeat(3);
+          exploreContainer.innerHTML = skeletonGridCard.repeat(3);
+          receivedContainer.innerHTML = skeletonGridCard.repeat(2);
+          sentContainer.innerHTML = skeletonGridCard.repeat(2);
+        },
+        onError: (error, hasCache) => {
+          if (!silent && !hasCache) friendsContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar amizades.</div>';
+        }
       }
-
-      if (!silent) {
-        const skeletonGridCard = `
-          <div class="friend-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--surface-color); padding: 1.125rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--card-gap);">
-            <div class="placeholder rounded-circle" style="width: 86px; height: 86px; background-color: var(--line-color);"></div>
-            <div class="d-flex flex-column w-100 h-100">
-              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-75 mb-3" style="height: 18px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-100 mb-1" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-50 mt-auto" style="height: 12px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-        `;
-        friendsContainer.innerHTML = skeletonGridCard.repeat(3);
-        exploreContainer.innerHTML = skeletonGridCard.repeat(3);
-        receivedContainer.innerHTML = skeletonGridCard.repeat(2);
-        sentContainer.innerHTML = skeletonGridCard.repeat(2);
-      }
-
-      await Promise.all([
-        loadFriends(), 
-        loadReceivedRequests(), 
-        loadSentRequests(), 
-        loadExploreUsers(state.query)
-      ]);
-
-      sessionStorage.setItem(cacheKey, JSON.stringify(state));
-      renderAll();
-
-    } catch (error) {
-      console.error(error);
-      if (!silent) friendsContainer.innerHTML = '<div class="api-empty-state text-danger">Erro ao carregar amizades.</div>';
-    }
+    );
   }
-
   let searchTimer = null;
   searchInput?.addEventListener('input', () => {
     state.query = searchInput.value.trim().toLowerCase();

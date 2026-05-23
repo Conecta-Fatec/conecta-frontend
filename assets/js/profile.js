@@ -204,50 +204,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadFriendsCard(user);
   }
 
-  async function loadProfile() {
+async function loadProfile(silent = false) {
     const cacheKey = '@conecta:cache_perfil';
-    const cacheSalvo = localStorage.getItem(cacheKey);
-    let cacheRenderizado = false;
 
-    // 1. TENTATIVA DE CACHE (Carregamento instantâneo)
-    if (cacheSalvo) {
-      try {
-        const dadosDoCache = JSON.parse(cacheSalvo);
-        
-        // Renderiza o perfil na tela em 0 milissegundos
-        await renderProfile(dadosDoCache);
-        console.log('[Cache] Perfil próprio carregado instantaneamente!');
-        cacheRenderizado = true;
-      } catch (e) {
-        console.error('Erro ao ler cache do perfil:', e);
-      }
-    }
-
-    // 2. BUSCA NA API (Trabalho em segundo plano / Atualização silenciosa)
-    try {
-      const data = await apiJSON('/api/users/me/');
-      
-      // Compara se o que veio do banco de dados mudou em relação ao cache antigo
-      if (JSON.stringify(data) !== cacheSalvo) {
-        // Salva os dados atualizados no cache para a próxima visita
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-        
-        // Atualiza as funções do sistema e redesenha a tela suavemente
-        saveLoggedUser(data);
-        updateSidebarUser(data);
+    await window.useSWR(
+      cacheKey,
+      () => apiJSON('/api/users/me/'),
+      async (data, { isCache }) => {
+        if (!isCache) {
+          saveLoggedUser(data);
+          updateSidebarUser(data);
+        }
         await renderProfile(data);
-        console.log('[API] Perfil próprio atualizado com dados novos do servidor.');
+      },
+      {
+        silent: silent,
+        storage: 'local',
+        onError: (error, hasCache) => {
+          if (!hasCache) bioEl.textContent = 'Erro ao carregar o perfil.';
+        }
       }
-    } catch (error) {
-      console.error('Erro ao buscar perfil atualizado do servidor:', error);
-      
-      // Só mostra a mensagem de erro na tela se não tínhamos nem o cache para exibir
-      if (!cacheRenderizado) {
-        bioEl.textContent = 'Erro ao carregar o perfil.';
-      }
-    }
+    );
   }
-
   // ==========================================
   // MODAL UNIFICADO: DADOS DE TEXTO E FOTO
   // ==========================================

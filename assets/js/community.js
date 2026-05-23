@@ -267,72 +267,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrollToHighlightedPost();
   }
 
-  async function loadCommunityDetails(silent = false) {
+async function loadCommunityDetails(silent = false) {
     const cacheKey = `@conecta:cache_community_${currentSlug}`;
 
-    try {
-      // 1. Tenta carregar do Cache primeiro (0ms)
-      const cacheSalvo = sessionStorage.getItem(cacheKey);
-      if (cacheSalvo && !silent) {
-        const dataEmCache = JSON.parse(cacheSalvo);
-        renderCommunityDetails(dataEmCache || {});
-        silent = true; // Impede que o skeleton apareça se já carregou
-      }
+    await window.useSWR(
+      cacheKey,
+      // 1. Fetcher: Procura os dados na API e faz o tratamento básico de erros
+      async () => {
+        const response = await apiFetch(`/api/posts/communities/${currentSlug}/`);
+        const data = await response.json().catch(() => null);
 
-      // 2. Se não estiver silencioso, mostra os Skeletons dos Posts e Membros
-      if (!silent) {
-        const skeletonPost = `
-          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
-            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-75 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-        `;
-        
-        const skeletonMember = `
-          <div class="member-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
-            <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
-            </div>
-          </div>
-        `;
-
-        if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost + skeletonPost;
-        if (membersContainer) membersContainer.innerHTML = skeletonMember + skeletonMember + skeletonMember + skeletonMember;
-      }
-
-      // 3. Faz a requisição na API
-      const response = await apiFetch(`/api/posts/communities/${currentSlug}/`);
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        if (commName) commName.textContent = 'Comunidade não encontrada';
-        if (commDesc) commDesc.textContent = getApiError(data, 'Esta comunidade não existe ou foi excluída.');
-        if (postsContainer) postsContainer.innerHTML = '';
-        if (membersContainer) membersContainer.innerHTML = '';
-        return;
-      }
-
-      // 4. Se a API trouxe dados diferentes do cache, atualiza a tela e o cache
-      if (JSON.stringify(data) !== cacheSalvo) {
-        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        if (!response.ok) {
+          if (commName) commName.textContent = 'Comunidade não encontrada';
+          if (commDesc) commDesc.textContent = getApiError(data, 'Esta comunidade não existe ou foi excluída.');
+          if (postsContainer) postsContainer.innerHTML = '';
+          if (membersContainer) membersContainer.innerHTML = '';
+          throw new Error('Comunidade não encontrada');
+        }
+        return data;
+      },
+      // 2. Render: Atualiza o ecrã com as informações estruturadas
+      (data) => {
         renderCommunityDetails(data || {});
-      }
+      },
+      // 3. Opções: Configuração de armazenamento e Skeletons
+      {
+        silent: silent,
+        storage: 'session',
+        onLoading: () => {
+          const skeletonPost = `
+            <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+              <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-75 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              </div>
+            </div>
+          `;
+          
+          const skeletonMember = `
+            <div class="member-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
+              <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
+              </div>
+            </div>
+          `;
 
-    } catch (error) {
-      console.error(error);
-      if (!silent) {
-        if (commDesc) commDesc.textContent = 'Erro ao conectar com o servidor.';
+          if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost + skeletonPost;
+          if (membersContainer) membersContainer.innerHTML = skeletonMember + skeletonMember + skeletonMember + skeletonMember;
+        },
+        onError: (error, hasCache) => {
+          if (!silent && !hasCache) {
+            if (commDesc) commDesc.textContent = 'Erro ao conectar com o servidor.';
+          }
+        }
       }
-    }
+    );
   }
-
   async function joinCommunity() {
     const response = await apiFetch(`/api/posts/communities/${currentSlug}/join/`, { method: 'POST' });
     if (response.ok) await loadCommunityDetails(true);

@@ -380,61 +380,62 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadPublicProfile(silent = false) {
     const cacheKey = `@conecta:cache_profileuser_${nickname}`;
 
-    try {
-      const cacheSalvo = sessionStorage.getItem(cacheKey);
-      if (cacheSalvo && !silent) {
-        await renderProfile(JSON.parse(cacheSalvo));
-        silent = true;
-      }
+    await window.useSWR(
+      cacheKey,
+      // 1. Fetcher: Procura o perfil do outro utilizador na API
+      async () => {
+        const response = await apiFetch(`/api/users/profile/${encodeURIComponent(nickname)}/`);
+        const data = await response.json().catch(() => null);
 
-      if (!silent) {
-        const skeletonPost = `
-          <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
-            <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-            </div>
-          </div>`;
-        const skeletonSideItem = `
-          <div class="side-community-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
-            <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
-            <div class="w-100 mt-1">
-              <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-              <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
-            </div>
-          </div>`;
-
-        if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost;
-        if (communitiesContainer) communitiesContainer.innerHTML = skeletonSideItem + skeletonSideItem;
-        if (friendsContainer) friendsContainer.innerHTML = skeletonSideItem + skeletonSideItem;
-      }
-
-      const response = await apiFetch(`/api/users/profile/${encodeURIComponent(nickname)}/`);
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        nameEl.textContent = 'Perfil não encontrado';
-        bioEl.innerHTML = '<span class="text-danger">Este usuário não existe.</span>';
-        postsContainer.innerHTML = '';
-        communitiesContainer.innerHTML = '';
-        friendsContainer.innerHTML = '';
-        actionBtn.style.display = 'none';
-        return;
-      }
-
-      if (JSON.stringify(data) !== cacheSalvo) {
-        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        if (!response.ok) {
+          nameEl.textContent = 'Perfil não encontrado';
+          bioEl.innerHTML = '<span class="text-danger">Este usuário não existe.</span>';
+          postsContainer.innerHTML = '';
+          communitiesContainer.innerHTML = '';
+          friendsContainer.innerHTML = '';
+          actionBtn.style.display = 'none';
+          throw new Error('Perfil não encontrado');
+        }
+        return data;
+      },
+      // 2. Render: Desenha o cabeçalho público, posts e as listas de amigos
+      async (data) => {
         await renderProfile(data);
+      },
+      // 3. Opções: Carrega skeletons paralelos para a barra lateral e feed
+      {
+        silent: silent,
+        storage: 'session',
+        onLoading: () => {
+          const skeletonPost = `
+            <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+              <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              </div>
+            </div>`;
+            
+          const skeletonSideItem = `
+            <div class="side-community-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
+              <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
+              </div>
+            </div>`;
+
+          if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost;
+          if (communitiesContainer) communitiesContainer.innerHTML = skeletonSideItem + skeletonSideItem;
+          if (friendsContainer) friendsContainer.innerHTML = skeletonSideItem + skeletonSideItem;
+        },
+        onError: (error, hasCache) => {
+          if (!silent && !hasCache) bioEl.innerHTML = '<span class="text-danger">Erro de conexão.</span>';
+        }
       }
-
-    } catch (error) {
-      console.error(error);
-      if (!silent) bioEl.innerHTML = '<span class="text-danger">Erro de conexão.</span>';
-    }
+    );
   }
-
   postsContainer.addEventListener('click', (event) => {
     const card = event.target.closest('[data-post-url]');
     if (!card || event.target.closest('a,button')) return;
