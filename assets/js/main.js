@@ -44,10 +44,30 @@ const IMAGE_CACHE_STORAGE = 'conecta-image-cache-v1';
 const ConectaImageCache = (() => {
   const memory = new Map();
 
+  function normalizeImageUrl(url) {
+    if (!url) return '';
+    const normalized = String(url).trim();
+    if (!normalized) return '';
+
+    try {
+      return new URL(normalized, document.baseURI).href;
+    } catch {
+      return normalized;
+    }
+  }
+
+  function isValidCachedUrl(url) {
+    return Boolean(url) && !url.includes('/pages/assets/');
+  }
+
   function readStoredUrls() {
     try {
       const stored = JSON.parse(sessionStorage.getItem(IMAGE_CACHE_KEY) || '[]');
-      return Array.isArray(stored) ? stored.filter(Boolean) : [];
+      if (!Array.isArray(stored)) return [];
+
+      return stored
+        .map(normalizeImageUrl)
+        .filter(isValidCachedUrl);
     } catch {
       return [];
     }
@@ -62,8 +82,9 @@ const ConectaImageCache = (() => {
   }
 
   function remember(url) {
-    if (!url) return '';
-    const normalized = String(url);
+    const normalized = normalizeImageUrl(url);
+    if (!isValidCachedUrl(normalized)) return '';
+
     const stored = readStoredUrls().filter((item) => item !== normalized);
     stored.push(normalized);
     writeStoredUrls(stored);
@@ -86,6 +107,7 @@ const ConectaImageCache = (() => {
   function preload(url) {
     if (!url) return '';
     const normalized = remember(url);
+    if (!normalized) return '';
     if (memory.has(normalized)) return normalized;
 
     const image = new Image();
@@ -120,9 +142,22 @@ const ConectaImageCache = (() => {
     else window.setTimeout(run, 350);
   }
 
+  function getAssetUrl(assetPath) {
+    const mainScript =
+      document.currentScript?.src ||
+      document.querySelector('script[src*="assets/js/main.js"]')?.src;
+
+    if (!mainScript) return normalizeImageUrl(`assets/${assetPath}`);
+
+    return new URL(`../${assetPath}`, mainScript).href;
+  }
+
   function preloadLogos() {
-    const prefix = window.location.pathname.includes('/pages/') ? '../' : '';
-    [`${prefix}assets/img/logo-light.svg`, `${prefix}assets/img/logo-dark.svg`].forEach(preload);
+    [
+      getAssetUrl('img/logo-light.svg'),
+      getAssetUrl('img/logo-dark.svg'),
+      getAssetUrl('img/logotype-light.svg')
+    ].forEach(preload);
   }
 
   return { get, preload, remember, hydratePageImages, preloadStoredImages, preloadLogos };
