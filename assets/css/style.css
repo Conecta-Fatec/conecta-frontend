@@ -4313,3 +4313,25 @@ body:has(.login-page) {
   display: block;
   transform: translateY(-0.06rem);
 }
+
+/* Força a barra de rolagem vertical a estar sempre visível */
+html {
+  overflow-y: scroll;
+}
+/* Estilizando a scrollbar para combinar com o seu tema */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-color); /* Use a cor da sua superfície */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-color); /* Use a cor das suas linhas */
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color);
+}

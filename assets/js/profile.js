@@ -209,7 +209,9 @@ async function loadProfile(silent = false) {
 
     await window.useSWR(
       cacheKey,
+      // Fetcher: Busca os dados na API
       () => apiJSON('/api/users/me/'),
+      // Render: Atualiza o ecrã com as informações
       async (data, { isCache }) => {
         if (!isCache) {
           saveLoggedUser(data);
@@ -217,11 +219,47 @@ async function loadProfile(silent = false) {
         }
         await renderProfile(data);
       },
+      // Opções: Skeleton Loader e Tratamento de Erros
       {
         silent: silent,
-        storage: 'local',
+        storage: 'local', // Mantém o cache persistente do perfil
+        onLoading: () => {
+          // 1. Skeletons para as Listas (Posts, Comunidades, Amigos)
+          const skeletonPost = `
+            <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
+              <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
+              </div>
+            </div>
+          `;
+            
+          const skeletonSideItem = `
+            <div class="side-community-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
+              <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
+              <div class="w-100 mt-1">
+                <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
+                <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
+              </div>
+            </div>
+          `;
+
+          if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost;
+          if (communitiesContainer) communitiesContainer.innerHTML = skeletonSideItem + skeletonSideItem;
+          if (friendsContainer) friendsContainer.innerHTML = skeletonSideItem + skeletonSideItem;
+
+          // 2. Efeito visual de carregamento (Skeleton) nos textos do cabeçalho
+          if (nameEl) nameEl.innerHTML = '<span class="placeholder col-6 rounded placeholder-glow" style="background-color: var(--line-color);"></span>';
+          if (nicknameEl) nicknameEl.innerHTML = '<span class="placeholder col-4 rounded placeholder-glow" style="background-color: var(--line-color);"></span>';
+          if (bioEl) bioEl.innerHTML = '<span class="placeholder col-8 rounded placeholder-glow" style="background-color: var(--line-color);"></span>';
+          if (courseEl) courseEl.innerHTML = '<span class="placeholder col-5 rounded placeholder-glow" style="background-color: var(--line-color);"></span>';
+          if (friendsCountEl) friendsCountEl.innerHTML = '<span class="placeholder col-8 rounded placeholder-glow" style="background-color: var(--line-color);"></span>';
+          if (postsCountEl) postsCountEl.innerHTML = '<span class="placeholder col-8 rounded placeholder-glow" style="background-color: var(--line-color);"></span>';
+        },
         onError: (error, hasCache) => {
-          if (!hasCache) bioEl.textContent = 'Erro ao carregar o perfil.';
+          if (!silent && !hasCache) bioEl.innerHTML = '<span class="text-danger">Erro ao carregar o perfil.</span>';
         }
       }
     );
