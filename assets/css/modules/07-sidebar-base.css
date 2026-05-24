@@ -138,3 +138,9 @@
 .user-menu-pill.show .more-options-icon {
   transform: rotate(180deg);
 }
+.sidebar-logo-img {
+  width: 180px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}

@@ -156,7 +156,7 @@ const ConectaImageCache = (() => {
     [
       getAssetUrl('img/logo-light.svg'),
       getAssetUrl('img/logo-dark.svg'),
-      getAssetUrl('img/logotype-light.svg')
+      getAssetUrl('img/logo-light.svg')
     ].forEach(preload);
   }
 
@@ -1351,4 +1351,35 @@ document.addEventListener("DOMContentLoaded", () => {
       link.classList.remove("active");
     }
   });
+});
+function updateSidebarLogo() {
+  const logo = document.getElementById("sidebarLogo");
+  if (!logo) return;
+
+  const theme =
+    document.documentElement.dataset.theme ||
+    document.body.dataset.theme ||
+    localStorage.getItem("theme") ||
+    localStorage.getItem("conecta-theme") ||
+    "dark";
+
+  const isDarkTheme = theme === "dark" || theme === "oled";
+
+  logo.src = isDarkTheme
+    ? logo.dataset.logoLight
+    : logo.dataset.logoDefault;
+}
+
+document.addEventListener("DOMContentLoaded", updateSidebarLogo);
+
+const logoThemeObserver = new MutationObserver(updateSidebarLogo);
+
+logoThemeObserver.observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["data-theme", "class"],
+});
+
+logoThemeObserver.observe(document.body, {
+  attributes: true,
+  attributeFilter: ["data-theme", "class"],
 });
