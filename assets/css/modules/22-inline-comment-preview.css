@@ -1,0 +1,125 @@
+/* =========================================================
+   21. Preview inline de comentários no card do post
+========================================================= */
+.post-card :is(a, a:hover, a:focus),
+.tw-thread-container :is(a, a:hover, a:focus),
+.inline-comments-wrapper :is(a, a:hover, a:focus) {
+  text-decoration: none !important;
+}
+
+.tw-author-name:hover,
+.tw-username:hover,
+.tw-reply-target:hover {
+  text-decoration: none !important;
+}
+
+.inline-comments-placeholder {
+  display: none;
+}
+
+.inline-comments-placeholder.is-open {
+  display: block;
+}
+
+.inline-comments-wrapper {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0 0 0.65rem;
+  border-top: var(--hairline) solid var(--line-color);
+}
+
+.inline-comments-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.inline-comments-wrapper .tw-thread-container {
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.inline-comments-wrapper .tw-thread-container:last-child {
+  border-bottom: 0;
+}
+
+.inline-comments-wrapper .tw-avatar-col {
+  flex-basis: 2.25rem;
+  width: 2.25rem;
+  margin-left: 0.25rem;
+  margin-right: 0.7rem;
+  padding-top: 0.75rem;
+}
+
+.inline-comments-wrapper .tw-avatar-col .comment-avatar {
+  width: 1.9rem !important;
+  height: 1.9rem !important;
+  min-width: 1.9rem !important;
+}
+
+.inline-comments-wrapper .tw-content-col {
+  padding: 0.72rem 0.35rem 0.55rem 0;
+}
+
+.inline-comments-wrapper .tw-thread-line {
+  margin-top: 0.3rem;
+}
+
+.inline-comments-empty,
+.inline-comments-loading {
+  margin: 0;
+  padding: 0.85rem 0 0.75rem 2.95rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.inline-post-full-link {
+  margin-top: 0.65rem;
+}
+
+.inline-post-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0 0.85rem;
+  margin: 0;
+  text-align: center;
+}
+
+.inline-post-actions .tk-replies-line {
+  width: 1.55rem;
+  height: var(--hairline);
+  background: var(--line-color);
+}
+
+.inline-post-actions .inline-post-full-link,
+.inline-post-actions .inline-close-btn {
+  margin: 0;
+}
+
+.load-more-btn.compact {
+  min-width: 0 !important;
+  min-height: auto !important;
+  width: fit-content !important;
+  margin: 0.35rem auto 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  font-size: 0.86rem;
+  font-weight: var(--weight-strong);
+  line-height: 1.2;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.load-more-btn.compact:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+  transform: none !important;
+}

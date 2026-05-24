@@ -1,0 +1,199 @@
+/* =========================================================
+   02. Keyframes
+========================================================= */
+
+/* Utilitários de animação */
+
+@keyframes spin-refresh {
+  100% { transform: rotate(360deg); }
+}
+
+/* Transições de página e acessibilidade */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* =========================================================
+   03. Transições e regras de animação
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.form-control,
+.form-select,
+.custom-input,
+.community-form-area input,
+.community-form-area textarea,
+.community-form-area select,
+.settings-field select {
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-primary,
+.login-btn,
+.new-post-btn,
+.feed-hero-btn,
+.feed-create-card-btn,
+.modal-publish-btn,
+.cookie-accept-btn,
+.mobile-compose-fab,
+.community-create-box-btn,
+.community-card-btn,
+.friend-card-btn,
+.btn-outline-primary,
+.edit-profile-btn,
+.feed-tab.active,
+.about-resource-link {
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.logout-btn,
+.settings-reset-btn,
+.modal-cancel-btn,
+.load-more-btn,
+.btn-secondary,
+.btn-outline-secondary,
+.btn-light,
+.feed-tab:not(.active) {
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.profile-main-avatar {
+  transition: transform 0.18s ease;
+}
+
+.sidebar-link {
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.post-card,
+.profile-post-card,
+.profile-post-item,
+#posts-container > *,
+#feed-posts-container > *,
+#general-posts-container > *,
+#friends-posts-container > *,
+#profile-posts-container > *,
+#public-posts-container > *,
+#community-posts-container > *,
+#community-posts-list > * {
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.post-action-btn,
+.comment-action {
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.profile-side-stack .profile-api-card,
+.feed-content > aside > article.glass-surface {
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.side-community-item,
+.side-friend-item {
+  transition: background-color 0.18s ease, transform 0.18s ease, color 0.18s ease;
+}
+
+.community-card,
+.friend-card {
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.community-side.side-card {
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.community-side.side-card .member-item,
+.community-side.side-card #community-members-container .member-item,
+.community-side.side-card #community-members-list .member-item {
+  transition: background-color 0.18s ease, transform 0.18s ease, color 0.18s ease;
+}
+
+.back-btn {
+  transition: background 0.2s;
+}
+
+.tw-action-btn {
+  transition: color 0.2s;
+}
+
+.tw-icon-circle {
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.like-btn,
+.comment-like-btn {
+  transition: color 0.1s;
+}
+
+.tw-thread-container {
+  transition: background-color 0.2s;
+}
+
+.spin-animation {
+  animation: spin-refresh 1s linear infinite;
+}
+
+.post-full-link {
+  transition: color 0.15s ease;
+}
+
+.tw-thread-container {
+  transition: background-color 0.18s ease;
+}
+
+.thread-actions .post-action-btn,
+.thread-text-action {
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+body.animations-enabled .feed-content,
+body.animations-enabled .communities-content,
+body.animations-enabled .friends-content,
+body.animations-enabled .community-page-content,
+body.animations-enabled .profile-layout,
+body.animations-enabled .settings-layout,
+body.animations-enabled .about-layout {
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+body.animations-enabled .sidebar {
+  animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+body.animations-enabled .modal-content,
+body.animations-enabled .mobile-offcanvas {
+  animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+body.animations-disabled *,
+body.animations-disabled *::before,
+body.animations-disabled *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.post-author,
+.post-username,
+.comment-author,
+.comment-username,
+.tw-author-name,
+.tw-username,
+.tw-reply-target,
+.post-header-main a,
+.comment-header a,
+.tw-header a {
+  transition: color 0.18s ease;
+}

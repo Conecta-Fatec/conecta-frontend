@@ -1,0 +1,254 @@
+/* =========================================================
+   RESPONSIVIDADE DA SIDEBAR (Tablets e telas menores)
+========================================================= */
+@media (max-width: 62rem) {
+  .modern-sidebar {
+    align-items: center;
+    padding: 1.5rem 0.5rem;
+  }
+
+  .modern-sidebar .sidebar-logo {
+    padding-left: 0;
+    width: 2.5rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+
+  .modern-nav .sidebar-link {
+    padding: 0.85rem; 
+    justify-content: center;
+  }
+
+  .modern-nav .sidebar-link span {
+    display: none; /* Oculta textos e mostra só ícones */
+  }
+
+  .modern-post-btn {
+    width: 3.5rem;
+    height: 3.5rem;
+    min-height: auto;
+    padding: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modern-post-btn .btn-text {
+    display: none;
+  }
+
+  .modern-post-btn .btn-icon {
+    display: block !important;
+  }
+
+  .user-menu-pill {
+    padding: 0.5rem;
+    justify-content: center;
+  }
+
+  .user-menu-pill .user-details,
+  .user-menu-pill .more-options-icon {
+    display: none; /* Mantém apenas o avatar do usuário nas telas menores */
+  }
+}
+.user-avatar,
+.comment-avatar,
+.profile-avatar,
+.profile-main-avatar,
+.community-card-avatar,
+.community-page-avatar,
+.side-community-avatar,
+.side-friend-avatar,
+.friend-card-avatar,
+.about-dev-avatar,
+#sidebar-avatar {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  font-weight: var(--weight-strong);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  box-shadow: none !important;
+}
+
+.user-avatar,
+.comment-avatar,
+.profile-avatar,
+.side-friend-avatar,
+.friend-card-avatar,
+.about-dev-avatar,
+#sidebar-avatar {
+  border-radius: var(--radius-pill);
+}
+
+.profile-main-avatar,
+.community-card-avatar,
+.side-community-avatar,
+.community-page-avatar {
+  border-radius: var(--radius-md);
+}
+
+.user-avatar {
+  width: var(--avatar-post) !important;
+  height: var(--avatar-post) !important;
+  min-width: var(--avatar-post) !important;
+}
+
+.comment-avatar,
+.comment-avatar-small {
+  width: var(--avatar-comment) !important;
+  height: var(--avatar-comment) !important;
+  min-width: var(--avatar-comment) !important;
+}
+
+#sidebar-avatar,
+.logged-user .user-avatar {
+  width: var(--avatar-sidebar) !important;
+  height: var(--avatar-sidebar) !important;
+  min-width: var(--avatar-sidebar) !important;
+}
+
+.community-card-avatar,
+.friend-card-avatar {
+  width: var(--avatar-card) !important;
+  height: var(--avatar-card) !important;
+  min-width: var(--avatar-card) !important;
+}
+
+.side-community-avatar,
+.side-friend-avatar {
+  width: var(--avatar-side) !important;
+  height: var(--avatar-side) !important;
+  min-width: var(--avatar-side) !important;
+}
+
+.profile-avatar,
+.profile-main-avatar {
+  width: var(--avatar-profile) !important;
+  height: var(--avatar-profile) !important;
+  min-width: var(--avatar-profile) !important;
+}
+
+.community-page-avatar {
+  width: var(--avatar-community-page) !important;
+  height: var(--avatar-community-page) !important;
+  min-width: var(--avatar-community-page) !important;
+}
+
+.about-dev-avatar {
+  width: var(--avatar-about) !important;
+  height: var(--avatar-about) !important;
+  min-width: var(--avatar-about) !important;
+}
+
+.profile-main-avatar {
+  cursor: pointer;
+}
+
+.profile-main-avatar:hover {
+  transform: translateY(-0.1rem) scale(1.01);
+}
+
+/* Borda azul padrão para todas as fotos/avatares */
+.user-avatar,
+.comment-avatar,
+.comment-avatar-small,
+.profile-avatar,
+.profile-main-avatar,
+.community-card-avatar,
+.community-page-avatar,
+.side-community-avatar,
+.side-friend-avatar,
+.friend-card-avatar,
+.about-dev-avatar,
+#sidebar-avatar,
+#profile-avatar,
+#public-avatar,
+#post-input-avatar {
+  border: 0.125rem solid var(--primary-color) !important;
+}
+.avatar-link {
+  display: inline-flex;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+
+.user-avatar img,
+.comment-avatar img,
+.profile-avatar img,
+.profile-main-avatar img,
+.community-card-avatar img,
+.community-page-avatar img,
+.side-community-avatar img,
+.side-friend-avatar img,
+.friend-card-avatar img,
+.about-dev-avatar img,
+#sidebar-avatar img,
+.has-image img,
+.user-avatar.has-image img,
+.comment-avatar.has-image img,
+.community-card-avatar.has-image img,
+.community-page-avatar.has-image img,
+.friend-card-avatar.has-image img,
+.side-community-avatar.has-image img,
+.side-friend-avatar.has-image img,
+.profile-avatar.has-image img,
+.profile-main-avatar.has-image img,
+.about-dev-avatar.has-image img {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.static-avatar,
+.static-avatar-blue,
+.static-avatar-green,
+.static-avatar-purple,
+.static-avatar-orange,
+.static-avatar-red,
+.static-avatar-indigo,
+.static-avatar-teal,
+.static-avatar-pink,
+.static-avatar-gray,
+.static-avatar-yellow,
+.static-avatar-brown,
+.user-avatar-alt {
+  background: linear-gradient(135deg, #2563eb, #0ea5e9) !important;
+}
+
+#profile-friends-container .side-community-avatar,
+#public-friends-container .side-community-avatar,
+.side-friend-avatar {
+  border-radius: var(--radius-pill) !important;
+}
+
+#profile-communities-container .side-community-avatar,
+#public-communities-container .side-community-avatar,
+#community-members-list .side-community-avatar,
+.side-community-avatar {
+  border-radius: var(--radius-sm) !important;
+}
+
+.friend-card-avatar {
+  border-radius: var(--radius-pill) !important;
+}
+
+.community-card-avatar,
+.community-page-avatar {
+  border-radius: var(--radius-md) !important;
+}

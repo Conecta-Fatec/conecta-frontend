@@ -359,7 +359,8 @@ const PREFERENCE_KEYS = {
   theme: 'conecta_theme_mode',
   fontFamily: 'conecta_font_family',
   fontSize: 'conecta_font_size',
-  animations: 'conecta_animations', // NOVO: Controle de animações
+  animations: 'conecta_animations',
+  reduceTransparency: 'conecta_reduce_transparency',
 };
 
 const FONT_FAMILIES = {
@@ -379,24 +380,29 @@ const FONT_SIZES = {
 
 function getThemeMode() {
   const saved = localStorage.getItem(PREFERENCE_KEYS.theme);
-  return ['light', 'dark'].includes(saved) ? saved : 'light';
+  return ['light', 'dark', 'oled'].includes(saved) ? saved : 'light';
 }
 
 function getResolvedTheme(mode = getThemeMode()) {
-  return mode === 'dark' ? 'dark' : 'light';
+  return ['light', 'dark', 'oled'].includes(mode) ? mode : 'light';
 }
 
 function applyTheme(mode = getThemeMode()) {
   const resolved = getResolvedTheme(mode);
-  document.documentElement.classList.remove('theme-light', 'theme-dark');
+  document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-oled');
   document.documentElement.classList.add(`theme-${resolved}`);
-  body.classList.remove('theme-light', 'theme-dark');
-  body.classList.add(`theme-${resolved}`);
+
+  if (body) {
+    body.classList.remove('theme-light', 'theme-dark', 'theme-oled');
+    body.classList.add(`theme-${resolved}`);
+    body.classList.toggle('reduce-transparency', localStorage.getItem(PREFERENCE_KEYS.reduceTransparency) === 'true');
+  }
+
   updatePreferenceControls();
 }
 
 function setThemeMode(mode) {
-  const safeMode = mode === 'dark' ? 'dark' : 'light';
+  const safeMode = ['light', 'dark', 'oled'].includes(mode) ? mode : 'light';
   localStorage.setItem(PREFERENCE_KEYS.theme, safeMode);
   applyTheme(safeMode);
 }
@@ -420,8 +426,10 @@ function applyFontPreferences() {
   document.documentElement.style.setProperty('font-size', fontScale);
   document.documentElement.style.setProperty('--app-font-family', fontFamily);
   document.documentElement.style.setProperty('--app-font-size', '1rem');
-  body.style.setProperty('--app-font-family', fontFamily);
-  body.style.setProperty('--app-font-size', '1rem');
+  if (body) {
+    body.style.setProperty('--app-font-family', fontFamily);
+    body.style.setProperty('--app-font-size', '1rem');
+  }
 
   updatePreferenceControls();
 }
@@ -446,8 +454,10 @@ function getAnimationsMode() {
 
 function applyAnimationsPreference() {
   const mode = getAnimationsMode();
-  body.classList.remove('animations-enabled', 'animations-disabled');
-  body.classList.add(`animations-${mode}`);
+  if (body) {
+    body.classList.remove('animations-enabled', 'animations-disabled');
+    body.classList.add(`animations-${mode}`);
+  }
   updatePreferenceControls();
 }
 
@@ -468,31 +478,40 @@ function resetAppearancePreferences() {
 }
 
 function updatePreferenceControls() {
+  const themeMode = getThemeMode();
   const themeSelect = document.getElementById('themeMode');
-  const fontSelect = document.getElementById('fontFamilyMode');
-  const sizeSelect = document.getElementById('fontSizeMode');
+  const themeRadios = document.querySelectorAll('input[name="themeMode"]');
+  const fontSelect = document.getElementById('fontFamilyMode') || document.getElementById('fontFamily');
+  const sizeSelect = document.getElementById('fontSizeMode') || document.getElementById('fontSize');
   const animSelect = document.getElementById('animationsMode');
+  const animToggle = document.getElementById('toggleAnimations');
+  const transToggle = document.getElementById('toggleTransparency');
   const themePreview = document.getElementById('themeModePreview');
 
-  if (themeSelect) themeSelect.value = getThemeMode();
+  if (themeSelect) themeSelect.value = themeMode;
+  themeRadios.forEach((radio) => { radio.checked = radio.value === themeMode; });
   if (fontSelect) fontSelect.value = getFontFamilyMode();
   if (sizeSelect) sizeSelect.value = getFontSizeMode();
   if (animSelect) animSelect.value = getAnimationsMode();
+  if (animToggle) animToggle.checked = getAnimationsMode() !== 'disabled';
+  if (transToggle) transToggle.checked = localStorage.getItem(PREFERENCE_KEYS.reduceTransparency) === 'true';
   
   if (themePreview) {
-    const resolved = getResolvedTheme() === 'dark' ? 'escuro' : 'claro';
-    themePreview.textContent = `Tema ${resolved} selecionado.`;
+    const labels = { light: 'claro', dark: 'escuro', oled: 'OLED' };
+    themePreview.textContent = `Tema ${labels[getResolvedTheme()] || 'claro'} selecionado.`;
   }
 }
 
 function initSettingsControls() {
   const themeSelect = document.getElementById('themeMode');
-  const fontSelect = document.getElementById('fontFamilyMode');
-  const sizeSelect = document.getElementById('fontSizeMode');
+  const themeRadios = document.querySelectorAll('input[name="themeMode"]');
+  const fontSelect = document.getElementById('fontFamilyMode') || document.getElementById('fontFamily');
+  const sizeSelect = document.getElementById('fontSizeMode') || document.getElementById('fontSize');
   const animSelect = document.getElementById('animationsMode');
   const resetBtn = document.getElementById('resetAppearancePreferences');
 
   themeSelect?.addEventListener('change', (event) => setThemeMode(event.target.value));
+  themeRadios.forEach((radio) => radio.addEventListener('change', (event) => setThemeMode(event.target.value)));
   fontSelect?.addEventListener('change', (event) => setFontFamilyMode(event.target.value));
   sizeSelect?.addEventListener('change', (event) => setFontSizeMode(event.target.value));
   animSelect?.addEventListener('change', (event) => setAnimationsMode(event.target.value));
@@ -1306,3 +1325,30 @@ async function tryApiJSON(paths, options = {}) {
     throw new Error('Nenhum dos endpoints de busca encontrou os dados.');
   }
 }
+/* =========================================================
+   AUTO-ACTIVE MENU LATERAL
+   Detecta a página atual e acende o indicador na Sidebar
+========================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+  // Pega o nome do arquivo atual na URL (ex: feed.html)
+  let currentPage = window.location.pathname.split("/").pop() || "feed.html";
+  
+  // Regra especial: se estiver dentro da página de UMA comunidade, a aba "Comunidades" fica acesa
+  if (currentPage === "community.html") {
+    currentPage = "communities.html";
+  }
+
+  // Seleciona todos os links da nova sidebar
+  const navLinks = document.querySelectorAll(".modern-nav .sidebar-link");
+
+  navLinks.forEach(link => {
+    const linkPage = link.getAttribute("href").split("/").pop();
+    
+    // Se o link do menu bater com a página atual, adiciona a classe active
+    if (linkPage === currentPage) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+});

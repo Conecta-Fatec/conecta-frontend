@@ -1,0 +1,232 @@
+/* =========================================================
+   22. Ajustes finais V1 — posts e comentários
+========================================================= */
+.date-short {
+  display: none;
+}
+
+.post-card,
+.profile-post-card,
+.profile-post-item,
+#posts-container > *,
+#feed-posts-container > *,
+#general-posts-container > *,
+#friends-posts-container > *,
+#profile-posts-container > *,
+#public-posts-container > *,
+#community-posts-container > *,
+#community-posts-list > * {
+  position: relative;
+}
+
+.post-body {
+  gap: 0 !important;
+}
+
+.post-header-main,
+.tw-header {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0.24rem;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: top;
+}
+
+.post-header,
+.comment-header,
+.tw-header {
+  margin-bottom: 0.08rem !important;
+}
+
+.post-header-main .post-author,
+.post-header-main .post-username,
+.post-header-main .post-date-link,
+.post-header-main .post-edited-label,
+.tw-header .tw-author-name,
+.tw-header .tw-username,
+.tw-header .tw-reply-target,
+.tw-header .tw-date,
+.tw-header .tw-reply-arrow {
+  min-width: 0;
+  line-height: 1.28;
+}
+
+.post-header-main .post-author,
+.tw-header .tw-author-name {
+  flex: 0 1 auto;
+  max-width: 20ch;
+  overflow: hidden;
+  color: var(--text-color) !important;
+  font-size: 0.96rem;
+  font-weight: var(--weight-strong);
+  text-overflow: ellipsis;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.post-header-main .post-username,
+.tw-header .tw-username,
+.tw-header .tw-reply-target {
+  flex: 1 1 auto;
+  max-width: 18ch;
+  overflow: hidden;
+  color: var(--text-muted) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.post-header-main .post-date-link,
+.post-header-main .post-edited-label,
+.tw-header .tw-date,
+.tw-header .tw-reply-arrow {
+  flex: 0 0 auto;
+  color: var(--text-muted) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.post-author:hover,
+.tw-author-name:hover,
+.tw-username:hover,
+.tw-reply-target:hover {
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+}
+
+.post-text,
+.tw-text {
+  margin-top: 0.08rem !important;
+  margin-bottom: 0.28rem !important;
+  line-height: 1.5 !important;
+}
+
+.post-actions,
+.thread-actions {
+  margin-top: 0 !important;
+}
+
+.inline-comments-wrapper .tk-replies-actions {
+  display: none !important;
+}
+
+.inline-post-actions {
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0.28rem !important;
+  padding: 0.48rem 0 0.7rem !important;
+  margin: 0 !important;
+  text-align: center !important;
+}
+
+.inline-post-actions .tk-replies-line {
+  display: none !important;
+}
+
+.inline-post-actions .inline-post-full-link,
+.inline-post-actions .inline-close-btn {
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
+#profile-posts-container > .profile-posts-footer,
+#public-posts-container > .profile-posts-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: auto !important;
+  margin: 0.25rem 0 0 !important;
+  padding: 0.25rem 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#profile-posts-container > .profile-posts-footer:hover,
+#public-posts-container > .profile-posts-footer:hover {
+  border: 0 !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+#profile-posts-container > .profile-posts-footer .load-more-btn,
+#public-posts-container > .profile-posts-footer .load-more-btn {
+  min-width: 0 !important;
+  min-height: auto !important;
+  width: fit-content !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  box-shadow: none !important;
+}
+
+#profile-posts-container > .profile-posts-footer .load-more-btn:hover,
+#public-posts-container > .profile-posts-footer .load-more-btn:hover {
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+}
+
+/* Ajuste: centralizar aviso e ações do preview de comentários no card inteiro */
+.inline-comments-wrapper .inline-comments-empty,
+.inline-comments-wrapper .inline-comments-loading {
+  width: calc(100% + var(--avatar-post) + var(--card-gap));
+  margin-left: calc((var(--avatar-post) + var(--card-gap)) * -1);
+  padding: 0.9rem 0 0.75rem !important;
+  text-align: center;
+}
+
+.inline-comments-wrapper .inline-post-actions {
+  width: calc(100% + var(--avatar-post) + var(--card-gap)) !important;
+  margin-left: calc((var(--avatar-post) + var(--card-gap)) * -1) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Padroniza hover e cursor em nomes/nicks de posts e comentários */
+.post-author,
+.post-username,
+.comment-author,
+.comment-username,
+.tw-author-name,
+.tw-username,
+.tw-reply-target,
+.post-header-main a,
+.comment-header a,
+.tw-header a {
+  cursor: pointer !important;
+}
+
+.post-author:hover,
+.post-username:hover,
+.comment-author:hover,
+.comment-username:hover,
+.tw-author-name:hover,
+.tw-username:hover,
+.tw-reply-target:hover,
+.post-header-main a:hover,
+.comment-header a:hover,
+.tw-header a:hover,
+.post-header-main a:hover .post-author,
+.post-header-main a:hover .post-username,
+.comment-header a:hover .comment-author,
+.comment-header a:hover .comment-username,
+.tw-header a:hover .tw-author-name,
+.tw-header a:hover .tw-username,
+.tw-header a:hover .tw-reply-target {
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+}

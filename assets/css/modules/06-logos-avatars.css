@@ -1,0 +1,30 @@
+/* =========================================================
+   06. Logos, fotos e avatares
+========================================================= */
+.logo-light {
+  display: block;
+}
+
+.logo-dark {
+  display: none;
+}
+
+html.theme-light .logo-light,
+body.theme-light .logo-light {
+  display: block;
+}
+
+html.theme-light .logo-dark,
+body.theme-light .logo-dark {
+  display: none;
+}
+
+html.theme-dark .logo-light,
+body.theme-dark .logo-light {
+  display: none;
+}
+
+html.theme-dark .logo-dark,
+body.theme-dark .logo-dark {
+  display: block;
+}

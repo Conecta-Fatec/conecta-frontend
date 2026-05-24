@@ -1,0 +1,202 @@
+/* =========================================================
+   02. Base, reset e tipografia
+========================================================= */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size);
+  color: var(--text-color);
+  background: radial-gradient(circle at 14% -10%, var(--bg-accent), transparent 34rem),
+              radial-gradient(circle at 94% 6%, rgba(14, 165, 233, 0.10), transparent 30rem),
+              linear-gradient(180deg, var(--bg-color), var(--bg-color));
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.theme-dark body,
+body.theme-dark {
+  background: radial-gradient(circle at 14% -10%, rgba(37, 99, 235, 0.16), transparent 34rem),
+              radial-gradient(circle at 94% 6%, rgba(14, 165, 233, 0.10), transparent 30rem),
+              linear-gradient(180deg, #070c18, #0b1222 52%, #070c18);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+:where(button, .btn, a, input, textarea, select):focus-visible {
+  outline: 0.18rem solid var(--primary-soft);
+  outline-offset: 0.18rem;
+}
+
+::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 78%, transparent) !important;
+  opacity: 1;
+}
+
+h1, h2, h3, h4, h5, h6,
+.feed-header h1,
+.community-page-info h1,
+.profile-main-info h1,
+.communities-hero-content > h1,
+.doc-card h1,
+.doc-card h2,
+.about-project-card h2,
+.about-resource-card h2 {
+  margin-top: 0;
+  color: var(--text-color);
+  font-weight: var(--weight-heading);
+  letter-spacing: -0.038em;
+  line-height: 1.08;
+}
+
+.feed-header h1,
+.community-page-info h1,
+.profile-main-info h1,
+.communities-hero-content > h1 {
+  font-size: clamp(1.65rem, 2.25vw, 2.25rem);
+}
+
+.feed-control-text h2,
+.communities-section-header h2,
+.settings-card h2,
+.side-card-header h2,
+.profile-api-card h2,
+.community-create-card h2,
+.communities-summary-card h2,
+.about-dev-section h3,
+.community-side h2 {
+  margin: 0;
+  font-size: clamp(1rem, 1.25vw, 1.16rem);
+  font-weight: var(--weight-strong);
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+p {
+  margin-top: 0;
+}
+
+.feed-header p,
+.community-page-info p,
+.profile-bio,
+.profile-bio-text,
+.post-text,
+.comment-content,
+.comment-text-line,
+.communities-summary-card p,
+.communities-summary-text p,
+.community-create-box-text span,
+.community-card p,
+.friend-card-body p,
+.settings-card p,
+.about-project-card p,
+.about-resource-card p,
+.doc-card p,
+.doc-card li {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.feed-kicker,
+.about-section-label,
+.community-card-tag {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 0.45rem;
+  color: var(--primary-color);
+  font-size: 0.74rem;
+  font-weight: var(--weight-strong);
+  letter-spacing: 0.085em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.post-author,
+.comment-author,
+.friend-card-name,
+.community-card h3,
+.side-community-item strong,
+.side-friend-item strong,
+.member-item strong,
+.logged-user strong,
+.login-feature-item strong,
+.community-create-box-text strong,
+.register-rules-box > strong {
+  color: var(--text-color);
+  font-weight: var(--weight-strong);
+  letter-spacing: -0.016em;
+}
+
+.post-username,
+.comment-username,
+.nickname-text,
+.nickname-badge,
+.profile-nickname,
+.comment-date,
+.community-page-meta span,
+.profile-stat-row span,
+.profile-stats span,
+.community-card-meta,
+.side-community-item span,
+.side-friend-item span,
+.member-item span,
+#sidebar-username {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+}
+
+.text-primary-custom {
+  color: var(--primary-color) !important;
+}
+
+.text-danger {
+  color: var(--danger-color) !important;
+}
+
+.text-success {
+  color: var(--success-color) !important;
+}
+
+.text-muted,
+html.theme-dark .text-muted,
+body.theme-dark .text-muted {
+  color: var(--text-muted) !important;
+}

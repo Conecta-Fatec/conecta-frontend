@@ -1,0 +1,112 @@
+/* =========================================================
+   Responsividade — Global e páginas internas
+========================================================= */
+
+@media (max-width: 73.75rem) {
+  .communities-grid,
+  .friends-grid,
+  .requests-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 62rem) {
+  :root,
+  html.theme-light,
+  body.theme-light,
+  html.theme-dark,
+  body.theme-dark {
+    --sidebar-width: 22%;
+    --content-width: 78%;
+    --avatar-profile: 128px;
+    --avatar-community-page: 128px;
+  }
+
+  .feed-layout {
+    grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width));
+  }
+
+  .desktop-sidebar {
+    padding: 1.5rem 0.875rem;
+  }
+
+  .desktop-sidebar .sidebar-logo {
+    width: 10.625rem;
+  }
+
+  .profile-layout,
+  .community-page-layout {
+    grid-template-columns: 1fr;
+    gap: var(--section-gap) !important;
+  }
+
+  .community-side {
+    padding-top: var(--section-gap);
+    border-top: var(--hairline) solid var(--line-color);
+  }
+
+  .community-side.side-card {
+    padding: 1rem !important;
+    border-top: var(--hairline) solid var(--border-color) !important;
+  }
+
+  .login-page .col-lg-6 {
+    text-align: center !important;
+  }
+
+  .login-brand-logo {
+    width: min(100%, 17rem) !important;
+    max-width: 17rem !important;
+    margin: 0 auto 1.4rem !important;
+  }
+
+  .login-page .display-5 {
+    max-width: 100% !important;
+    margin-inline: auto !important;
+    text-align: center !important;
+    font-size: clamp(1.9rem, 8vw, 2.45rem) !important;
+    line-height: 1.05 !important;
+  }
+
+  .login-page .lead {
+    max-width: 32rem !important;
+    margin-inline: auto !important;
+    text-align: center !important;
+    font-size: 1rem !important;
+    line-height: 1.55 !important;
+  }
+
+  .login-feature-list {
+    grid-template-columns: 1fr;
+    max-width: 32rem !important;
+    margin-inline: auto !important;
+    text-align: center !important;
+  }
+
+  .login-feature-item {
+    border-right: 0;
+    border-bottom: var(--hairline) solid var(--line-color);
+    text-align: center !important;
+  }
+
+  .login-feature-item:last-child {
+    border-bottom: 0;
+  }
+
+  .about-dev-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-dev-item {
+    border-right: var(--hairline) solid var(--line-color);
+    border-bottom: var(--hairline) solid var(--line-color);
+  }
+
+  .about-dev-item:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .about-dev-item:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+}

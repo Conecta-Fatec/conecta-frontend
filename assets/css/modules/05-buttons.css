@@ -1,0 +1,132 @@
+/* =========================================================
+   05. Botões
+========================================================= */
+.btn-primary,
+.login-btn,
+.new-post-btn,
+.feed-hero-btn,
+.feed-create-card-btn,
+.modal-publish-btn,
+.cookie-accept-btn,
+.mobile-compose-fab,
+.community-create-box-btn,
+.community-card-btn,
+.friend-card-btn,
+.btn-outline-primary,
+.edit-profile-btn,
+.feed-tab.active,
+.about-resource-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 2.5rem;
+  padding: 0.62rem 1rem;
+  border: var(--hairline) solid var(--border-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  background: linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--primary-soft) 66%, transparent)) !important;
+  color: var(--primary-strong) !important;
+  font-weight: var(--weight-strong);
+  letter-spacing: -0.012em;
+  line-height: 1;
+  box-shadow: none !important;
+  filter: none !important;
+  white-space: nowrap;
+}
+
+.btn-primary:hover,
+.login-btn:hover,
+.new-post-btn:hover,
+.feed-hero-btn:hover,
+.feed-create-card-btn:hover,
+.modal-publish-btn:hover,
+.cookie-accept-btn:hover,
+.mobile-compose-fab:hover,
+.community-create-box-btn:hover,
+.community-card-btn:hover,
+.friend-card-btn:hover,
+.btn-outline-primary:hover,
+.edit-profile-btn:hover,
+.feed-tab.active:hover,
+.about-resource-link:hover {
+  color: var(--primary-strong) !important;
+  border-color: var(--primary-color) !important;
+  background: var(--primary-soft) !important;
+  transform: translateY(-0.06rem);
+}
+
+.logout-btn,
+.settings-reset-btn,
+.modal-cancel-btn,
+.load-more-btn,
+.btn-secondary,
+.btn-outline-secondary,
+.btn-light,
+.feed-tab:not(.active) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 2.5rem;
+  padding: 0.62rem 1rem;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: var(--radius-pill) !important;
+  background: color-mix(in srgb, var(--surface-solid) 38%, transparent) !important;
+  color: var(--text-soft) !important;
+  font-weight: var(--weight-strong);
+  letter-spacing: -0.012em;
+  line-height: 1;
+  box-shadow: none !important;
+  white-space: nowrap;
+}
+
+.logout-btn:hover,
+.settings-reset-btn:hover,
+.modal-cancel-btn:hover,
+.load-more-btn:hover,
+.btn-secondary:hover,
+.btn-outline-secondary:hover,
+.btn-light:hover,
+.feed-tab:not(.active):hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-color) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color)) !important;
+  transform: translateY(-0.06rem);
+}
+
+.btn-outline-danger,
+.remove-friend-btn,
+.settings-logout-btn,
+.cancel-request-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 2.5rem;
+  padding: 0.62rem 1rem;
+  border: var(--hairline) solid color-mix(in srgb, var(--danger-color) 38%, transparent) !important;
+  border-radius: var(--radius-pill) !important;
+  background: var(--danger-soft) !important;
+  color: var(--danger-color) !important;
+  font-weight: var(--weight-strong);
+  box-shadow: none !important;
+  white-space: nowrap;
+}
+
+.btn-outline-danger:hover,
+.remove-friend-btn:hover,
+.settings-logout-btn:hover,
+.cancel-request-btn:hover,
+.delete-action:hover {
+  background: color-mix(in srgb, var(--danger-color) 15%, transparent) !important;
+  color: var(--danger-color) !important;
+  transform: translateY(-0.06rem);
+}
+
+.disabled-action-btn,
+.disabled-action-btn:hover {
+  background: var(--surface-muted) !important;
+  color: var(--text-muted) !important;
+  cursor: default;
+  transform: none;
+}

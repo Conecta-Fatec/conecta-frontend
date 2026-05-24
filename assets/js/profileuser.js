@@ -5,8 +5,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
 
-  await loadLoggedUser();
-
   const params = new URLSearchParams(window.location.search);
   const nickname = params.get('nickname');
 
@@ -17,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let publicUser = null;
 
+  const heroEl = document.getElementById('public-profile-hero');
   const avatar = document.getElementById('public-avatar');
   const nameEl = document.getElementById('public-name');
   const bioEl = document.getElementById('public-bio');
@@ -46,6 +45,71 @@ document.addEventListener('DOMContentLoaded', async () => {
       <span class="text-muted fw-medium">${text}</span>
     </div>
   `;
+
+
+  function profilePostSkeletonHTML() {
+    return `
+      <div class="profile-post-skeleton-card" aria-hidden="true">
+        <span class="profile-skeleton-avatar-sm"></span>
+        <span class="profile-post-skeleton-body">
+          <span class="profile-skeleton-line profile-skeleton-text-md"></span>
+          <span class="profile-skeleton-line profile-skeleton-text-sm"></span>
+          <span class="profile-skeleton-line profile-skeleton-text-lg"></span>
+        </span>
+      </div>
+    `;
+  }
+
+  function profileSideSkeletonHTML() {
+    return `
+      <div class="profile-side-skeleton-item" aria-hidden="true">
+        <span></span>
+        <div>
+          <b></b>
+          <small></small>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPublicProfileSkeleton() {
+    heroEl?.classList.add('public-profile-skeleton');
+    heroEl?.setAttribute('aria-busy', 'true');
+
+    if (avatar) {
+      avatar.classList.remove('has-image', 'profile-skeleton-avatar');
+      clearStaticAvatarClasses(avatar);
+      avatar.classList.add('profile-skeleton-avatar');
+      avatar.innerHTML = '<span class="profile-skeleton-dot" aria-hidden="true"></span>';
+    }
+
+    if (nameEl) nameEl.innerHTML = '<span class="profile-skeleton-line profile-skeleton-title" aria-hidden="true"></span>';
+    if (nicknameEl) nicknameEl.innerHTML = '<span class="profile-skeleton-line profile-skeleton-chip" aria-hidden="true"></span>';
+    if (friendsCountEl) friendsCountEl.innerHTML = '<span class="profile-skeleton-line profile-skeleton-stat" aria-hidden="true"></span>';
+    if (postsCountEl) postsCountEl.innerHTML = '<span class="profile-skeleton-line profile-skeleton-stat" aria-hidden="true"></span>';
+    if (courseEl) courseEl.innerHTML = '<span class="profile-skeleton-line profile-skeleton-text-md" aria-hidden="true"></span>';
+    if (bioEl) bioEl.innerHTML = '<span class="profile-skeleton-line profile-skeleton-text-lg" aria-hidden="true"></span>';
+
+    if (actionBtn) actionBtn.style.display = 'none';
+    if (rejectActionBtn) rejectActionBtn.style.display = 'none';
+    if (postsContainer) postsContainer.innerHTML = profilePostSkeletonHTML().repeat(2);
+    if (communitiesContainer) communitiesContainer.innerHTML = profileSideSkeletonHTML().repeat(2);
+    if (friendsContainer) friendsContainer.innerHTML = profileSideSkeletonHTML().repeat(2);
+  }
+
+  function clearPublicProfileSkeleton() {
+    heroEl?.classList.remove('public-profile-skeleton');
+    heroEl?.removeAttribute('aria-busy');
+    avatar?.classList.remove('profile-skeleton-avatar');
+  }
+
+  renderPublicProfileSkeleton();
+
+  try {
+    await loadLoggedUser();
+  } catch (error) {
+    console.error(error);
+  }
 
   function clearStaticAvatarClasses(element) {
     if (!element) return;
@@ -83,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const name = userDisplayName(user);
     const photo = toApiUrl(userPhoto(user));
 
-    avatar.classList.remove('has-image');
+    avatar.classList.remove('has-image', 'profile-skeleton-avatar');
     clearStaticAvatarClasses(avatar);
     avatar.setAttribute('data-photo-viewer', 'public-profile');
     avatar.dataset.photoTitle = name;
@@ -353,6 +417,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function renderProfile(user) {
     publicUser = user;
+    clearPublicProfileSkeleton();
 
     const posts = normalizeArray(user.posts, 'results');
     const name = userDisplayName(user);
@@ -388,6 +453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await response.json().catch(() => null);
 
         if (!response.ok) {
+          clearPublicProfileSkeleton();
           nameEl.textContent = 'Perfil não encontrado';
           bioEl.innerHTML = '<span class="text-danger">Este usuário não existe.</span>';
           postsContainer.innerHTML = '';
@@ -406,31 +472,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       {
         silent: silent,
         storage: 'session',
-        onLoading: () => {
-          const skeletonPost = `
-            <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
-              <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-              <div class="w-100 mt-1">
-                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-              </div>
-            </div>`;
-            
-          const skeletonSideItem = `
-            <div class="side-community-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
-              <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
-              <div class="w-100 mt-1">
-                <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
-              </div>
-            </div>`;
-
-          if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost;
-          if (communitiesContainer) communitiesContainer.innerHTML = skeletonSideItem + skeletonSideItem;
-          if (friendsContainer) friendsContainer.innerHTML = skeletonSideItem + skeletonSideItem;
-        },
+        onLoading: renderPublicProfileSkeleton,
         onError: (error, hasCache) => {
+          clearPublicProfileSkeleton();
           if (!silent && !hasCache) bioEl.innerHTML = '<span class="text-danger">Erro de conexão.</span>';
         }
       }

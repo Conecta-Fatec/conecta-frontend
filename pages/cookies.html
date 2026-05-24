@@ -13,51 +13,27 @@
   <meta name="application-name" content="Conecta Fatec" />
   <meta name="theme-color" content="#0f172a" />
 
+  <script src="../assets/js/theme-boot.js"></script>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/style-responsive-animations.css" />
 </head>
 
-<body class="theme-light">
-  <script>
-    (function () {
-      const themeKey = 'conecta_theme_mode';
-      const fontFamilyKey = 'conecta_font_family';
-      const fontSizeKey = 'conecta_font_size';
-
-      const fontFamilies = {
-        inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        serif: 'Georgia, "Times New Roman", serif',
-        mono: '"Cascadia Code", "Fira Code", Consolas, monospace',
-        rounded: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif'
-      };
-
-      const fontSizes = { small: '87.5%', normal: '100%', large: '112.5%', xlarge: '125%' };
-      const savedTheme = localStorage.getItem(themeKey);
-      const resolvedTheme = savedTheme === 'dark' ? 'dark' : 'light';
-      const fontFamily = fontFamilies[localStorage.getItem(fontFamilyKey)] || fontFamilies.inter;
-      const fontSize = fontSizes[localStorage.getItem(fontSizeKey)] || fontSizes.normal;
-
-      document.documentElement.classList.remove('theme-light', 'theme-dark');
-      document.documentElement.classList.add('theme-' + resolvedTheme);
-      document.documentElement.style.setProperty('font-size', fontSize);
-      document.documentElement.style.setProperty('--app-font-family', fontFamily);
-      document.documentElement.style.setProperty('--app-font-size', '1rem');
-
-      function applyBodyPreferences() {
-        if (!document.body) return;
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add('theme-' + resolvedTheme);
-        document.body.style.setProperty('--app-font-family', fontFamily);
-        document.body.style.setProperty('--app-font-size', '1rem');
-      }
-
-      applyBodyPreferences();
-      document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
-    })();
-  </script>
+<body>
 
   <main class="doc-page">
     <div class="doc-shell">

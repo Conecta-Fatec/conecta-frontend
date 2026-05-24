@@ -1,0 +1,76 @@
+/* =========================================================
+   17. Post Único 
+========================================================= */
+.single-post-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem var(--page-pad);
+  position: sticky;
+  top: 0;
+  background: var(--surface-color);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  z-index: 10;
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.back-btn {
+  color: var(--text-color);
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: var(--surface-hover);
+}
+
+.single-post-view {
+  padding: 1rem var(--page-pad);
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.single-post-view .post-card {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.reply-bar-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: var(--content-width); /* Respeita a largura ao lado da sidebar */
+  background: var(--surface-color);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-top: var(--hairline) solid var(--line-color);
+  padding: 0.75rem var(--page-pad);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1040;
+}
+
+
+.reply-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.reply-input-wrapper input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  outline: none;
+  font-size: 1rem;
+}

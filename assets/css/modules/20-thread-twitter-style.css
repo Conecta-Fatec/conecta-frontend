@@ -1,0 +1,97 @@
+/* =========================================================
+   19. Estilo de Thread (X/Twitter) c/ Linha Vertical
+========================================================= */
+
+/* Container da conversa com hover suave */
+.tw-thread-container {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.tw-thread-container:hover {
+  background: var(--surface-hover);
+}
+
+.tw-thread-container:last-child {
+  border-bottom: none;
+}
+
+/* Base do comentário: flexível e limpa */
+.tw-comment-wrapper {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+/* Coluna do Avatar e da Linha */
+.tw-avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1rem;
+  margin-left: var(--page-pad);
+  margin-right: 0.85rem;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.tw-avatar-col .comment-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+}
+
+/* Garante que o avatar fique na frente da linha */
+.tw-avatar-link {
+  z-index: 2;
+}
+
+/* A Linha Mágica do X */
+.tw-thread-line {
+  width: 2px;
+  background-color: var(--line-color);
+  flex-grow: 1; /* Cresce para preencher todo o comentário */
+  margin-top: 0.25rem;
+  margin-bottom: -1rem; /* Puxa a linha para dentro do padding do próximo comentário */
+  z-index: 1;
+}
+
+/* Coluna do Texto do Comentário */
+.tw-content-col {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
+  padding-right: var(--page-pad);
+}
+
+/* Ajustes específicos para o preview apertadinho do Feed */
+.inline-comments-wrapper .tw-thread-container:hover {
+  background: transparent;
+}
+
+.inline-comments-wrapper .tw-avatar-col {
+  padding-top: 0.65rem;
+  width: 30px;
+  margin-left: 0; /* Remove a margem extra no preview */
+}
+
+.inline-comments-wrapper .tw-avatar-col .comment-avatar {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+}
+
+.inline-comments-wrapper .tw-content-col {
+  padding-top: 0.65rem;
+  padding-bottom: 0.2rem;
+  padding-right: 0; /* Remove a margem extra no preview */
+}
+
+.inline-comments-wrapper .tw-thread-line {
+  margin-bottom: -0.65rem;
+}

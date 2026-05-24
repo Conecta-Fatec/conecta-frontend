@@ -1,0 +1,71 @@
+/* =========================================================
+   04. Formulários
+========================================================= */
+.form-control,
+.form-select,
+.custom-input,
+.community-form-area input,
+.community-form-area textarea,
+.community-form-area select,
+.settings-field select {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.72rem 0.95rem;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  background: color-mix(in srgb, var(--surface-solid) 78%, transparent) !important;
+  color: var(--text-color) !important;
+  outline: 0;
+  box-shadow: none !important;
+}
+
+textarea,
+.community-form-area textarea {
+  resize: vertical;
+}
+
+#editBio,
+#editCommunityBio,
+#communityBio {
+  width: 100% !important;
+  height: 150px !important;
+  min-height: 150px !important;
+  max-height: 150px !important;
+  resize: none !important;
+  overflow-y: auto;
+}
+
+:where(.form-control, .form-select, .custom-input, .community-form-area input, .community-form-area textarea, .settings-field select):focus {
+  border-color: var(--border-strong) !important;
+  background: var(--surface-solid) !important;
+  box-shadow: 0 0 0 0.18rem var(--primary-soft) !important;
+}
+
+.community-form-area,
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.community-form-area label,
+.settings-field label {
+  color: var(--text-color);
+  font-size: 0.92rem;
+  font-weight: var(--weight-strong);
+}
+
+.community-form-area input[type="file"] {
+  padding: 0.65rem;
+  cursor: pointer;
+}
+
+html.theme-dark input[type="file"]::file-selector-button,
+body.theme-dark input[type="file"]::file-selector-button {
+  color: #0f172a;
+}
+
+html.theme-dark .btn-close,
+body.theme-dark .btn-close {
+  filter: invert(1) grayscale(100%);
+}

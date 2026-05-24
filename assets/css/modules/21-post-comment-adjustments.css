@@ -1,0 +1,314 @@
+/* =========================================================
+   20. Ajustes de posts, comentários e respostas
+========================================================= */
+.post-card-clickable {
+  cursor: pointer;
+}
+
+.post-card-clickable :is(a, button, textarea, input) {
+  cursor: auto;
+}
+
+.post-card .post-author,
+.post-card .avatar-link,
+.post-card .post-community-chip,
+.post-card .post-full-link,
+.post-card .post-action-btn {
+  cursor: pointer;
+}
+
+.post-full-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  font-size: 0.86rem;
+  font-weight: var(--weight-strong);
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+
+.post-full-link:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+  transform: none !important;
+}
+
+.single-post-header {
+  justify-content: space-between;
+}
+
+.single-post-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  min-width: 0;
+}
+
+.single-post-view .post-card {
+  cursor: default;
+}
+
+.single-post-view .post-card:hover {
+  border-color: transparent !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+.reply-bar-container {
+  display: none !important;
+}
+
+.post-comments-empty {
+  margin: 0;
+  padding: 2.5rem var(--page-pad);
+  border-top: var(--hairline) solid var(--line-color);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.post-comments-more {
+  display: flex;
+  justify-content: center;
+  padding: 1rem var(--page-pad) 1.5rem;
+  border-top: var(--hairline) solid var(--line-color);
+}
+
+#post-comments-list {
+  border-top: var(--hairline) solid var(--line-color);
+}
+
+.tw-thread-container {
+  display: flex;
+  flex-direction: column;
+  border-bottom: var(--hairline) solid var(--line-color);
+  background: transparent !important;
+}
+
+.tw-thread-container:hover {
+  background: transparent !important;
+}
+
+.tw-thread-container:last-child {
+  border-bottom: 0;
+}
+
+.tw-comment-wrapper {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.tw-avatar-col {
+  display: flex;
+  flex: 0 0 2.75rem;
+  flex-direction: column;
+  align-items: center;
+  width: 2.75rem;
+  margin: 0 0.85rem 0 var(--page-pad);
+  padding-top: 1rem;
+}
+
+.tw-avatar-col .comment-avatar {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+.tw-avatar-link {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  color: inherit;
+}
+
+.tw-thread-line {
+  width: 0.125rem;
+  flex: 1 1 auto;
+  margin-top: 0.35rem;
+  background: var(--line-color);
+}
+
+.tw-content-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.95rem var(--page-pad) 0.8rem 0;
+}
+
+.tw-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.22rem 0.36rem;
+  margin-bottom: 0.2rem;
+  line-height: 1.28;
+}
+
+.tw-author-name {
+  color: var(--text-color) !important;
+  font-size: 0.96rem;
+  font-weight: var(--weight-strong);
+  text-decoration: none !important;
+}
+
+.tw-author-name:hover,
+.tw-username:hover,
+.tw-reply-target:hover {
+  color: var(--primary-color) !important;
+  text-decoration: underline !important;
+}
+
+.tw-username,
+.tw-date,
+.tw-reply-arrow,
+.tw-reply-target {
+  color: var(--text-muted) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none !important;
+}
+
+.tw-reply-arrow {
+  margin-inline: 0.1rem;
+}
+
+.tw-reply-target {
+  font-weight: var(--weight-strong);
+}
+
+.tw-text {
+  margin: 0.2rem 0 0.55rem;
+  color: var(--text-soft);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.thread-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.9rem !important;
+  margin-top: 0.1rem;
+}
+
+.thread-actions .post-action-btn,
+.thread-text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+  min-height: 1.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: var(--weight-strong);
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.thread-actions .post-action-btn:hover,
+.thread-text-action:hover {
+  color: var(--primary-color);
+  transform: translateY(-0.04rem);
+}
+
+.thread-actions .post-action-btn svg {
+  width: 0.98rem;
+  height: 0.98rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.thread-actions .post-action-btn.liked svg,
+.thread-actions .post-action-btn.text-primary-custom svg {
+  fill: currentColor;
+  stroke: none;
+}
+
+.thread-text-action.delete-action {
+  color: var(--danger-color) !important;
+}
+
+.thread-text-action.delete-action:hover {
+  color: #dc2626 !important;
+}
+
+.comment-edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tk-replies-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 var(--page-pad) 0.95rem calc(var(--page-pad) + 3.6rem);
+  margin: 0;
+}
+
+.tk-replies-line {
+  display: inline-flex;
+  width: 1.55rem;
+  height: var(--hairline);
+  background: var(--line-color);
+}
+
+.tk-replies-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0;
+  font-size: 0.86rem;
+  font-weight: var(--weight-strong);
+}
+
+.tk-replies-btn:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+#postInteractionModal .post-modal-content {
+  background: var(--surface-color);
+  border: var(--hairline) solid var(--border-color);
+  box-shadow: 0 1.5rem 3.5rem var(--shadow-color);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+#postInteractionModal textarea {
+  width: 100%;
+  min-height: 9.375rem;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+#postInteractionModal textarea::placeholder {
+  color: var(--text-muted);
+}

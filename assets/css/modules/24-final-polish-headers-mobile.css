@@ -1,0 +1,62 @@
+/* =========================================================
+   23. Ajustes finais: headers, fontes e ações
+========================================================= */
+.feed-kicker {
+  display: none !important;
+}
+
+.feed-header-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.minigames-home-btn {
+  border: var(--hairline) solid var(--border-color);
+  background: var(--surface-color);
+}
+
+.minigames-modal-content {
+  overflow: hidden;
+}
+
+.mobile-minigames-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.post-text,
+.tw-text {
+  margin-bottom: 0.42rem !important;
+}
+
+.post-actions,
+.thread-actions {
+  margin-top: 0.18rem !important;
+}
+
+.mobile-compose-fab {
+  border-color: var(--primary-color) !important;
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: 0 0.75rem 1.875rem rgba(37, 99, 235, 0.22) !important;
+}
+
+.mobile-compose-fab:hover,
+.mobile-compose-fab:focus {
+  border-color: var(--primary-strong) !important;
+  background: var(--primary-strong) !important;
+  color: #fff !important;
+  transform: translateY(-0.08rem);
+}
+
+.mobile-compose-fab span {
+  display: block;
+  transform: translateY(-0.06rem);
+}

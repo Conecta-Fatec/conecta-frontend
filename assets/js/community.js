@@ -13,16 +13,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  let currentUser = await loadLoggedUser();
+  let currentUser = null;
   let currentCommunity = null;
   let currentSlug = slug;
   let editCommunityModal = null;
   let commCropper = null;
-
-  if (window.ConectaPosts) {
-    ConectaPosts.currentUser = currentUser;
-    ConectaPosts.currentUserNickname = currentUser?.nickname || '';
-  }
 
   const commName = document.getElementById('comm-name');
   const commDesc = document.getElementById('comm-desc');
@@ -36,6 +31,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const publishBtn = document.getElementById('publishCommunityPostBtn');
   const saveCommunityBtn = document.getElementById('saveCommunityBtn');
   const createPostCard = document.getElementById('community-create-post-card');
+  const communitySidebarPostBtn = document.getElementById('communitySidebarPostBtn');
+  const communityMobilePostFab = document.getElementById('communityMobilePostFab');
+  const communityHero = document.querySelector('.community-page-hero');
   const communityGeneralTab = document.getElementById('community-general-tab');
   const communityFriendsTab = document.getElementById('community-friends-tab');
 
@@ -71,11 +69,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function normalizeCommunityDetails(data = {}) {
     const community = normalizeCommunity(data.community || data, data.members_count);
+    community.is_creator = Boolean(community.is_creator || data.is_creator);
     const members = normalizeArray(data.members, 'results').length
       ? normalizeArray(data.members, 'results')
       : normalizeArray(community.members, 'results');
     const posts = normalizeArray(data.posts, 'results', 'items');
-    const isMember = Boolean(data.is_member ?? community.is_member ?? community.member ?? community.is_creator);
+    const isMember = Boolean(data.is_member || community.is_member || community.member || community.is_creator || data.is_creator);
     return {
       community,
       members,
@@ -85,9 +84,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
+  function communityPostSkeletonHTML() {
+    return `
+      <div class="post-card community-post-skeleton placeholder-glow" aria-hidden="true">
+        <span class="placeholder community-skeleton-avatar-sm"></span>
+        <span class="community-skeleton-post-body">
+          <span class="placeholder community-skeleton-line community-skeleton-line-md"></span>
+          <span class="placeholder community-skeleton-line community-skeleton-line-sm"></span>
+          <span class="placeholder community-skeleton-line community-skeleton-line-lg"></span>
+          <span class="placeholder community-skeleton-line community-skeleton-line-xl"></span>
+        </span>
+      </div>
+    `;
+  }
+
+  function communityMemberSkeletonHTML() {
+    return `
+      <div class="member-item community-member-skeleton placeholder-glow" aria-hidden="true">
+        <span class="placeholder community-skeleton-avatar-sm"></span>
+        <span class="community-skeleton-member-lines">
+          <span class="placeholder community-skeleton-line community-skeleton-line-md"></span>
+          <span class="placeholder community-skeleton-line community-skeleton-line-sm"></span>
+        </span>
+      </div>
+    `;
+  }
+
+  function renderCommunitySkeleton() {
+    communityHero?.classList.add('community-hero-loading');
+    communityHero?.setAttribute('aria-busy', 'true');
+
+    if (commAvatar) {
+      commAvatar.classList.remove('has-image', 'profile-skeleton-avatar', 'community-skeleton-avatar');
+      commAvatar.classList.add('profile-skeleton-avatar', 'community-skeleton-avatar');
+      commAvatar.innerHTML = '<span class="profile-skeleton-dot" aria-hidden="true"></span>';
+    }
+
+    if (commName) commName.innerHTML = '<span class="profile-skeleton-line community-skeleton-title" aria-hidden="true"></span>';
+    if (commCreator) commCreator.innerHTML = '<span class="profile-skeleton-line community-skeleton-meta" aria-hidden="true"></span>';
+    if (commMembersCount) commMembersCount.innerHTML = '<span class="profile-skeleton-line community-skeleton-meta-short" aria-hidden="true"></span>';
+    if (commDesc) commDesc.innerHTML = '<span class="profile-skeleton-line community-skeleton-desc" aria-hidden="true"></span>';
+
+    if (commActionBtn) commActionBtn.style.display = 'none';
+    if (deleteCommunityBtn) deleteCommunityBtn.style.display = 'none';
+    if (createPostCard) createPostCard.style.display = 'none';
+    if (communitySidebarPostBtn) communitySidebarPostBtn.style.display = 'none';
+    if (communityMobilePostFab) communityMobilePostFab.style.display = 'none';
+    if (postsContainer) postsContainer.innerHTML = communityPostSkeletonHTML().repeat(2);
+    if (membersContainer) membersContainer.innerHTML = communityMemberSkeletonHTML().repeat(4);
+  }
+
+  function clearCommunitySkeleton() {
+    communityHero?.classList.remove('community-hero-loading');
+    communityHero?.removeAttribute('aria-busy');
+    commAvatar?.classList.remove('profile-skeleton-avatar', 'community-skeleton-avatar');
+  }
+
   function renderCommunityAvatar(community = {}) {
     if (!commAvatar) return;
-    commAvatar.classList.remove('has-image');
+    commAvatar.classList.remove('has-image', 'profile-skeleton-avatar', 'community-skeleton-avatar');
     commAvatar.setAttribute('data-photo-viewer', 'community');
     commAvatar.dataset.photoTitle = community.name || 'Comunidade';
 
@@ -183,8 +238,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { community, members, posts, isMember, membersCount } = normalizeCommunityDetails(data);
     currentCommunity = community;
     currentSlug = community.slug || currentSlug;
+    clearCommunitySkeleton();
 
     const creator = creatorFromCommunity(community);
+    const isCreator = Boolean(community.is_creator || data.is_creator || isSameUser(creator, currentUser));
     const creatorName = userDisplayName(creator);
     const creatorNickname = creator.nickname || community.creator_nickname || '';
 
@@ -201,7 +258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (commActionBtn) {
       commActionBtn.style.display = 'inline-flex';
-      if (community.is_creator) {
+      if (isCreator) {
         commActionBtn.textContent = 'Editar comunidade';
         commActionBtn.className = 'btn btn-outline-primary';
         commActionBtn.onclick = openEditCommunityModal;
@@ -225,11 +282,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (deleteCommunityBtn) {
-      deleteCommunityBtn.style.display = community.is_creator ? 'inline-flex' : 'none';
+      deleteCommunityBtn.style.display = isCreator ? 'inline-flex' : 'none';
     }
 
     if (createPostCard) {
-      createPostCard.style.display = isMember ? 'block' : 'none';
+      createPostCard.style.display = isMember ? 'grid' : 'none';
+      createPostCard.setAttribute('aria-hidden', isMember ? 'false' : 'true');
+    }
+
+    if (communitySidebarPostBtn) {
+      communitySidebarPostBtn.style.display = isMember ? 'inline-flex' : 'none';
+    }
+
+    if (communityMobilePostFab) {
+      communityMobilePostFab.style.display = isMember ? 'flex' : 'none';
     }
 
     communityPostsCache = posts;
@@ -295,30 +361,11 @@ async function loadCommunityDetails(silent = false) {
         silent: silent,
         storage: 'session',
         onLoading: () => {
-          const skeletonPost = `
-            <div class="post-card placeholder-glow" style="border: 1px solid var(--border-color); background: var(--post-surface); padding: 1.15rem; border-radius: 1.25rem; display: flex; gap: 1rem; width: 100%;">
-              <div class="placeholder rounded-circle" style="width: 50px; height: 50px; background-color: var(--line-color); flex-shrink: 0;"></div>
-              <div class="w-100 mt-1">
-                <div class="placeholder rounded w-50 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-25 mb-4" style="height: 12px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-100 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-75 mb-2" style="height: 16px; background-color: var(--line-color);"></div>
-              </div>
-            </div>
-          `;
-          
-          const skeletonMember = `
-            <div class="member-item placeholder-glow" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.82rem 0; width: 100%; border-bottom: 1px solid var(--line-color);">
-              <div class="placeholder rounded-circle" style="width: 3.55rem; height: 3.55rem; background-color: var(--line-color); flex-shrink: 0;"></div>
-              <div class="w-100 mt-1">
-                <div class="placeholder rounded w-75 mb-2" style="height: 14px; background-color: var(--line-color);"></div>
-                <div class="placeholder rounded w-50" style="height: 12px; background-color: var(--line-color);"></div>
-              </div>
-            </div>
-          `;
-
-          if (postsContainer) postsContainer.innerHTML = skeletonPost + skeletonPost + skeletonPost;
-          if (membersContainer) membersContainer.innerHTML = skeletonMember + skeletonMember + skeletonMember + skeletonMember;
+          if (!silent) renderCommunitySkeleton();
+          else {
+            if (postsContainer) postsContainer.innerHTML = communityPostSkeletonHTML().repeat(2);
+            if (membersContainer) membersContainer.innerHTML = communityMemberSkeletonHTML().repeat(4);
+          }
         },
         onError: (error, hasCache) => {
           if (!silent && !hasCache) {
@@ -506,6 +553,19 @@ async function loadCommunityDetails(silent = false) {
 
   publishBtn?.addEventListener('click', publishCommunityPost);
 
+  createPostCard?.addEventListener('click', (event) => {
+    if (!currentIsMember || event.target.closest('button')) return;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).show();
+    setTimeout(() => document.getElementById('communityPostContent')?.focus(), 120);
+  });
+
+  createPostCard?.addEventListener('keydown', (event) => {
+    if (!currentIsMember || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).show();
+    setTimeout(() => document.getElementById('communityPostContent')?.focus(), 120);
+  });
+
   document.getElementById('communityPostContent')?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
@@ -675,6 +735,18 @@ async function loadCommunityDetails(silent = false) {
       if (icon) icon.classList.remove('spin-animation');
       refreshCommBtn.disabled = false;
     });
+  }
+
+  renderCommunitySkeleton();
+
+  try {
+    currentUser = await loadLoggedUser();
+    if (window.ConectaPosts) {
+      ConectaPosts.currentUser = currentUser;
+      ConectaPosts.currentUserNickname = currentUser?.nickname || '';
+    }
+  } catch (error) {
+    console.error(error);
   }
 
   await loadCommunityDetails();

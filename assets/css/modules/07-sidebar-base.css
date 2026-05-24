@@ -1,0 +1,140 @@
+/* =========================================================
+   SIDEBAR ESTILO MODERNO (MENU LATERAL)
+========================================================= */
+
+/* Limpeza do container base */
+.modern-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.modern-sidebar .sidebar-logo {
+  margin-bottom: 0.5rem;
+  padding-left: 0.8rem;
+}
+
+/* Navegação e links em "Pílulas" */
+.modern-nav {
+  width: 100%;
+  gap: 0.2rem;
+}
+
+.modern-nav .sidebar-link {
+  width: fit-content;
+  padding: 0.75rem 1.25rem 0.75rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Desativa os efeitos antigos de ::before da sidebar */
+.modern-nav .sidebar-link::before {
+  display: none !important;
+}
+
+.modern-nav .sidebar-link:hover {
+  background: var(--surface-hover);
+  transform: none !important; 
+}
+
+/* Estado ativo */
+/* Estado ativo (Indicador visual) */
+.modern-nav .sidebar-link.active {
+  font-weight: 700;
+  background: var(--primary-soft) !important; /* Fundo azul suave */
+  color: var(--primary-strong) !important; /* Texto azul forte */
+  transform: translateX(6px) !important; /* Desloca levemente para a direita */
+}
+
+/* Deixa o traço do ícone mais grosso na página atual */
+.modern-nav .sidebar-link.active .nav-icon {
+  stroke-width: 2.5; 
+}
+
+/* Botão "Novo Post" */
+.modern-post-btn {
+  width: 90%;
+  min-height: 3.2rem;
+  border-radius: 9999px !important;
+  font-size: 1.05rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* Base das ações do usuário no rodapé */
+.modern-sidebar-actions {
+  width: 100%;
+  margin-top: auto;
+  padding-bottom: 1rem;
+}
+
+/* Botão do Usuário (Pílula) */
+.user-menu-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.65rem;
+  border: none !important;
+  border-radius: 9999px !important;
+  background: transparent;
+  text-align: left;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.user-menu-pill:hover,
+.user-menu-pill:focus,
+.user-menu-pill.show {
+  background: var(--surface-hover) !important;
+  outline: none;
+}
+
+.user-menu-pill .user-info-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.user-menu-pill .user-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-menu-pill .user-details strong {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--text-color);
+}
+
+.user-menu-pill .user-details span {
+  font-size: 0.9rem;
+  color: var(--text-muted) !important;
+}
+
+.user-menu-pill .more-options-icon {
+  color: var(--text-color);
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+/* Vira a setinha quando o balão está aberto */
+.user-menu-pill.show .more-options-icon {
+  transform: rotate(180deg);
+}

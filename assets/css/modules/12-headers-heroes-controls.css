@@ -1,0 +1,83 @@
+/* =========================================================
+   09. Cabeçalhos, heróis e controles
+========================================================= */
+.feed-header,
+.feed-hero,
+.communities-hero,
+.community-page-hero {
+  padding: var(--page-pad);
+  border-bottom: var(--hairline) solid var(--line-color);
+}
+
+.feed-hero,
+.feed-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.feed-header h1,
+.communities-hero-content > h1,
+.community-page-info h1,
+.profile-main-info h1 {
+  margin: 0 0 0.55rem !important;
+}
+
+.feed-header p,
+.communities-hero-content > p,
+.community-page-info p {
+  margin: 0;
+}
+
+.notification-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-pill);
+  color: var(--text-color);
+  font-weight: var(--weight-strong);
+}
+
+.notification-home-btn strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.45rem;
+  min-height: 1.45rem;
+  padding: 0 0.35rem;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.feed-control-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.95rem var(--page-pad);
+  border-width: 0 0 var(--hairline);
+  border-radius: 0;
+}
+
+.feed-control-text p,
+.communities-section-header p {
+  margin: 0.18rem 0 0;
+  color: var(--text-muted);
+}
+
+.feed-tabs {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.feed-tab {
+  border: 0;
+  color: var(--text-muted);
+}
+
+.feed-tab-content {
+  padding: 0;
+}

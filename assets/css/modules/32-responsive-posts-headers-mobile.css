@@ -1,0 +1,259 @@
+/* =========================================================
+   Responsividade — Ajustes finais de posts e comentários
+========================================================= */
+
+@media (max-width: 48rem) {
+  .post-card,
+  .profile-post-card,
+  .profile-post-item,
+  #posts-container > *,
+  #feed-posts-container > *,
+  #general-posts-container > *,
+  #friends-posts-container > *,
+  #profile-posts-container > *,
+  #public-posts-container > *,
+  #community-posts-container > *,
+  #community-posts-list > * {
+    gap: 0.6rem !important;
+    padding: 0.78rem !important;
+  }
+
+  .post-card .avatar-link,
+  .profile-post-item .avatar-link {
+    flex: 0 0 auto;
+  }
+
+  .post-card .user-avatar,
+  .profile-post-item .user-avatar {
+    width: 2.35rem !important;
+    height: 2.35rem !important;
+    min-width: 2.35rem !important;
+  }
+
+  .post-body,
+  .tw-content-col {
+    min-width: 0 !important;
+  }
+
+  .post-header,
+  .comment-header,
+  .tw-header {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .post-header-main {
+    width: calc(100% - 3.25rem);
+    max-width: calc(100% - 3.25rem);
+    gap: 0.18rem;
+  }
+
+  .post-header-main .post-author {
+    flex: 0 1 auto;
+    max-width: min(20ch, 42vw);
+  }
+
+  .post-header-main .post-username {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .post-header-main .post-date-link {
+    position: absolute;
+    top: 0.78rem;
+    right: 0.78rem;
+    z-index: 2;
+    max-width: 3rem;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+  }
+
+  .post-header-main .post-date-link .date-separator,
+  .tw-date-main .date-separator {
+    display: none !important;
+  }
+
+  .date-full {
+    display: none !important;
+  }
+
+  .date-short {
+    display: inline !important;
+  }
+
+  .tw-content-col {
+    position: relative;
+  }
+
+  .tw-header {
+    width: 100%;
+    padding-right: 3.1rem;
+    flex-wrap: nowrap !important;
+    gap: 0.16rem 0.22rem;
+  }
+
+  .tw-header .tw-author-name {
+    flex: 0 1 auto;
+    max-width: min(20ch, 38vw);
+  }
+
+  .tw-header .tw-username,
+  .tw-header .tw-reply-target {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .tw-header .tw-date-main {
+    position: absolute;
+    top: 0.85rem;
+    right: 0;
+    z-index: 2;
+    max-width: 2.8rem;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+  }
+
+  .inline-comments-wrapper .tw-header .tw-date-main {
+    top: 0.72rem;
+  }
+
+  .tw-author-name,
+  .post-header-main .post-author {
+    font-size: 0.92rem;
+  }
+
+  .post-header-main .post-username,
+  .post-header-main .post-date-link,
+  .post-header-main .post-edited-label,
+  .tw-username,
+  .tw-date,
+  .tw-reply-arrow,
+  .tw-reply-target,
+  .thread-actions .post-action-btn,
+  .thread-text-action {
+    font-size: 0.82rem;
+  }
+
+  .post-text,
+  .tw-text {
+    margin-top: 0.05rem !important;
+    margin-bottom: 0.24rem !important;
+    font-size: 0.94rem;
+    line-height: 1.45 !important;
+  }
+
+  .thread-actions {
+    gap: 0.7rem !important;
+  }
+
+  .inline-post-actions {
+    gap: 0.22rem !important;
+    padding: 0.42rem 0 0.65rem !important;
+  }
+}
+
+/* =========================================================
+   Responsividade — Headers, fontes, ações e mobile
+========================================================= */
+
+@media (max-width: 48rem) {
+  .feed-header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .feed-header-actions .notification-home-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .feed-header-actions .notification-home-btn-label {
+    min-width: 0;
+  }
+
+  .feed-header-actions .notification-home-btn-label > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profile-hero-layout,
+  .community-page-header {
+    grid-template-columns: minmax(7rem, 28%) minmax(0, 1fr) !important;
+    column-gap: 1rem !important;
+    width: 100% !important;
+  }
+
+  .profile-hero-layout {
+    grid-template-areas:
+      "avatar name"
+      "avatar nick"
+      "avatar stats"
+      "course course"
+      "bio bio"
+      "action action" !important;
+  }
+
+  .community-page-header {
+    display: grid !important;
+    grid-template-areas:
+      "avatar info"
+      "action action" !important;
+    align-items: center !important;
+    justify-items: start !important;
+  }
+
+  .community-page-header > .community-page-avatar,
+  .community-page-header > #comm-avatar {
+    grid-area: avatar !important;
+    width: 8rem !important;
+    height: 8rem !important;
+    min-width: 8rem !important;
+    justify-self: start !important;
+  }
+
+  .community-page-header > .community-page-info {
+    grid-area: info !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .community-page-header > .community-action-stack {
+    grid-area: action !important;
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    width: min(100%, 14rem) !important;
+    margin-top: 0.65rem !important;
+  }
+
+  .profile-main-info {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .profile-main-info h1,
+  .community-page-info h1 {
+    max-width: 100% !important;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 30rem) {
+  .profile-hero-layout,
+  .community-page-header {
+    grid-template-columns: 6.8rem minmax(0, 1fr) !important;
+    column-gap: 0.85rem !important;
+  }
+
+  .community-page-header > .community-page-avatar,
+  .community-page-header > #comm-avatar {
+    width: 6.8rem !important;
+    height: 6.8rem !important;
+    min-width: 6.8rem !important;
+  }
+}

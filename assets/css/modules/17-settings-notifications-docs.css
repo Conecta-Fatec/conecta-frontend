@@ -1,0 +1,219 @@
+/* =========================================================
+   15. Configurações, notificações, sobre e documentos
+========================================================= */
+.settings-layout {
+  grid-template-columns: 1fr;
+}
+
+.settings-card {
+  color: var(--text-color);
+}
+
+.settings-card p {
+  margin-bottom: 1rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--section-gap);
+}
+
+.settings-preview {
+  margin-top: 1.125rem;
+  padding: 1rem;
+  border: var(--hairline) dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.settings-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.empty-notification-card {
+  min-height: 13.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.about-project-card,
+.about-resource-card {
+  border-radius: var(--radius-xl);
+  color: var(--text-color);
+}
+
+.about-project-card {
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.about-project-card h2 {
+  max-width: 47.5rem;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+.about-project-card p,
+.about-resource-card p {
+  max-width: 61.25rem;
+  margin: 0 0 0.85rem;
+}
+
+.about-dev-section {
+  margin-top: 1.35rem;
+  padding-top: 1.2rem;
+  border-top: var(--hairline) solid var(--line-color);
+}
+
+.about-dev-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.about-dev-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: var(--hairline) solid var(--line-color);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-solid) 28%, transparent);
+}
+
+.about-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--section-gap);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+}
+
+.about-dev-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+  min-height: 5.5rem;
+  padding: 1rem;
+  border-right: var(--hairline) solid var(--line-color);
+  border-bottom: 0;
+  color: var(--text-color);
+}
+
+.about-dev-item:nth-child(4n),
+.about-dev-item:last-child {
+  border-right: 0;
+}
+
+.about-dev-item:hover {
+  background: var(--surface-hover);
+}
+
+.about-dev-item strong,
+.about-dev-item span,
+.about-dev-item small {
+  display: block;
+  line-height: 1.35;
+}
+
+.about-dev-item span,
+.about-dev-item small {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.about-resource-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 1.25rem;
+}
+
+.about-resource-card p {
+  flex: 1;
+}
+
+.about-resource-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: auto;
+}
+
+.about-resource-link.subtle {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-color) !important;
+}
+
+.about-resource-link.subtle:hover {
+  background: var(--surface-hover) !important;
+  color: var(--primary-color) !important;
+}
+
+.doc-page {
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  color: var(--text-color);
+}
+
+.doc-shell {
+  width: min(96%, 54rem);
+  margin: 0 auto;
+}
+
+.doc-card {
+  width: 100%;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  border-radius: var(--radius-xl);
+}
+
+.doc-card h1 {
+  margin-bottom: 1rem;
+}
+
+.doc-card h2 {
+  margin-top: 1.6rem;
+  margin-bottom: 0.65rem;
+  font-size: 1.15rem;
+}
+
+.doc-card a,
+.doc-back-link {
+  color: var(--primary-color);
+  font-weight: var(--weight-strong);
+}
+
+.doc-back-link {
+  display: inline-flex;
+  margin-bottom: 1rem;
+}
+
+/* =========================================================
+   16. Classes preservadas pelo HTML/JS
+========================================================= */
+.profile-api-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-page-layout {
+  align-items: start;
+}
+
+.community-posts-section {
+  margin-top: 0;
+}
+
+.friend-community-card {
+  min-height: 100%;
+}
+
+.about-layout,
+.settings-account-card {
+  align-items: stretch;
+}

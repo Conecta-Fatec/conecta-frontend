@@ -1,0 +1,431 @@
+/* =========================================================
+   10. Feed, posts e comentários
+========================================================= */
+.feed-create-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem var(--page-pad);
+  border-width: 0 0 var(--hairline);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.feed-create-card:hover {
+  background: var(--surface-hover);
+}
+
+.feed-create-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.feed-create-card-text span {
+  color: var(--text-muted);
+  font-size: 0.93rem;
+}
+
+.posts-list,
+#posts-container,
+#feed-posts-container,
+#general-posts-container,
+#friends-posts-container,
+#profile-posts-container,
+#public-posts-container,
+#community-posts-container,
+#community-posts-list {
+  display: grid !important;
+  gap: var(--card-gap) !important;
+}
+
+.feed-tab-content :is(.posts-list, #posts-container, #feed-posts-container, #general-posts-container, #friends-posts-container),
+.feed-content > :is(.posts-list, #posts-container, #feed-posts-container, #general-posts-container, #friends-posts-container) {
+  padding: 1rem 2% 2rem !important;
+}
+
+.profile-main :is(#profile-posts-container, #public-posts-container, .posts-list),
+.community-main :is(#community-posts-container, #community-posts-list, .posts-list) {
+  padding-top: 0.95rem !important;
+}
+
+.post-card,
+.profile-post-card,
+.profile-post-item,
+#posts-container > *,
+#feed-posts-container > *,
+#general-posts-container > *,
+#friends-posts-container > *,
+#profile-posts-container > *,
+#public-posts-container > *,
+#community-posts-container > *,
+#community-posts-list > * {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--card-gap) !important;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: clamp(0.95rem, 1.3vw, 1.15rem) !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: 1.25rem !important;
+  background: var(--post-surface) !important;
+  box-shadow: none !important;
+}
+
+.post-card:hover,
+.profile-post-card:hover,
+.profile-post-item:hover,
+#posts-container > *:hover,
+#feed-posts-container > *:hover,
+#general-posts-container > *:hover,
+#friends-posts-container > *:hover,
+#profile-posts-container > *:hover,
+#public-posts-container > *:hover,
+#community-posts-container > *:hover,
+#community-posts-list > *:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color)) !important;
+  background: color-mix(in srgb, var(--surface-hover) 80%, transparent) !important;
+  transform: translateY(-0.04rem);
+}
+
+.post-card-highlight {
+  outline: 0.125rem solid var(--primary-soft);
+  outline-offset: -0.125rem;
+}
+
+.post-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.post-header,
+.comment-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.42rem;
+  margin-bottom: 0.2rem;
+}
+
+.post-author:hover,
+.comment-author:hover {
+  color: var(--primary-color);
+}
+
+.post-username::before,
+.comment-username::before,
+.nickname-badge::before {
+  content: "";
+}
+
+.post-text,
+.post-comment p,
+.comment-content {
+  color: var(--text-soft);
+  line-height: 1.58;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.post-text {
+  margin: 0.28rem 0 0.58rem !important;
+}
+
+.post-actions,
+.comment-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.9rem !important;
+  margin-top: 0.08rem;
+}
+
+.post-action-btn,
+.comment-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.post-action-btn:hover,
+.comment-action:hover {
+  color: var(--primary-color);
+  transform: translateY(-0.06rem);
+}
+
+.post-action-btn[disabled],
+.comment-action[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.post-action-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.comment-action svg {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
+.post-action-btn svg,
+.comment-action svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.delete-action {
+  color: var(--danger-color) !important;
+}
+
+.owner-action {
+  color: var(--text-muted);
+}
+
+.post-community-chip,
+.profile-post-source {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.15rem;
+  color: var(--primary-color) !important;
+  font-size: 0.84rem;
+  font-weight: var(--weight-strong);
+  line-height: 1.35;
+}
+
+.post-community-chip::before {
+  content: "" !important;
+}
+
+.post-community-chip:hover,
+.profile-post-source:hover {
+  color: var(--primary-strong) !important;
+  text-decoration: underline;
+}
+
+.comments-section {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: var(--hairline) solid var(--line-color);
+}
+
+.comments-list {
+  display: grid;
+  gap: 0;
+}
+
+.post-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 0;
+  padding: 0.78rem 0;
+  border: 0;
+  border-top: var(--hairline) solid var(--line-color);
+  border-radius: 0;
+  background: transparent;
+}
+
+.post-comment:first-child {
+  border-top: 0;
+}
+
+.comment-body {
+  width: 100%;
+  min-width: 0;
+}
+
+.comment-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.comment-text-line {
+  display: block;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.comment-replies,
+.comment-replies-one {
+  margin-top: 0.65rem;
+  padding-left: 1rem;
+  border-left: 0.125rem solid var(--line-color);
+}
+
+.comment-replies-one {
+  padding-top: 0.35rem;
+  padding-bottom: 0.25rem;
+}
+
+.comment-reply-inline,
+.comment-flat {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.reply-next-btn {
+  margin-top: 0.35rem;
+}
+
+.reply-box,
+.comment-input-row,
+.comment-edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.like-count,
+.comment-like-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.feed-footer,
+.profile-posts-end,
+.community-posts-end,
+#posts-container > .feed-footer,
+#feed-posts-container > .feed-footer,
+#general-posts-container > .feed-footer,
+#friends-posts-container > .feed-footer,
+#profile-posts-container > .feed-footer,
+#public-posts-container > .feed-footer,
+#community-posts-container > .feed-footer,
+#community-posts-list > .feed-footer {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0.75rem 0 0 !important;
+  padding: 1.25rem 0 !important;
+  border: 0 !important;
+  border-top: var(--hairline) solid var(--line-color) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-muted) !important;
+  text-align: center !important;
+  font-size: 0.92rem !important;
+  font-weight: var(--weight-strong) !important;
+  transform: none !important;
+}
+
+.feed-footer:hover,
+.profile-posts-end:hover,
+.community-posts-end:hover,
+#posts-container > .feed-footer:hover,
+#feed-posts-container > .feed-footer:hover,
+#general-posts-container > .feed-footer:hover,
+#friends-posts-container > .feed-footer:hover,
+#profile-posts-container > .feed-footer:hover,
+#public-posts-container > .feed-footer:hover,
+#community-posts-container > .feed-footer:hover,
+#community-posts-list > .feed-footer:hover {
+  border-color: var(--line-color) !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+.notification-home-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.notification-home-btn svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   11. Modais e visualização de foto
+========================================================= */
+.post-modal-content {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  color: var(--text-color);
+}
+
+.post-modal-header,
+.post-modal-footer {
+  border-color: var(--line-color) !important;
+  padding: 1rem 1.2rem;
+}
+
+.post-modal-header h2 {
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.post-modal-body {
+  padding: 1.2rem;
+}
+
+.create-post-modal-area {
+  display: flex;
+  gap: 0.9rem;
+}
+
+.create-post-modal-area textarea {
+  width: 100%;
+  min-height: 9.375rem;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.post-modal-warning {
+  margin: 1rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.photo-viewer-dialog {
+  max-width: min(33.75rem, 92vw);
+}
+
+.photo-viewer-content {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--surface-color);
+}
+
+.photo-viewer-img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+}

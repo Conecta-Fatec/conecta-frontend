@@ -1,0 +1,80 @@
+/* =========================================================
+   BALÃO FLUTUANTE (DROPDOWN) DO USUÁRIO
+========================================================= */
+
+/* =========================================================
+   BALÃO FLUTUANTE (DROPDOWN) DO USUÁRIO
+========================================================= */
+
+/* Define o container pai como ponto de referência para que o balão não fuja */
+.modern-sidebar-actions {
+  position: relative;
+  width: 100%;
+  margin-top: auto;
+  padding-bottom: 1rem;
+}
+
+@keyframes balloonPopUp {
+  0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.user-dropdown-menu {
+  position: absolute !important;
+  bottom: calc(100% + 0.5rem) !important; /* Força o balão a ficar acima do perfil */
+  top: auto !important;
+  left: 0 !important;
+  margin: 0 !important;
+  width: 100%;
+  min-width: 15rem;
+  padding: 0.5rem;
+  border: var(--hairline) solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--surface-color);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  transform-origin: bottom center;
+  animation: balloonPopUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.user-dropdown-menu .dropdown-divider {
+  border-color: var(--line-color);
+  margin: 0.4rem 0;
+}
+
+.user-dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-color);
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.user-dropdown-menu .dropdown-item:hover,
+.user-dropdown-menu .dropdown-item:focus {
+  background-color: var(--surface-hover);
+  color: var(--text-color);
+}
+
+.user-dropdown-menu .dropdown-item.text-danger:hover {
+  background-color: var(--danger-soft) !important;
+  color: var(--danger-color) !important;
+}
+
+.user-menu-pill.show .more-options-icon {
+  color: var(--primary-color);
+}
+
+.user-dropdown-menu .dropdown-item:hover,
+.user-dropdown-menu .dropdown-item:focus {
+  background-color: var(--surface-hover);
+  color: var(--text-color);
+}
+
+.user-dropdown-menu .dropdown-item.text-danger:hover {
+  background-color: var(--danger-soft) !important;
+  color: var(--danger-color) !important;
+}

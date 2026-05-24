@@ -1,0 +1,272 @@
+/* =========================================================
+   25. Ajustes do modo OLED
+   Mantém o fundo principal preto, mas destaca áreas clicáveis.
+========================================================= */
+html.theme-oled body,
+body.theme-oled {
+  background: #000000 !important;
+}
+
+html.theme-oled :where(
+  .settings-card,
+  .profile-card,
+  .profile-section,
+  .profile-api-card,
+  .profile-hero-card,
+  .side-card,
+  .feed-create-card,
+  .feed-control-card,
+  .communities-summary-card,
+  .community-create-box,
+  .community-create-card,
+  .community-card,
+  .friend-card,
+  .post-modal-content,
+  .cookie-banner,
+  .notification-home-btn,
+  .mobile-offcanvas,
+  .about-project-card,
+  .about-resource-card,
+  .doc-card
+),
+body.theme-oled :where(
+  .settings-card,
+  .profile-card,
+  .profile-section,
+  .profile-api-card,
+  .profile-hero-card,
+  .side-card,
+  .feed-create-card,
+  .feed-control-card,
+  .communities-summary-card,
+  .community-create-box,
+  .community-create-card,
+  .community-card,
+  .friend-card,
+  .post-modal-content,
+  .cookie-banner,
+  .notification-home-btn,
+  .mobile-offcanvas,
+  .about-project-card,
+  .about-resource-card,
+  .doc-card
+) {
+  background: var(--surface-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+html.theme-oled :where(
+  .post-card,
+  .profile-post-card,
+  .profile-post-item,
+  #posts-container > *,
+  #feed-posts-container > *,
+  #general-posts-container > *,
+  #friends-posts-container > *,
+  #profile-posts-container > *,
+  #public-posts-container > *,
+  #community-posts-container > *,
+  #community-posts-list > *
+),
+body.theme-oled :where(
+  .post-card,
+  .profile-post-card,
+  .profile-post-item,
+  #posts-container > *,
+  #feed-posts-container > *,
+  #general-posts-container > *,
+  #friends-posts-container > *,
+  #profile-posts-container > *,
+  #public-posts-container > *,
+  #community-posts-container > *,
+  #community-posts-list > *
+) {
+  background: var(--post-surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+html.theme-oled :where(.community-card, .friend-card, .feed-create-card, .post-card, .profile-post-card, .profile-post-item, .side-community-item, .side-game-item),
+body.theme-oled :where(.community-card, .friend-card, .feed-create-card, .post-card, .profile-post-card, .profile-post-item, .side-community-item, .side-game-item) {
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+html.theme-oled :where(.community-card, .friend-card, .feed-create-card, .post-card, .profile-post-card, .profile-post-item):hover,
+body.theme-oled :where(.community-card, .friend-card, .feed-create-card, .post-card, .profile-post-card, .profile-post-item):hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--border-strong) !important;
+}
+
+html.theme-oled :where(.post-author, .comment-author, .community-card h3, .friend-card-name, .side-card strong),
+body.theme-oled :where(.post-author, .comment-author, .community-card h3, .friend-card-name, .side-card strong) {
+  color: var(--text-color) !important;
+}
+
+html.theme-oled :where(.post-text, .comment-content, .post-comment p, .community-card p, .friend-card-body p, .side-card span),
+body.theme-oled :where(.post-text, .comment-content, .post-comment p, .community-card p, .friend-card-body p, .side-card span) {
+  color: var(--text-soft) !important;
+}
+
+/* =========================================================
+   MODO DE DESEMPENHO (REDUZIR TRANSPARÊNCIA)
+========================================================= */
+body.reduce-transparency * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.reduce-transparency .glass-surface,
+body.reduce-transparency .sidebar,
+body.reduce-transparency .mobile-topbar,
+body.reduce-transparency .mobile-bottom-nav,
+body.reduce-transparency .single-post-header,
+body.reduce-transparency .user-dropdown-menu {
+  background-color: var(--surface-solid) !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   NOVO DESIGN DA PÁGINA DE CONFIGURAÇÕES
+========================================================= */
+.settings-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.settings-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.settings-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.settings-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.settings-divider {
+  border-color: var(--line-color);
+  margin: 1.5rem 0;
+  opacity: 1;
+}
+
+/* Seletores de Tema em Card */
+.theme-selector {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.theme-option {
+  flex: 1;
+  min-width: 100px;
+  cursor: pointer;
+}
+
+.theme-option input {
+  display: none;
+}
+
+.theme-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-color);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.light-theme-card { background: #ffffff; color: #000000; }
+.dark-theme-card { background: #15202b; color: #ffffff; }
+.oled-theme-card { background: #000000; color: #e7e9ea; border-color: #333; }
+
+.theme-option input:checked + .theme-card {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-soft);
+  transform: translateY(-2px);
+}
+
+/* Chaves Seletoras (Toggles) estilo iOS/Android */
+.settings-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.settings-toggle-row .toggle-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-toggle-row .toggle-info strong {
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.settings-toggle-row .toggle-info span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 0.2rem;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--line-color);
+  transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--success-color);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}

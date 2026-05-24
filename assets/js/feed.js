@@ -327,65 +327,176 @@ window.loadPosts = async function loadPosts(silent = false) {
   loadPosts();
 
   // ==========================================
-  // CARREGAR COMUNIDADES SUGERIDAS NA SIDEBAR DIREITA (C/ CACHE)
+  // COMUNIDADES SUGERIDAS NA SIDEBAR DIREITA
+  // - renderiza sugestões aleatórias a cada carregamento
+  // - mantém cache apenas dos dados, não do HTML, para não travar a ordem
   // ==========================================
-  async function loadSuggestedCommunities() {
-    const container = document.getElementById('right-sidebar-communities');
-    if (!container) return;
+  const suggestedCommunitiesContainer = document.getElementById('right-sidebar-communities');
+  const shuffleSuggestedCommunitiesBtn = document.getElementById('shuffleSuggestedCommunitiesBtn');
+  let suggestedCommunitiesPool = [];
 
-    const cacheKey = '@conecta:suggested_communities_html';
-    const cachedHTML = sessionStorage.getItem(cacheKey);
-    
-    if (cachedHTML) {
-      container.innerHTML = cachedHTML;
+  function suggestedSidebarSkeletonHTML() {
+    return `
+      <div class="right-sidebar-skeleton-item placeholder-glow">
+        <span class="placeholder right-sidebar-skeleton-avatar"></span>
+        <span class="right-sidebar-skeleton-lines">
+          <span class="placeholder col-8"></span>
+          <span class="placeholder col-5"></span>
+        </span>
+      </div>
+      <div class="right-sidebar-skeleton-item placeholder-glow">
+        <span class="placeholder right-sidebar-skeleton-avatar"></span>
+        <span class="right-sidebar-skeleton-lines">
+          <span class="placeholder col-7"></span>
+          <span class="placeholder col-4"></span>
+        </span>
+      </div>
+    `;
+  }
+
+  function uniqueCommunities(communities = []) {
+    const seen = new Set();
+    return communities
+      .map((community) => normalizeCommunity(community))
+      .filter((community) => {
+        const key = community.slug || community.id || community.name;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  }
+
+  function shuffleArray(items = []) {
+    const shuffled = [...items];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
     }
+    return shuffled;
+  }
+
+  function pickRandomCommunities(communities = [], limit = 3) {
+    return shuffleArray(uniqueCommunities(communities)).slice(0, limit);
+  }
+
+  function setShuffleButtonLoading(isLoading) {
+    if (!shuffleSuggestedCommunitiesBtn) return;
+    shuffleSuggestedCommunitiesBtn.disabled = isLoading;
+    shuffleSuggestedCommunitiesBtn.classList.toggle('is-loading', isLoading);
+  }
+
+  function suggestedCommunitiesLimit() {
+    return window.matchMedia('(max-width: 87.5rem), (max-height: 50rem)').matches ? 2 : 3;
+  }
+
+  function debounceSidebarRender(callback, delay = 180) {
+    let timeoutId;
+    return (...args) => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => callback(...args), delay);
+    };
+  }
+
+  function renderSuggestedCommunities(communities = suggestedCommunitiesPool) {
+    if (!suggestedCommunitiesContainer) return;
+
+    const suggested = pickRandomCommunities(communities, suggestedCommunitiesLimit());
+
+    if (!suggested.length) {
+      suggestedCommunitiesContainer.innerHTML = `
+        <div class="right-sidebar-empty-state">
+          <strong>Nenhuma sugestão agora.</strong>
+          <span>Crie ou participe de comunidades para melhorar as recomendações.</span>
+        </div>
+      `;
+      return;
+    }
+
+    suggestedCommunitiesContainer.innerHTML = suggested.map((comm) => {
+      const avatar = communityAvatarHTML(comm, 'side-community-avatar suggested-community-avatar');
+      const membersCount = getCommunityMemberCount(comm);
+      const description = comm.description || 'Comunidade acadêmica';
+
+      return `
+        <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="suggested-community-item text-decoration-none">
+          <span class="suggested-community-avatar-wrap">${avatar}</span>
+          <span class="suggested-community-content">
+            <strong>${escapeHTML(comm.name)}</strong>
+            <small>${escapeHTML(truncateText(description, 44))}</small>
+            <span class="suggested-community-meta">${membersCount} participante(s)</span>
+          </span>
+          <span class="suggested-community-arrow" aria-hidden="true">›</span>
+        </a>
+      `;
+    }).join('');
+  }
+
+  function normalizeSuggestedCommunitiesPayload(data = {}) {
+    const pools = [
+      normalizeArray(data.other_communities, 'results'),
+      normalizeArray(data.communities, 'results'),
+      normalizeArray(data.my_communities, 'results'),
+      normalizeArray(data.results, 'results'),
+    ];
+
+    return uniqueCommunities(pools.flat());
+  }
+
+  async function loadSuggestedCommunities() {
+    if (!suggestedCommunitiesContainer) return;
+
+    const cacheKey = '@conecta:suggested_communities_data';
+    const cachedData = sessionStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      try {
+        suggestedCommunitiesPool = JSON.parse(cachedData);
+        renderSuggestedCommunities(suggestedCommunitiesPool);
+      } catch (error) {
+        sessionStorage.removeItem(cacheKey);
+        suggestedCommunitiesContainer.innerHTML = suggestedSidebarSkeletonHTML();
+      }
+    } else {
+      suggestedCommunitiesContainer.innerHTML = suggestedSidebarSkeletonHTML();
+    }
+
+    setShuffleButtonLoading(true);
 
     try {
       const response = await apiFetch('/api/posts/communities/');
       if (!response.ok) throw new Error('Erro na API');
       const data = await response.json();
-      
-      let communities = [];
-      if (data.other_communities && data.other_communities.length > 0) {
-        communities = normalizeArray(data.other_communities, 'results');
-      } else if (data.communities && data.communities.length > 0) {
-        communities = normalizeArray(data.communities, 'results');
-      } else {
-         communities = normalizeArray(data.my_communities, 'results');
-      }
+      const communities = normalizeSuggestedCommunitiesPayload(data);
 
-      const suggested = communities.slice(0, 3);
-      
-      if (suggested.length === 0) {
-        if (!cachedHTML) container.innerHTML = '<p class="text-muted small mb-0 mt-2">Nenhuma sugestão no momento.</p>';
+      if (!communities.length) {
+        if (!suggestedCommunitiesPool.length) renderSuggestedCommunities([]);
         return;
       }
 
-      const generatedHTML = suggested.map((comm, idx) => {
-        const isLast = idx === suggested.length - 1;
-        const avatar = communityAvatarHTML(comm, 'side-community-avatar');
-        const membersCount = getCommunityMemberCount(comm);
-        
-        return `
-          <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item text-decoration-none ${isLast ? 'border-0 pb-0' : 'border-bottom'}">
-            ${avatar}
-            <div style="min-width: 0;">
-              <strong class="d-block text-truncate" style="color: var(--text-color);">${escapeHTML(comm.name)}</strong>
-              <span class="d-block text-truncate text-muted" style="font-size: 0.8rem;">${membersCount} participante(s)</span>
-            </div>
-          </a>
-        `;
-      }).join('');
-
-      if (generatedHTML !== cachedHTML) {
-        container.innerHTML = generatedHTML;
-        sessionStorage.setItem(cacheKey, generatedHTML);
-      }
-
+      suggestedCommunitiesPool = communities;
+      sessionStorage.setItem(cacheKey, JSON.stringify(communities));
+      renderSuggestedCommunities(suggestedCommunitiesPool);
     } catch (error) {
-      if (!cachedHTML) container.innerHTML = '<p class="text-muted small mb-0 mt-2">Erro ao carregar.</p>';
+      if (!suggestedCommunitiesPool.length) {
+        suggestedCommunitiesContainer.innerHTML = `
+          <div class="right-sidebar-empty-state">
+            <strong>Não foi possível carregar.</strong>
+            <span>Tente atualizar as sugestões em alguns instantes.</span>
+          </div>
+        `;
+      }
+    } finally {
+      setShuffleButtonLoading(false);
     }
   }
+
+  shuffleSuggestedCommunitiesBtn?.addEventListener('click', () => {
+    renderSuggestedCommunities(suggestedCommunitiesPool);
+  });
+
+  window.addEventListener('resize', debounceSidebarRender(() => {
+    if (suggestedCommunitiesPool.length) renderSuggestedCommunities(suggestedCommunitiesPool);
+  }, 180));
 
   loadSuggestedCommunities().catch(console.error);
 

@@ -1,0 +1,103 @@
+/* =========================================================
+   Responsividade — Post único
+========================================================= */
+
+@media (max-width: 48rem) {
+  .reply-bar-container {
+    width: 100%;
+    bottom: 4rem; /* Fica logo acima do menu mobile inferior */
+  }
+}
+
+/* =========================================================
+   Responsividade — Comentários
+========================================================= */
+
+@media (max-width: 48rem) {
+  .tw-actions {
+    gap: 2rem;
+  }
+}
+
+/* =========================================================
+   Responsividade — Posts, comentários e respostas
+========================================================= */
+
+@media (max-width: 48rem) {
+  .single-post-title-row {
+    gap: 0.75rem;
+  }
+
+  .tw-avatar-col {
+    flex-basis: 2.45rem;
+    width: 2.45rem;
+    margin-left: var(--page-pad);
+    margin-right: 0.7rem;
+  }
+
+  .tw-avatar-col .comment-avatar {
+    width: 2.2rem !important;
+    height: 2.2rem !important;
+    min-width: 2.2rem !important;
+  }
+
+  .tw-content-col {
+    padding-top: 0.85rem;
+    padding-bottom: 0.7rem;
+  }
+
+  .tw-author-name {
+    font-size: 0.92rem;
+  }
+
+  .tw-username,
+  .tw-date,
+  .tw-reply-arrow,
+  .tw-reply-target,
+  .thread-actions .post-action-btn,
+  .thread-text-action {
+    font-size: 0.82rem;
+  }
+
+  .tw-text {
+    font-size: 0.94rem;
+  }
+
+  .thread-actions {
+    gap: 0.7rem !important;
+  }
+
+  .comment-edit-inline {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tk-replies-actions {
+    padding-left: calc(var(--page-pad) + 3.1rem);
+  }
+
+  #postInteractionModal .modal-dialog {
+    margin: 0.75rem;
+  }
+}
+
+/* =========================================================
+   Responsividade — Preview inline de comentários
+========================================================= */
+
+@media (max-width: 48rem) {
+  .inline-comments-wrapper {
+    padding-left: 0.35rem;
+  }
+
+  .inline-comments-wrapper .tw-avatar-col {
+    flex-basis: 2rem;
+    width: 2rem;
+    margin-right: 0.58rem;
+  }
+
+  .inline-comments-empty,
+  .inline-comments-loading {
+    padding-left: 2.55rem;
+  }
+}

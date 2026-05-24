@@ -20,8 +20,9 @@
     }
   </script>
 
+  <script src="../assets/js/theme-boot.js"></script>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -33,83 +34,125 @@
       }
     };
   </script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/style-responsive-animations.css" />
 </head>
 
-<body class="theme-light">
-  <script>
-    (function () {
-      const themeKey = 'conecta_theme_mode';
-      const fontFamilyKey = 'conecta_font_family';
-      const fontSizeKey = 'conecta_font_size';
-      const fontFamilies = {
-        inter: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        serif: 'Georgia, "Times New Roman", serif',
-        mono: '"Cascadia Code", "Fira Code", Consolas, monospace',
-        rounded: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif'
-      };
-      const fontSizes = { small: '87.5%', normal: '100%', large: '112.5%', xlarge: '125%' };
-      const savedTheme = localStorage.getItem(themeKey);
-      const resolvedTheme = savedTheme === 'dark' ? 'dark' : 'light';
-      const fontFamily = fontFamilies[localStorage.getItem(fontFamilyKey)] || fontFamilies.inter;
-      const fontSize = fontSizes[localStorage.getItem(fontSizeKey)] || fontSizes.normal;
+<body>
 
-      document.documentElement.classList.remove('theme-light', 'theme-dark');
-      document.documentElement.classList.add('theme-' + resolvedTheme);
-      document.documentElement.style.setProperty('font-size', fontSize);
-      document.documentElement.style.setProperty('--app-font-family', fontFamily);
-      document.documentElement.style.setProperty('--app-font-size', '1rem');
-
-      function applyBodyPreferences() {
-        if (!document.body) return;
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add('theme-' + resolvedTheme);
-        document.body.style.setProperty('--app-font-family', fontFamily);
-        document.body.style.setProperty('--app-font-size', '1rem');
-      }
-
-      applyBodyPreferences();
-      document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
-    })();
-  </script>
   <main class="feed-page">
     <div class="feed-layout">
+<aside class="sidebar desktop-sidebar modern-sidebar">
+  <a href="feed.html" class="sidebar-logo">
+    <img src="../assets/img/logo-light.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light"
+      decoding="async" />
+    <img src="../assets/img/logo-dark.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-dark"
+      decoding="async" />
+  </a>
 
-      <aside class="sidebar desktop-sidebar">
-        <a href="feed.html" class="sidebar-logo">
-          <img src="../assets/img/logo-light.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-light"
-            decoding="async" />
-          <img src="../assets/img/logo-dark.svg" alt="Logo Conecta Fatec" class="sidebar-logo-img logo-dark"
-            decoding="async" />
-        </a>
+  <nav class="sidebar-nav modern-nav">
+    <a href="feed.html" class="sidebar-link">
+      <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2"
+        fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Feed</span>
+    </a>
+    <a href="communities.html" class="sidebar-link">
+      <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2"
+        fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span>Comunidades</span>
+    </a>
+    <a href="friends.html" class="sidebar-link">
+      <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2"
+        fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="8.5" cy="7" r="4"></circle>
+        <line x1="20" y1="8" x2="20" y2="14"></line>
+        <line x1="23" y1="11" x2="17" y2="11"></line>
+      </svg>
+      <span>Amizades</span>
+    </a>
+    <a href="notifications.html" class="sidebar-link">
+      <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2"
+        fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <span>Notificações</span>
+    </a>
+    <a href="settings.html" class="sidebar-link">
+      <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <span>Configurações</span>
+    </a>
+  </nav>
 
-        <nav class="sidebar-nav">
-          <a href="feed.html" class="sidebar-link active">Feed</a>
-          <a href="profile.html" class="sidebar-link">Perfil</a>
-          <a href="communities.html" class="sidebar-link">Comunidades</a>
-          <a href="friends.html" class="sidebar-link">Amizades</a>
-          <a href="notifications.html" class="sidebar-link">Notificações</a>
-          <a href="settings.html" class="sidebar-link">Configurações</a>
-          <a href="about.html" class="sidebar-link">Sobre</a>
-        </nav>
+  <button class="new-post-btn modern-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newPostModal">
+    <span class="btn-text">Novo post</span>
+    <svg class="btn-icon" style="display: none;" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor"
+      stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </button>
 
-        <button class="new-post-btn" type="button" data-bs-toggle="modal" data-bs-target="#newPostModal">
-          Novo post
-        </button>
-
-        <div class="sidebar-actions">
-          <a href="profile.html" class="logged-user">
-            <div class="user-avatar" id="sidebar-avatar">U</div>
-            <div>
-              <strong id="sidebar-name">Carregando...</strong>
-              <span id="sidebar-username">@usuario</span>
-            </div>
-          </a>
+  <div class="sidebar-actions modern-sidebar-actions">
+    <button class="logged-user user-menu-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <div class="user-info-wrapper">
+        <div class="user-avatar" id="sidebar-avatar">--</div>
+        <div class="user-details">
+          <strong id="sidebar-name">Carregando...</strong>
+          <span id="sidebar-username">@usuario</span>
         </div>
-      </aside>
+      </div>
+      <svg class="more-options-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <circle cx="5" cy="12" r="2.2"></circle>
+        <circle cx="12" cy="12" r="2.2"></circle>
+        <circle cx="19" cy="12" r="2.2"></circle>
+      </svg>
+    </button>
+
+    <ul class="dropdown-menu user-dropdown-menu shadow">
+      <li>
+        <a class="dropdown-item" href="profile.html">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Ver perfil
+        </a>
+      </li>
+      <li>
+        <hr class="dropdown-divider">
+      </li>
+      <li>
+        <a class="dropdown-item text-danger" href="../index.html" onclick="localStorage.removeItem('access_token');">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Sair da conta
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>
 
       <section class="feed-content d-flex flex-row align-items-stretch"
         style="padding: 0; margin: 0; min-height: 100vh;">
@@ -182,46 +225,76 @@
 
         </div>
 
-        <aside class="d-none d-xl-flex flex-column gap-3 p-4"
-          style="width: 320px; flex-shrink: 0; border-left: 1px solid var(--line-color); position: sticky; top: 0; height: 100vh; overflow-y: auto;">
-
-          <article class="glass-surface p-3" style="border-radius: var(--radius-lg);">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <h2 class="h6 fw-bold mb-0" style="color: var(--text-color);">Comunidades</h2>
+        <aside class="right-sidebar-panel d-none d-xl-flex" aria-label="Sugestões e atalhos">
+          <article class="right-sidebar-card right-sidebar-card--highlight">
+            <div class="right-sidebar-card-header">
+              <div>
+                <span class="right-sidebar-eyebrow">Descubra</span>
+                <h2>Comunidades</h2>
+              </div>
+              <button class="right-sidebar-icon-button" id="shuffleSuggestedCommunitiesBtn" type="button"
+                aria-label="Sortear novas comunidades" title="Sortear novas comunidades">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16 3h5v5" />
+                  <path d="M4 20 21 3" />
+                  <path d="M21 16v5h-5" />
+                  <path d="M15 15l6 6" />
+                  <path d="M4 4l5 5" />
+                </svg>
+              </button>
             </div>
-            <div id="right-sidebar-communities" class="d-flex flex-column gap-0">
-              <p class="text-muted small mb-0 mt-2">Carregando sugestões...</p>
+            <p class="right-sidebar-subtitle">Sugestões aleatórias para explorar novos grupos acadêmicos.</p>
+            <div id="right-sidebar-communities" class="right-sidebar-list" aria-live="polite">
+              <div class="right-sidebar-skeleton-item placeholder-glow">
+                <span class="placeholder right-sidebar-skeleton-avatar"></span>
+                <span class="right-sidebar-skeleton-lines">
+                  <span class="placeholder col-8"></span>
+                  <span class="placeholder col-5"></span>
+                </span>
+              </div>
+              <div class="right-sidebar-skeleton-item placeholder-glow">
+                <span class="placeholder right-sidebar-skeleton-avatar"></span>
+                <span class="right-sidebar-skeleton-lines">
+                  <span class="placeholder col-7"></span>
+                  <span class="placeholder col-4"></span>
+                </span>
+              </div>
             </div>
-            <a href="communities.html" class="d-block mt-3 text-decoration-none text-primary"
-              style="font-size: 0.85rem; font-weight: 600;">Ver todas as comunidades</a>
+            <a href="communities.html" class="right-sidebar-link">
+              <span>Ver todas as comunidades</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
+            </a>
           </article>
 
-          <article class="glass-surface p-3" style="border-radius: var(--radius-lg);">
-            <h2 class="h6 fw-bold mb-3" style="color: var(--text-color);">Mini Games</h2>
-            <div class="d-flex flex-column gap-0">
+          <article class="right-sidebar-card right-sidebar-games-card">
+            <div class="right-sidebar-card-header">
+              <div>
+                <span class="right-sidebar-eyebrow">Pausa rápida</span>
+                <h2>Mini Games</h2>
+              </div>
+            </div>
+            <div class="right-sidebar-game-grid">
               <a href="https://devkevinsramos.github.io/moviearcade/index.html" target="_blank"
-                class="side-friend-item text-decoration-none border-bottom">
-                <div class="static-avatar-red d-flex align-items-center justify-content-center text-white"
-                  style="width: 42px; height: 42px; border-radius: 10px; font-size: 1.1rem; flex-shrink: 0;">🎬</div>
-                <div style="min-width: 0;">
-                  <strong class="d-block text-truncate" style="color: var(--text-color);">Movie Arcade</strong>
-                  <span class="d-block text-truncate text-muted" style="font-size: 0.8rem;">Quizzes de filmes</span>
-                </div>
+                class="right-sidebar-game-card" rel="noopener">
+                <span class="right-sidebar-game-icon">🎬</span>
+                <span class="right-sidebar-game-copy">
+                  <strong>Movie Arcade</strong>
+                  <small>Quizzes de filmes</small>
+                </span>
               </a>
               <a href="https://theusbertelli.github.io/pong-evolution/" target="_blank"
-                class="side-friend-item text-decoration-none border-0 pb-0">
-                <div class="static-avatar-green d-flex align-items-center justify-content-center text-white"
-                  style="width: 42px; height: 42px; border-radius: 10px; font-size: 1.1rem; flex-shrink: 0;">🏓</div>
-                <div style="min-width: 0;">
-                  <strong class="d-block text-truncate" style="color: var(--text-color);">Pong Evolution</strong>
-                  <span class="d-block text-truncate text-muted" style="font-size: 0.8rem;">Clássico reinventado</span>
-                </div>
+                class="right-sidebar-game-card" rel="noopener">
+                <span class="right-sidebar-game-icon">🏓</span>
+                <span class="right-sidebar-game-copy">
+                  <strong>Pong Evolution</strong>
+                  <small>Clássico reinventado</small>
+                </span>
               </a>
             </div>
           </article>
-
-         
-
         </aside>
 
       </section>
@@ -254,7 +327,6 @@
       </div>
     </div>
   </div>
-
 
   <div class="modal fade" id="miniGamesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

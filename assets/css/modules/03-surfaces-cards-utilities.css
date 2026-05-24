@@ -1,0 +1,86 @@
+/* =========================================================
+   03. Superfícies, cards e utilitários
+========================================================= */
+.glass-surface,
+:where(
+  .login-container,
+  .settings-card,
+  .profile-card,
+  .profile-section,
+  .profile-api-card,
+  .profile-hero-card,
+  .side-card,
+  .feed-create-card,
+  .feed-control-card,
+  .communities-summary-card,
+  .community-create-box,
+  .community-create-card,
+  .community-card,
+  .friend-card,
+  .post-modal-content,
+  .cookie-banner,
+  .notification-home-btn,
+  .mobile-offcanvas,
+  .about-project-card,
+  .about-resource-card,
+  .doc-card
+) {
+  background: var(--surface-color);
+  border: var(--hairline) solid var(--border-color);
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.18);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.18);
+}
+
+@supports not ((backdrop-filter: blur(1rem)) or (-webkit-backdrop-filter: blur(1rem))) {
+  .glass-surface,
+  :where(
+    .login-container,
+    .settings-card,
+    .profile-card,
+    .profile-section,
+    .profile-api-card,
+    .profile-hero-card,
+    .side-card,
+    .feed-create-card,
+    .feed-control-card,
+    .communities-summary-card,
+    .community-create-box,
+    .community-create-card,
+    .community-card,
+    .friend-card,
+    .post-modal-content,
+    .cookie-banner,
+    .notification-home-btn,
+    .mobile-offcanvas,
+    .about-project-card,
+    .about-resource-card,
+    .doc-card,
+    .sidebar
+  ) {
+    background: var(--surface-solid);
+  }
+}
+
+.card,
+.modal-content,
+.offcanvas {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.border-top,
+.border-bottom {
+  border-color: var(--line-color) !important;
+}
+
+.api-empty-state,
+.comment-empty-state {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  color: var(--text-muted);
+  border: var(--hairline) dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-solid) 34%, transparent);
+}

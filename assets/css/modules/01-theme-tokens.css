@@ -1,0 +1,133 @@
+/* =========================================================
+   01. Tema e tokens
+========================================================= */
+:root,
+html.theme-light,
+body.theme-light {
+  --app-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Inter, system-ui, sans-serif;
+  --app-font-size: 1rem;
+
+  --weight-heading: 680;
+  --weight-title: 620;
+  --weight-strong: 560;
+  --weight-medium: 500;
+
+  --primary-color: #2563eb;
+  --primary-strong: #1d4ed8;
+  --primary-soft: rgba(37, 99, 235, 0.14);
+  --danger-color: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.10);
+  --success-color: #16a34a;
+
+  --bg-color: #eef4fb;
+  --bg-accent: rgba(37, 99, 235, 0.12);
+  --surface-color: rgba(255, 255, 255, 0.70);
+  --surface-solid: #ffffff;
+  --surface-muted: rgba(248, 250, 252, 0.78);
+  --surface-hover: rgba(37, 99, 235, 0.07);
+  --post-surface: rgba(255, 255, 255, 0.46);
+
+  --border-color: rgba(100, 116, 139, 0.28);
+  --border-strong: rgba(37, 99, 235, 0.38);
+  --line-color: rgba(100, 116, 139, 0.20);
+
+  --text-color: #0f172a;
+  --text-soft: #475569;
+  --text-muted: #64748b;
+
+  --glass-blur: 1.25rem;
+  --radius-sm: 0.875rem;
+  --radius-md: 1.125rem;
+  --radius-lg: 1.55rem;
+  --radius-xl: 1.85rem;
+  --radius-pill: 62.5rem;
+
+  --sidebar-width: 18%;
+  --content-width: 82%;
+  --page-pad: clamp(1.05rem, 2vw, 2rem);
+  --section-gap: clamp(0.9rem, 1.5vw, 1.35rem);
+  --card-gap: clamp(0.85rem, 1.3vw, 1.15rem);
+  --hairline: 0.0625rem;
+
+  --avatar-sidebar: 50px;
+  --avatar-post: 50px;
+  --avatar-comment: 36px;
+  --avatar-card: 86px;
+  --avatar-side: 58px;
+  --avatar-profile: 148px;
+  --avatar-community-page: 148px;
+  --avatar-about: 56px;
+
+  --bs-body-bg: var(--bg-color);
+  --bs-body-color: var(--text-color);
+  --bs-border-color: var(--border-color);
+  color-scheme: light;
+}
+
+html.theme-dark,
+body.theme-dark {
+  --primary-color: #60a5fa;
+  --primary-strong: #93c5fd;
+  --primary-soft: rgba(96, 165, 250, 0.16);
+  --danger-color: #fb7185;
+  --danger-soft: rgba(251, 113, 133, 0.12);
+  --success-color: #4ade80;
+
+  --bg-color: #070c18;
+  --bg-accent: rgba(96, 165, 250, 0.12);
+  --surface-color: rgba(17, 25, 42, 0.72);
+  --surface-solid: #0f172a;
+  --surface-muted: rgba(15, 23, 42, 0.72);
+  --surface-hover: rgba(96, 165, 250, 0.09);
+  --post-surface: rgba(15, 23, 42, 0.42);
+
+  --border-color: rgba(148, 163, 184, 0.23);
+  --border-strong: rgba(96, 165, 250, 0.38);
+  --line-color: rgba(148, 163, 184, 0.18);
+
+  --text-color: #f8fafc;
+  --text-soft: #e2e8f0;
+  --text-muted: #cbd5e1;
+
+  --bs-body-bg: var(--bg-color);
+  --bs-body-color: var(--text-color);
+  --bs-border-color: var(--border-color);
+  color-scheme: dark;
+}
+
+
+
+html.theme-oled,
+body.theme-oled {
+  --primary-color: #1d9bf0;
+  --primary-strong: #60a5fa;
+  --primary-soft: rgba(29, 155, 240, 0.18);
+  --danger-color: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --success-color: #22c55e;
+
+  --bg-color: #000000;
+  --bg-accent: rgba(29, 155, 240, 0.08);
+  --surface-color: #080a0d;
+  --surface-solid: #050608;
+  --surface-muted: #101419;
+  --surface-hover: #161b22;
+  --post-surface: #0f1419;
+
+  --border-color: #2f3336;
+  --border-strong: rgba(29, 155, 240, 0.48);
+  --line-color: #24282d;
+
+  --text-color: #e7e9ea;
+  --text-soft: #d7dbdf;
+  --text-muted: #8b98a5;
+
+  --input-bg: #101419;
+  --input-border: #333639;
+  --glass-blur: 0px;
+
+  --bs-body-bg: var(--bg-color);
+  --bs-body-color: var(--text-color);
+  --bs-border-color: var(--border-color);
+  color-scheme: dark;
+}
