@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (deleteCommunityBtn) deleteCommunityBtn.style.display = 'none';
     if (createPostCard) createPostCard.style.display = 'none';
     if (communitySidebarPostBtn) communitySidebarPostBtn.style.display = 'none';
-    if (communityMobilePostFab) communityMobilePostFab.style.display = 'none';
+    if (communityMobilePostFab) communityMobilePostFab.setAttribute("hidden", "");
     if (postsContainer) postsContainer.innerHTML = communityPostSkeletonHTML().repeat(2);
     if (membersContainer) membersContainer.innerHTML = communityMemberSkeletonHTML().repeat(4);
   }
@@ -293,6 +293,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (communitySidebarPostBtn) {
       communitySidebarPostBtn.style.display = isMember ? 'inline-flex' : 'none';
     }
+    
+    if (communityMobilePostFab) {
+  if (isMember) {
+    communityMobilePostFab.removeAttribute("hidden");
+    communityMobilePostFab.setAttribute("aria-hidden", "false");
+  } else {
+    communityMobilePostFab.setAttribute("hidden", "");
+    communityMobilePostFab.setAttribute("aria-hidden", "true");
+  }
+}
 
     if (communityMobilePostFab) {
       communityMobilePostFab.style.display = isMember ? 'flex' : 'none';

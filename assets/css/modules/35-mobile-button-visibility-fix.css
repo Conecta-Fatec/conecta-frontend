@@ -1,0 +1,18 @@
+.mobile-compose-fab {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-compose-fab:not([hidden]) {
+    display: flex !important;
+    position: fixed;
+    right: 20px;
+    bottom: 88px;
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+  }
+}
