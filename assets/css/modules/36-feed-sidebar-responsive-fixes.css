@@ -1,0 +1,157 @@
+/* =========================================================
+   36. Ajustes do feed, sidebar e responsividade
+   Regras focadas nos ajustes visuais solicitados sem mudar a lógica do site.
+========================================================= */
+
+/* Mantém todos os itens do menu com a mesma largura do botão "Novo post". */
+.modern-nav .sidebar-link {
+  width: 90% !important;
+  max-width: 100% !important;
+  min-height: calc(3.2rem * var(--app-control-scale)) !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box;
+}
+
+.modern-nav .sidebar-link.active {
+  transform: none !important;
+}
+
+.modern-nav .sidebar-link:hover {
+  transform: none !important;
+}
+
+.modern-post-btn {
+  width: 90% !important;
+}
+
+/* Em telas intermediárias, a sidebar continua completa: nada vira apenas ícone. */
+@media (max-width: 62rem) and (min-width: 48.01rem) {
+  .feed-layout {
+    grid-template-columns: clamp(12.5rem, 28vw, 15.5rem) minmax(0, 1fr) !important;
+  }
+
+  .modern-sidebar,
+  .desktop-sidebar {
+    align-items: flex-start !important;
+    padding: 1.25rem 0.875rem !important;
+  }
+
+  .modern-sidebar .sidebar-logo,
+  .desktop-sidebar .sidebar-logo {
+    width: 90% !important;
+    min-height: 2.25rem !important;
+    justify-content: flex-start !important;
+    overflow: visible !important;
+    padding-left: 0.35rem !important;
+  }
+
+  .modern-sidebar .sidebar-logo .sidebar-logo-svg,
+  .desktop-sidebar .sidebar-logo .sidebar-logo-svg {
+    width: 100% !important;
+    max-width: 12.5rem !important;
+    height: auto !important;
+  }
+
+  .modern-nav .sidebar-link {
+    width: 90% !important;
+    padding: 0.72rem 0.9rem !important;
+    gap: 0.72rem !important;
+    justify-content: flex-start !important;
+  }
+
+  .modern-nav .sidebar-link span,
+  .modern-post-btn .btn-text,
+  .user-menu-pill .user-details {
+    display: flex !important;
+  }
+
+  .modern-post-btn {
+    width: 90% !important;
+    height: auto !important;
+    min-height: calc(3.2rem * var(--app-control-scale)) !important;
+    padding-inline: 1rem !important;
+  }
+
+  .modern-post-btn .btn-icon {
+    display: none !important;
+  }
+
+  .user-menu-pill {
+    justify-content: flex-start !important;
+    width: calc(100% - 2.55rem) !important;
+  }
+
+  .user-menu-pill .user-info-wrapper {
+    min-width: 0 !important;
+  }
+
+  .user-menu-pill .user-details {
+    min-width: 0 !important;
+    flex-direction: column !important;
+  }
+}
+
+/* Cards da sidebar direita do feed: imagens maiores e preenchendo toda a área. */
+.right-sidebar-panel .suggested-community-item,
+.right-sidebar-panel .right-sidebar-game-card {
+  align-items: center !important;
+  min-height: 4.75rem;
+  padding: 0.72rem !important;
+  border: var(--hairline) solid var(--line-color) !important;
+  border-radius: 1rem !important;
+  background: color-mix(in srgb, var(--surface-solid) 26%, transparent);
+}
+
+.right-sidebar-panel .suggested-community-item:hover,
+.right-sidebar-panel .right-sidebar-game-card:hover {
+  background: var(--surface-hover) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color)) !important;
+  transform: translateY(-0.04rem) !important;
+}
+
+.right-sidebar-panel .suggested-community-avatar {
+  width: clamp(3.45rem, 4.4vw, 4.1rem) !important;
+  height: clamp(3.45rem, 4.4vw, 4.1rem) !important;
+  min-width: clamp(3.45rem, 4.4vw, 4.1rem) !important;
+  flex-basis: clamp(3.45rem, 4.4vw, 4.1rem) !important;
+  border-radius: 0.9rem !important;
+}
+
+.right-sidebar-panel .suggested-community-avatar img,
+.right-sidebar-panel .suggested-community-avatar.has-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.right-sidebar-panel .right-sidebar-game-icon {
+  display: inline-grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.right-sidebar-panel .right-sidebar-game-card > div,
+.right-sidebar-panel .suggested-community-item > div {
+  min-width: 0 !important;
+}
+
+@media (max-width: 87.5rem) and (min-width: 75rem), (max-height: 50rem) and (min-width: 75rem) {
+  .right-sidebar-panel .suggested-community-avatar {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+    min-width: 3.25rem !important;
+    flex-basis: 3.25rem !important;
+  }
+}
+
+/* No mobile, o botão "Mini games" segue o estilo limpo do atalho de notificações. */
+@media (max-width: 48rem) {
+  .feed-header-actions .minigames-home-btn {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
