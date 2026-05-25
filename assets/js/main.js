@@ -191,12 +191,27 @@ function getLoggedUserFromStorage() {
   }
 }
 
+function isLocalFilePreview() {
+  return window.location.protocol === 'file:';
+}
+
+function redirectToLogin() {
+  /*
+    Em produção, o usuário sem sessão volta para o login.
+    Em teste local aberto por file://, o Chrome bloqueia redirecionamentos
+    automáticos entre arquivos e gera "Unsafe attempt to load URL".
+  */
+  if (isLocalFilePreview()) return;
+
+  window.location.href = window.location.pathname.includes('/pages/') ? '../index.html' : 'index.html';
+}
+
 function logout() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('username');
   localStorage.removeItem('logged_user');
-  window.location.href = window.location.pathname.includes('/pages/') ? '../index.html' : 'index.html';
+  redirectToLogin();
 }
 
 async function apiFetch(path, options = {}) {
@@ -346,10 +361,19 @@ window.useSWR = async function(cacheKey, fetchCallback, renderCallback, options 
 };
 
 function requireAuth() {
+  /*
+    Em produção, páginas internas continuam exigindo login.
+    No teste local via file://, o Chrome bloqueia redirecionamentos entre arquivos
+    e mostra "Unsafe attempt to load URL"; por isso o redirecionamento é ignorado
+    somente nesse modo de pré-visualização local.
+  */
+  const isLocalPreview = isLocalFilePreview();
+
   if (!getAccessToken()) {
-    window.location.href = '../index.html';
-    return false;
+    redirectToLogin();
+    return isLocalPreview;
   }
+
   return true;
 }
 
