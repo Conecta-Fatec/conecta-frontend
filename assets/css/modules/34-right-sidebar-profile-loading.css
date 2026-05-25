@@ -137,12 +137,14 @@
   flex-shrink: 0;
   flex-direction: column;
   gap: 1rem;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   max-height: 100vh;
   padding: 1.5rem;
   position: sticky;
   top: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   border-left: var(--hairline) solid var(--line-color);
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--primary-soft) 55%, transparent), transparent 36%),
@@ -150,68 +152,92 @@
   scrollbar-width: thin;
 }
 
-.right-sidebar-card {
-  position: relative;
-  overflow: hidden;
-  padding: 1.15rem;
-  border: var(--hairline) solid var(--border-color);
-  border-radius: 1.45rem;
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-color) 88%, transparent), color-mix(in srgb, var(--surface-muted) 92%, transparent)),
-    var(--surface-color);
+/* Cards de comunidades, minigames e amizades */
+.right-sidebar-feed-card {
+  padding: 1.125rem !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-color) !important;
   color: var(--text-color);
-  box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.08);
+  box-shadow: none !important;
+  transition: background-color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
 }
 
-.right-sidebar-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 0.18rem;
-  background: linear-gradient(90deg, var(--primary-color), transparent 72%);
-  opacity: 0.75;
-}
-
-.right-sidebar-card--highlight {
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--primary-soft) 78%, transparent), transparent 54%),
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-color) 92%, transparent), color-mix(in srgb, var(--surface-muted) 94%, transparent));
-}
-
-.right-sidebar-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.9rem;
-  margin-bottom: 0.7rem;
-}
-
-.right-sidebar-card-header h2 {
-  margin: 0;
-  color: var(--text-color);
-  font-size: 1.05rem;
-  font-weight: var(--weight-heading);
+.right-sidebar-feed-card > h2,
+.right-sidebar-feed-card .side-card-header h2 {
+  margin: 0 0 0.65rem !important;
+  color: var(--text-color) !important;
+  font-size: clamp(1rem, 1.25vw, 1.16rem) !important;
+  font-weight: var(--weight-strong) !important;
   letter-spacing: -0.025em;
-  line-height: 1.1;
+  line-height: 1.25;
 }
 
-.right-sidebar-eyebrow {
-  display: block;
-  margin-bottom: 0.22rem;
+.right-sidebar-feed-card .side-card-header h2 {
+  margin: 0 !important;
+}
+
+.right-sidebar-feed-card:hover {
+  border-color: var(--border-color) !important;
+  background: color-mix(in srgb, var(--surface-hover) 80%, transparent) !important;
+  transform: translateY(-0.06rem);
+}
+
+.right-sidebar-list,
+.right-sidebar-game-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.suggested-community-item,
+.right-sidebar-game-card {
+  text-decoration: none !important;
+}
+
+.right-sidebar-game-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-side);
+  height: var(--avatar-side);
+  min-width: var(--avatar-side);
+  flex: 0 0 var(--avatar-side);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-strong));
+  color: #fff;
+  font-size: 1.12rem;
+}
+
+.right-sidebar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  margin-top: 0.95rem;
   color: var(--primary-color);
-  font-size: 0.72rem;
+  font-size: 0.88rem;
   font-weight: var(--weight-strong);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-decoration: none;
 }
 
-.right-sidebar-subtitle {
-  margin: -0.15rem 0 0.9rem;
-  color: var(--text-muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
+.right-sidebar-link svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.18s ease;
 }
 
+.right-sidebar-link:hover svg,
+.right-sidebar-link:focus-visible svg {
+  transform: translateX(0.16rem);
+}
+
+/* Botão de trocar comunidades */
 .right-sidebar-icon-button {
   display: inline-flex;
   align-items: center;
@@ -246,183 +272,6 @@
 
 .right-sidebar-icon-button.is-loading svg {
   animation: conecta-sidebar-spin 0.8s linear infinite;
-}
-
-.right-sidebar-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.suggested-community-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.75rem;
-  border: var(--hairline) solid transparent;
-  border-radius: 1.15rem;
-  color: var(--text-color);
-  background: color-mix(in srgb, var(--surface-solid) 56%, transparent);
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
-}
-
-.suggested-community-item:hover,
-.suggested-community-item:focus-visible {
-  color: var(--text-color);
-  border-color: var(--border-strong);
-  background: var(--surface-hover);
-  transform: translateX(0.16rem);
-}
-
-.suggested-community-avatar-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.35rem;
-  height: 3.35rem;
-  border-radius: 1.05rem;
-  background: color-mix(in srgb, var(--primary-soft) 62%, transparent);
-}
-
-.suggested-community-avatar {
-  width: 3rem !important;
-  height: 3rem !important;
-  border-radius: 0.92rem !important;
-}
-
-.suggested-community-content {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.16rem;
-}
-
-.suggested-community-content strong,
-.right-sidebar-game-copy strong {
-  color: var(--text-color);
-  font-weight: var(--weight-strong);
-  line-height: 1.18;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.suggested-community-content small,
-.right-sidebar-game-copy small {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.suggested-community-meta {
-  width: fit-content;
-  margin-top: 0.25rem;
-  padding: 0.18rem 0.55rem;
-  border-radius: var(--radius-pill);
-  background: var(--primary-soft);
-  color: var(--primary-color);
-  font-size: 0.72rem;
-  font-weight: var(--weight-strong);
-  line-height: 1.25;
-}
-
-.suggested-community-arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.55rem;
-  height: 1.55rem;
-  border-radius: 50%;
-  color: var(--text-muted);
-  background: color-mix(in srgb, var(--surface-muted) 72%, transparent);
-  font-size: 1.25rem;
-  line-height: 1;
-  transition: transform 0.18s ease, color 0.18s ease;
-}
-
-.suggested-community-item:hover .suggested-community-arrow,
-.suggested-community-item:focus-visible .suggested-community-arrow {
-  color: var(--primary-color);
-  transform: translateX(0.12rem);
-}
-
-.right-sidebar-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  width: fit-content;
-  margin-top: 0.95rem;
-  color: var(--primary-color);
-  font-size: 0.88rem;
-  font-weight: var(--weight-strong);
-  text-decoration: none;
-}
-
-.right-sidebar-link svg {
-  width: 1rem;
-  height: 1rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.18s ease;
-}
-
-.right-sidebar-link:hover svg,
-.right-sidebar-link:focus-visible svg {
-  transform: translateX(0.16rem);
-}
-
-.right-sidebar-game-grid {
-  display: grid;
-  gap: 0.7rem;
-}
-
-.right-sidebar-game-card {
-  display: flex;
-  align-items: center;
-  gap: 0.78rem;
-  padding: 0.82rem;
-  border: var(--hairline) solid var(--line-color);
-  border-radius: 1.1rem;
-  background: color-mix(in srgb, var(--surface-solid) 46%, transparent);
-  color: var(--text-color);
-  text-decoration: none;
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
-}
-
-.right-sidebar-game-card:hover,
-.right-sidebar-game-card:focus-visible {
-  color: var(--text-color);
-  border-color: var(--border-strong);
-  background: var(--surface-hover);
-  transform: translateY(-0.08rem);
-}
-
-.right-sidebar-game-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex: 0 0 auto;
-  border-radius: 1rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-strong));
-  color: #fff;
-  font-size: 1.16rem;
-}
-
-.right-sidebar-game-copy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.12rem;
 }
 
 .right-sidebar-empty-state {
@@ -481,27 +330,59 @@ body.theme-oled .right-sidebar-panel {
   background: #000;
 }
 
-html.theme-oled .right-sidebar-card,
-body.theme-oled .right-sidebar-card {
-  background: #050608;
-  border-color: var(--border-color);
+html.theme-oled .right-sidebar-feed-card,
+body.theme-oled .right-sidebar-feed-card {
+  background: #050608 !important;
+  border-color: var(--border-color) !important;
   box-shadow: none;
 }
 
-html.theme-oled .suggested-community-item,
-html.theme-oled .right-sidebar-game-card,
-body.theme-oled .suggested-community-item,
-body.theme-oled .right-sidebar-game-card {
-  background: var(--post-surface);
-  border-color: var(--line-color);
+@media (max-width: 87.5rem) and (min-width: 75rem), (max-height: 50rem) and (min-width: 75rem) {
+  .right-sidebar-panel {
+    width: clamp(15.75rem, 23vw, 18rem);
+    gap: 0.78rem;
+    padding: 1rem;
+  }
+
+  .right-sidebar-feed-card {
+    padding: 0.92rem !important;
+    border-radius: 1.2rem !important;
+  }
+
+  .right-sidebar-feed-card > h2,
+  .right-sidebar-feed-card .side-card-header h2 {
+    font-size: 0.98rem !important;
+  }
+
+  .right-sidebar-list,
+  .right-sidebar-game-grid {
+    gap: 0.55rem;
+  }
+
+  .right-sidebar-icon-button {
+    width: 1.95rem;
+    height: 1.95rem;
+  }
+
+  .right-sidebar-link {
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+  }
+
+  .right-sidebar-game-icon,
+  .suggested-community-avatar {
+    width: 2.55rem !important;
+    height: 2.55rem !important;
+    min-width: 2.55rem !important;
+    flex-basis: 2.55rem !important;
+    border-radius: 0.8rem !important;
+  }
 }
 
-html.theme-oled .suggested-community-item:hover,
-html.theme-oled .right-sidebar-game-card:hover,
-body.theme-oled .suggested-community-item:hover,
-body.theme-oled .right-sidebar-game-card:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
+@media (max-width: 78rem) and (min-width: 75rem) {
+  .right-sidebar-panel {
+    display: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -522,113 +403,4 @@ body.theme-oled .right-sidebar-game-card:hover {
 
 @keyframes conecta-sidebar-spin {
   to { transform: rotate(360deg); }
-}
-
-
-/* Ajustes responsivos da sidebar direita para telas HD e notebooks */
-.right-sidebar-panel {
-  box-sizing: border-box;
-  height: 100vh;
-  min-height: 0;
-  overscroll-behavior: contain;
-}
-
-@media (max-width: 87.5rem) and (min-width: 75rem), (max-height: 50rem) and (min-width: 75rem) {
-  .right-sidebar-panel {
-    width: clamp(15.75rem, 23vw, 18rem);
-    gap: 0.78rem;
-    padding: 1rem;
-    max-height: 100vh;
-  }
-
-  .right-sidebar-card {
-    padding: 0.92rem;
-    border-radius: 1.2rem;
-  }
-
-  .right-sidebar-card-header {
-    gap: 0.6rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .right-sidebar-card-header h2 {
-    font-size: 0.98rem;
-  }
-
-  .right-sidebar-eyebrow {
-    font-size: 0.66rem;
-    letter-spacing: 0.1em;
-  }
-
-  .right-sidebar-subtitle {
-    display: none;
-  }
-
-  .right-sidebar-list,
-  .right-sidebar-game-grid {
-    gap: 0.55rem;
-  }
-
-  .suggested-community-item {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.62rem;
-    padding: 0.62rem;
-    border-radius: 0.98rem;
-  }
-
-  .suggested-community-arrow {
-    display: none;
-  }
-
-  .suggested-community-avatar-wrap {
-    width: 2.85rem;
-    height: 2.85rem;
-    border-radius: 0.88rem;
-  }
-
-  .suggested-community-avatar {
-    width: 2.55rem !important;
-    height: 2.55rem !important;
-    border-radius: 0.8rem !important;
-  }
-
-  .suggested-community-content strong,
-  .right-sidebar-game-copy strong {
-    font-size: 0.92rem;
-  }
-
-  .suggested-community-content small,
-  .right-sidebar-game-copy small {
-    font-size: 0.74rem;
-  }
-
-  .suggested-community-meta {
-    margin-top: 0.16rem;
-    padding: 0.13rem 0.45rem;
-    font-size: 0.68rem;
-  }
-
-  .right-sidebar-link {
-    margin-top: 0.7rem;
-    font-size: 0.82rem;
-  }
-
-  .right-sidebar-game-card {
-    gap: 0.62rem;
-    padding: 0.66rem;
-    border-radius: 0.98rem;
-  }
-
-  .right-sidebar-game-icon {
-    width: 2.35rem;
-    height: 2.35rem;
-    border-radius: 0.82rem;
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 78rem) and (min-width: 75rem) {
-  .right-sidebar-panel {
-    display: none !important;
-  }
 }

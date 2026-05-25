@@ -6,6 +6,8 @@ html.theme-light,
 body.theme-light {
   --app-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Inter, system-ui, sans-serif;
   --app-font-size: 1rem;
+  --app-text-scale: 1;
+  --app-control-scale: 1;
 
   --weight-heading: 680;
   --weight-title: 620;
@@ -47,7 +49,7 @@ body.theme-light {
   --page-pad: clamp(1.05rem, 2vw, 2rem);
   --section-gap: clamp(0.9rem, 1.5vw, 1.35rem);
   --card-gap: clamp(0.85rem, 1.3vw, 1.15rem);
-  --hairline: 0.0625rem;
+  --hairline: 1px;
 
   --avatar-sidebar: 50px;
   --avatar-post: 50px;

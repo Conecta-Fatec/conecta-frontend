@@ -43,9 +43,9 @@
   <main class="feed-page">
     <div class="feed-layout">
 <aside class="sidebar desktop-sidebar modern-sidebar">
-  <a href="feed.html" class="sidebar-logo">
-    <img id="sidebarLogo" class="sidebar-logo-svg" src="../assets/img/logo-dark.svg"
-      data-logo-default="../assets/img/logo-light.svg" data-logo-light="../assets/img/logo-dark.png" alt="Conecta Fatec" />
+  <a href="about.html" class="sidebar-logo">
+    <img id="sidebarLogo" class="sidebar-logo-svg" src="../assets/img/logo-light.svg"
+    data-logo-default="../assets/img/logo-light.svg" data-logo-light="../assets/img/logo-dark.svg" alt="Conecta Fatec" />
   </a>
 
   <nav class="sidebar-nav modern-nav">
@@ -96,20 +96,23 @@
     </a>
   </nav>
   <div class="sidebar-actions modern-sidebar-actions">
-    <button class="logged-user user-menu-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <div class="user-info-wrapper">
+    <div class="user-menu-inline">
+      <a class="logged-user user-menu-pill user-profile-link" href="profile.html" aria-label="Abrir perfil">
+        <div class="user-info-wrapper">
         <div class="user-avatar" id="sidebar-avatar">--</div>
         <div class="user-details">
           <strong id="sidebar-name">Carregando...</strong>
           <span id="sidebar-username">@usuario</span>
         </div>
       </div>
-      <svg class="more-options-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      </a>
+      <button class="user-options-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Abrir ações do perfil">
+        <svg class="more-options-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
         <circle cx="5" cy="12" r="2.2"></circle>
         <circle cx="12" cy="12" r="2.2"></circle>
         <circle cx="19" cy="12" r="2.2"></circle>
       </svg>
-    </button>
+      </button>
 
     <ul class="dropdown-menu user-dropdown-menu shadow">
       <li>
@@ -137,6 +140,7 @@
         </a>
       </li>
     </ul>
+    </div>
   </div>
 </aside>
 

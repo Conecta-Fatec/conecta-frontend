@@ -415,17 +415,14 @@ window.loadPosts = async function loadPosts(silent = false) {
     suggestedCommunitiesContainer.innerHTML = suggested.map((comm) => {
       const avatar = communityAvatarHTML(comm, 'side-community-avatar suggested-community-avatar');
       const membersCount = getCommunityMemberCount(comm);
-      const description = comm.description || 'Comunidade acadêmica';
 
       return `
-        <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="suggested-community-item text-decoration-none">
-          <span class="suggested-community-avatar-wrap">${avatar}</span>
-          <span class="suggested-community-content">
+        <a href="community.html?slug=${encodeURIComponent(comm.slug)}" class="side-community-item suggested-community-item text-decoration-none">
+          ${avatar}
+          <div>
             <strong>${escapeHTML(comm.name)}</strong>
-            <small>${escapeHTML(truncateText(description, 44))}</small>
-            <span class="suggested-community-meta">${membersCount} participante(s)</span>
-          </span>
-          <span class="suggested-community-arrow" aria-hidden="true">›</span>
+            <span>${membersCount} participante(s)</span>
+          </div>
         </a>
       `;
     }).join('');

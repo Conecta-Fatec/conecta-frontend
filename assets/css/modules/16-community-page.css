@@ -365,20 +365,24 @@
   margin-bottom: 0.2rem;
 }
 
+/* Botões padrões */
 .community-create-box-btn {
-  border: var(--hairline) solid var(--primary-color) !important;
+  min-height: calc(2.5rem * var(--app-control-scale));
+  padding: calc(0.62rem * var(--app-control-scale)) calc(1rem * var(--app-control-scale));
+  border: var(--hairline) solid var(--border-strong) !important;
   border-radius: var(--radius-pill) !important;
-  background: var(--primary-color) !important;
-  color: #fff !important;
+  background: linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--primary-soft) 66%, transparent)) !important;
+  color: var(--primary-strong) !important;
   font-weight: var(--weight-strong) !important;
   white-space: nowrap;
 }
 
 .community-create-box-btn:hover,
 .community-create-box-btn:focus-visible {
-  border-color: var(--primary-strong) !important;
-  background: var(--primary-strong) !important;
-  color: #fff !important;
+  border-color: var(--primary-color) !important;
+  background: var(--primary-soft) !important;
+  color: var(--primary-strong) !important;
+  transform: translateY(-0.06rem);
 }
 
 .community-post-skeleton {

@@ -45,9 +45,9 @@
   <main class="feed-page">
     <div class="feed-layout">
 <aside class="sidebar desktop-sidebar modern-sidebar">
-  <a href="feed.html" class="sidebar-logo">
-  <img id="sidebarLogo" class="sidebar-logo-svg" src="../assets/img/logo-dark.svg"
-    data-logo-default="../assets/img/logo-light.svg" data-logo-light="../assets/img/logo-dark.png" alt="Conecta Fatec" />
+  <a href="about.html" class="sidebar-logo">
+  <img id="sidebarLogo" class="sidebar-logo-svg" src="../assets/img/logo-light.svg"
+    data-logo-default="../assets/img/logo-light.svg" data-logo-light="../assets/img/logo-dark.svg" alt="Conecta Fatec" />
   </a>
 
   <nav class="sidebar-nav modern-nav">
@@ -108,20 +108,23 @@
   </button>
 
   <div class="sidebar-actions modern-sidebar-actions">
-    <button class="logged-user user-menu-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <div class="user-info-wrapper">
+    <div class="user-menu-inline">
+      <a class="logged-user user-menu-pill user-profile-link" href="profile.html" aria-label="Abrir perfil">
+        <div class="user-info-wrapper">
         <div class="user-avatar" id="sidebar-avatar">--</div>
         <div class="user-details">
           <strong id="sidebar-name">Carregando...</strong>
           <span id="sidebar-username">@usuario</span>
         </div>
       </div>
-      <svg class="more-options-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      </a>
+      <button class="user-options-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Abrir ações do perfil">
+        <svg class="more-options-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
         <circle cx="5" cy="12" r="2.2"></circle>
         <circle cx="12" cy="12" r="2.2"></circle>
         <circle cx="19" cy="12" r="2.2"></circle>
       </svg>
-    </button>
+      </button>
 
     <ul class="dropdown-menu user-dropdown-menu shadow">
       <li>
@@ -149,6 +152,7 @@
         </a>
       </li>
     </ul>
+    </div>
   </div>
 </aside>
 
@@ -224,12 +228,9 @@
         </div>
 
         <aside class="right-sidebar-panel d-none d-xl-flex" aria-label="Sugestões e atalhos">
-          <article class="right-sidebar-card right-sidebar-card--highlight">
-            <div class="right-sidebar-card-header">
-              <div>
-                <span class="right-sidebar-eyebrow">Descubra</span>
-                <h2>Comunidades</h2>
-              </div>
+          <section class="profile-api-card right-sidebar-feed-card">
+            <div class="side-card-header">
+              <h2>Comunidades</h2>
               <button class="right-sidebar-icon-button" id="shuffleSuggestedCommunitiesBtn" type="button"
                 aria-label="Sortear novas comunidades" title="Sortear novas comunidades">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -241,8 +242,8 @@
                 </svg>
               </button>
             </div>
-            <p class="right-sidebar-subtitle">Sugestões aleatórias para explorar novos grupos acadêmicos.</p>
-            <div id="right-sidebar-communities" class="right-sidebar-list" aria-live="polite">
+
+            <div id="right-sidebar-communities" class="right-sidebar-list profile-friends-list" aria-live="polite">
               <div class="right-sidebar-skeleton-item placeholder-glow">
                 <span class="placeholder right-sidebar-skeleton-avatar"></span>
                 <span class="right-sidebar-skeleton-lines">
@@ -258,6 +259,7 @@
                 </span>
               </div>
             </div>
+
             <a href="communities.html" class="right-sidebar-link">
               <span>Ver todas as comunidades</span>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -265,34 +267,29 @@
                 <path d="m13 6 6 6-6 6" />
               </svg>
             </a>
-          </article>
+          </section>
 
-          <article class="right-sidebar-card right-sidebar-games-card">
-            <div class="right-sidebar-card-header">
-              <div>
-                <span class="right-sidebar-eyebrow">Pausa rápida</span>
-                <h2>Mini Games</h2>
-              </div>
-            </div>
-            <div class="right-sidebar-game-grid">
+          <section class="profile-api-card right-sidebar-feed-card right-sidebar-games-card">
+            <h2>Mini Games</h2>
+            <div class="right-sidebar-game-grid profile-friends-list">
               <a href="https://devkevinsramos.github.io/moviearcade/index.html" target="_blank"
-                class="right-sidebar-game-card" rel="noopener">
+                class="side-community-item right-sidebar-game-card" rel="noopener">
                 <span class="right-sidebar-game-icon">🎬</span>
-                <span class="right-sidebar-game-copy">
+                <div>
                   <strong>Movie Arcade</strong>
-                  <small>Quizzes de filmes</small>
-                </span>
+                  <span>Quizzes de filmes</span>
+                </div>
               </a>
               <a href="https://theusbertelli.github.io/pong-evolution/" target="_blank"
-                class="right-sidebar-game-card" rel="noopener">
+                class="side-community-item right-sidebar-game-card" rel="noopener">
                 <span class="right-sidebar-game-icon">🏓</span>
-                <span class="right-sidebar-game-copy">
+                <div>
                   <strong>Pong Evolution</strong>
-                  <small>Clássico reinventado</small>
-                </span>
+                  <span>Clássico reinventado</span>
+                </div>
               </a>
             </div>
-          </article>
+          </section>
         </aside>
 
       </section>

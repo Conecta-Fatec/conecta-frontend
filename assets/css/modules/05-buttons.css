@@ -20,8 +20,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.42rem;
-  min-height: 2.5rem;
-  padding: 0.62rem 1rem;
+  min-height: calc(2.5rem * var(--app-control-scale));
+  padding: calc(0.62rem * var(--app-control-scale)) calc(1rem * var(--app-control-scale));
   border: var(--hairline) solid var(--border-strong) !important;
   border-radius: var(--radius-pill) !important;
   background: linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--primary-soft) 66%, transparent)) !important;
@@ -67,8 +67,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.42rem;
-  min-height: 2.5rem;
-  padding: 0.62rem 1rem;
+  min-height: calc(2.5rem * var(--app-control-scale));
+  padding: calc(0.62rem * var(--app-control-scale)) calc(1rem * var(--app-control-scale));
   border: var(--hairline) solid var(--border-color) !important;
   border-radius: var(--radius-pill) !important;
   background: color-mix(in srgb, var(--surface-solid) 38%, transparent) !important;
@@ -102,8 +102,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.42rem;
-  min-height: 2.5rem;
-  padding: 0.62rem 1rem;
+  min-height: calc(2.5rem * var(--app-control-scale));
+  padding: calc(0.62rem * var(--app-control-scale)) calc(1rem * var(--app-control-scale));
   border: var(--hairline) solid color-mix(in srgb, var(--danger-color) 38%, transparent) !important;
   border-radius: var(--radius-pill) !important;
   background: var(--danger-soft) !important;

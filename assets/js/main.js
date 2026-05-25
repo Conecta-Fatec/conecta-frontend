@@ -372,10 +372,31 @@ const FONT_FAMILIES = {
 };
 
 const FONT_SIZES = {
+  small: '1rem',
+  normal: '1rem',
+  large: '1rem',
+  xlarge: '1rem',
+};
+
+const ROOT_FONT_SIZES = {
   small: '87.5%',
   normal: '100%',
   large: '112.5%',
   xlarge: '125%',
+};
+
+const FONT_SCALES = {
+  small: '0.875',
+  normal: '1',
+  large: '1.125',
+  xlarge: '1.25',
+};
+
+const CONTROL_SCALES = {
+  small: '1',
+  normal: '1',
+  large: '1',
+  xlarge: '1',
 };
 
 function getThemeMode() {
@@ -391,13 +412,16 @@ function applyTheme(mode = getThemeMode()) {
   const resolved = getResolvedTheme(mode);
   document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-oled');
   document.documentElement.classList.add(`theme-${resolved}`);
+  document.documentElement.dataset.theme = resolved;
 
   if (body) {
     body.classList.remove('theme-light', 'theme-dark', 'theme-oled');
     body.classList.add(`theme-${resolved}`);
+    body.dataset.theme = resolved;
     body.classList.toggle('reduce-transparency', localStorage.getItem(PREFERENCE_KEYS.reduceTransparency) === 'true');
   }
 
+  updateSidebarLogo();
   updatePreferenceControls();
 }
 
@@ -417,18 +441,38 @@ function getFontSizeMode() {
   return Object.prototype.hasOwnProperty.call(FONT_SIZES, saved) ? saved : 'normal';
 }
 
+function getFontScale() {
+  const mode = getFontSizeMode();
+  return FONT_SCALES[mode] || FONT_SCALES.normal;
+}
+
+function getRootFontSize() {
+  const mode = getFontSizeMode();
+  return ROOT_FONT_SIZES[mode] || ROOT_FONT_SIZES.normal;
+}
+
+function getControlScale() {
+  const mode = getFontSizeMode();
+  return CONTROL_SCALES[mode] || CONTROL_SCALES.normal;
+}
+
 function applyFontPreferences() {
   const familyMode = getFontFamilyMode();
   const sizeMode = getFontSizeMode();
   const fontFamily = FONT_FAMILIES[familyMode];
   const fontScale = FONT_SIZES[sizeMode];
 
-  document.documentElement.style.setProperty('font-size', fontScale);
+  // Escala visual gradual
+  document.documentElement.style.setProperty('font-size', getRootFontSize());
   document.documentElement.style.setProperty('--app-font-family', fontFamily);
-  document.documentElement.style.setProperty('--app-font-size', '1rem');
+  document.documentElement.style.setProperty('--app-font-size', fontScale);
+  document.documentElement.style.setProperty('--app-text-scale', '1');
+  document.documentElement.style.setProperty('--app-control-scale', getControlScale());
   if (body) {
     body.style.setProperty('--app-font-family', fontFamily);
-    body.style.setProperty('--app-font-size', '1rem');
+    body.style.setProperty('--app-font-size', fontScale);
+    body.style.setProperty('--app-text-scale', '1');
+    body.style.setProperty('--app-control-scale', getControlScale());
   }
 
   updatePreferenceControls();
@@ -1358,16 +1402,17 @@ function updateSidebarLogo() {
 
   const theme =
     document.documentElement.dataset.theme ||
-    document.body.dataset.theme ||
-    localStorage.getItem("theme") ||
-    localStorage.getItem("conecta-theme") ||
-    "dark";
+    document.body?.dataset.theme ||
+    localStorage.getItem(PREFERENCE_KEYS.theme) ||
+    (document.documentElement.classList.contains("theme-oled") && "oled") ||
+    (document.documentElement.classList.contains("theme-dark") && "dark") ||
+    (document.body?.classList.contains("theme-oled") && "oled") ||
+    (document.body?.classList.contains("theme-dark") && "dark") ||
+    "light";
 
   const isDarkTheme = theme === "dark" || theme === "oled";
-
-  logo.src = isDarkTheme
-    ? logo.dataset.logoLight
-    : logo.dataset.logoDefault;
+  const nextSrc = isDarkTheme ? logo.dataset.logoLight : logo.dataset.logoDefault;
+  if (nextSrc && logo.getAttribute("src") !== nextSrc) logo.src = nextSrc;
 }
 
 document.addEventListener("DOMContentLoaded", updateSidebarLogo);

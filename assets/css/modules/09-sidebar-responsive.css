@@ -10,13 +10,20 @@
   .modern-sidebar .sidebar-logo {
     padding-left: 0;
     width: 2.5rem;
+    min-height: 2.5rem;
     overflow: hidden;
     display: flex;
     justify-content: center;
   }
 
+  .modern-sidebar .sidebar-logo .sidebar-logo-svg {
+    width: 10.5rem;
+    max-width: none;
+    height: auto;
+  }
+
   .modern-nav .sidebar-link {
-    padding: 0.85rem; 
+    padding: 0.78rem; 
     justify-content: center;
   }
 

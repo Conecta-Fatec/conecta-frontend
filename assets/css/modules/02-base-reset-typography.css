@@ -91,7 +91,7 @@ h1, h2, h3, h4, h5, h6,
 .community-page-info h1,
 .profile-main-info h1,
 .communities-hero-content > h1 {
-  font-size: clamp(1.65rem, 2.25vw, 2.25rem);
+  font-size: clamp(calc(1.65rem * var(--app-text-scale)), calc(2.25vw * var(--app-text-scale)), calc(2.25rem * var(--app-text-scale)));
 }
 
 .feed-control-text h2,
@@ -104,7 +104,7 @@ h1, h2, h3, h4, h5, h6,
 .about-dev-section h3,
 .community-side h2 {
   margin: 0;
-  font-size: clamp(1rem, 1.25vw, 1.16rem);
+  font-size: clamp(calc(1rem * var(--app-text-scale)), calc(1.25vw * var(--app-text-scale)), calc(1.16rem * var(--app-text-scale)));
   font-weight: var(--weight-strong);
   letter-spacing: -0.025em;
   line-height: 1.25;
