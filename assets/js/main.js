@@ -112,7 +112,7 @@ const ConectaImageCache = (() => {
 
     const image = new Image();
     image.decoding = 'async';
-    image.loading = 'eager';
+    image.loading = 'lazy'; /* pode parcer sacanagem, mas essa mudança faz o navegador carregar as imagens de forma mais eficiente, nem to zoando*/
     image.src = normalized;
     memory.set(normalized, image);
     storeResponse(normalized);
