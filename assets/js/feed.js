@@ -136,7 +136,7 @@ window.loadPosts = async function loadPosts(silent = false) {
     );
   };
 
-  async function publishFeedPost() {
+async function publishFeedPost() {
     const content = postInput.value.trim();
     if (!content) return;
 
@@ -148,17 +148,46 @@ window.loadPosts = async function loadPosts(silent = false) {
         body: JSON.stringify({ content }),
       });
       if (!response.ok) throw new Error('Erro ao publicar.');
+      
+      // Lemos o que a API devolveu
+      const dadosDaAPI = await response.json();
+      
+      // 1. Algumas APIs devolvem o objeto aninhado. Tentamos desempacotar:
+      const novoPost = dadosDaAPI.post || dadosDaAPI.data || dadosDaAPI;
+      
+      // 2. A MÁGICA AQUI: Se a API não devolver o texto, usamos o texto que acabamos de digitar!
+      novoPost.content = novoPost.content || content; 
+      
+      // 3. Forçamos o autor a ser o usuário logado
+      novoPost.author = currentUser;
+      
+      // 4. Garantimos um ID e uma data caso a API não devolva, para o HTML não quebrar
+      novoPost.id = novoPost.id || Date.now();
+      novoPost.created_at = novoPost.created_at || new Date().toISOString();
+
+      // Geramos o HTML do card perfeitinho
+      const novoPostHTML = ConectaPosts.renderPostCard(novoPost, { 
+        currentUser, 
+        showCommunityLabel: false,
+        allowCommentInput: true,
+        canInteract: true 
+      });
+      
+      // Injetamos no topo do feed
+      postsContainer.insertAdjacentHTML('afterbegin', novoPostHTML);
+
+      // Limpamos o modal e fechamos
       postInput.value = '';
       bootstrap.Modal.getInstance(document.getElementById('newPostModal'))?.hide();
       setActiveTab('general');
-      await loadPosts(true);
+      
     } catch (error) {
       alert('Erro ao publicar.');
     } finally {
       window.destravarBotao(publishBtn, true);
     }
   }
-
+  
   window.deletePost = async function(postId, btnElement) {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
     if (btnElement && !window.travarBotao(btnElement)) return;
