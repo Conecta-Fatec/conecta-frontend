@@ -234,9 +234,30 @@ async function publishFeedPost() {
   window.enablePostEdit = function(postId) {
     const contentDiv = document.getElementById(`post-text-content-${postId}`);
     if (!contentDiv) return;
-    const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.getAttribute('data-raw') || '';
-    contentDiv.innerHTML = `<div class="mb-3 mt-2"><textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea><div class="d-flex gap-2 mt-2"><button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button><button class="btn btn-sm btn-secondary" type="button" onclick="loadPosts(true)">Cancelar</button></div></div>`;
+    
+    // Guarda o texto original de forma segura
+    const originalText = contentDiv.getAttribute('data-raw') || contentDiv.querySelector('.post-text')?.textContent || '';
+    
+    // Troca o parágrafo pela caixa de texto. Repare que o Cancelar agora chama cancelPostEdit
+    contentDiv.innerHTML = `
+      <div class="mb-3 mt-2">
+        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
+        <div class="d-flex gap-2 mt-2">
+          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
+          <button class="btn btn-sm btn-secondary" type="button" onclick="cancelPostEdit(${postId})">Cancelar</button>
+        </div>
+      </div>
+    `;
     document.getElementById(`edit-post-input-${postId}`).value = originalText;
+  };
+
+  // Função nova para não recarregar o feed se o utilizador desistir de editar
+  window.cancelPostEdit = function(postId) {
+    const contentDiv = document.getElementById(`post-text-content-${postId}`);
+    if (!contentDiv) return;
+    
+    const originalText = contentDiv.getAttribute('data-raw') || '';
+    contentDiv.innerHTML = `<p class="post-text">${escapeHTML(originalText)}</p>`;
   };
 
   window.savePostEdit = async function(postId, btnElement) {
@@ -246,9 +267,27 @@ async function publishFeedPost() {
 
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/update/`, { method: 'PATCH', body: JSON.stringify({ content }) });
-      if (response.ok) await loadPosts(true);
+      
+      if (response.ok) {
+        const contentDiv = document.getElementById(`post-text-content-${postId}`);
+        if (contentDiv) {
+          // Atualiza o atributo oculto com o texto novo
+          contentDiv.setAttribute('data-raw', content);
+          // Substitui a caixa de formulário pelo parágrafo atualizado
+          contentDiv.innerHTML = `<p class="post-text">${escapeHTML(content)}</p>`;
+          
+          // (Opcional) Adiciona o selo "· editado" no cabeçalho do post se ainda não existir
+          const headerMain = document.querySelector(`#post-${postId} .post-header-main`);
+          if (headerMain && !headerMain.querySelector('.post-edited-label')) {
+            headerMain.insertAdjacentHTML('beforeend', '<small class="post-edited-label"> · editado</small>');
+          }
+        }
+      } else {
+        alert('Não foi possível salvar a edição.');
+      }
     } catch (error) { 
       console.error(error); 
+      alert('Erro de conexão ao tentar atualizar o post.');
     } finally {
       if (btnElement) window.destravarBotao(btnElement, true);
     }
