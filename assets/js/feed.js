@@ -187,16 +187,31 @@ async function publishFeedPost() {
       window.destravarBotao(publishBtn, true);
     }
   }
-  
-  window.deletePost = async function(postId, btnElement) {
+
+ window.deletePost = async function(postId, btnElement) {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
     if (btnElement && !window.travarBotao(btnElement)) return;
     
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/delete/`, { method: 'DELETE' });
-      if (response.ok) await loadPosts(true);
+      
+      if (response.ok) {
+        // Encontra o card do post no ecrã
+        const postCard = document.getElementById(`post-${postId}`);
+        if (postCard) {
+          // Efeito visual suave antes de desaparecer
+          postCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          postCard.style.opacity = '0';
+          postCard.style.transform = 'scale(0.95)';
+          
+          // Aguarda a animação terminar (300ms) e remove o elemento do DOM
+          setTimeout(() => postCard.remove(), 300);
+        }
+      } else {
+        alert('Não foi possível excluir o post. Tente novamente.');
+      }
     } catch (error) { 
-      alert('Erro ao excluir o post.'); 
+      alert('Erro de conexão ao tentar excluir o post.'); 
     } finally {
       if (btnElement) window.destravarBotao(btnElement);
     }
