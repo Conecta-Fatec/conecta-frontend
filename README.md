@@ -36,4 +36,4 @@ Essa abordagem permite maior escalabilidade, manutenção simplificada e possibi
 
 ## Deploy
 
-Link do site: https://conecta-fatec.github.io/conecta-frontend/
+Link do site: [Conecta FATEC](https://conecta-frontend-bice.vercel.app/)
