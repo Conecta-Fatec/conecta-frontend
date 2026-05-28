@@ -44,7 +44,7 @@ body:has(.login-page) {
   overflow: hidden;
   color: var(--text-color);
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.48), rgba(15, 23, 42, 0.22)),
-              url("../../img/login-desktop.jpg") center / cover no-repeat;
+            url("../../../img/login-desktop.jpg") center / cover no-repeat;
 }
 
 .login-page::before {

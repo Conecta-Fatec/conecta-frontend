@@ -1,0 +1,16 @@
+{
+  "liveSassCompile.settings.formats": [
+    {
+      "format": "compressed",
+      "extensionName": ".min.css",
+      "savePath": "~/assets/css"
+    }
+  ],
+  "liveSassCompile.settings.generateMap": false
+}
+
+/* vou explicar oq ta acontecendo aqui só pra nn ter que explicar dps:
+"format": "compressed": Isso faz a "Minificação". Remove todos os espaços e quebras de linha.
+"extensionName": ".min.css": Dá o nome correto ao arquivo final.
+"savePath": Diz para salvar na mesma pasta onde seu CSS sempre esteve.
+"generateMap": false: Evita criar arquivos .map inúteis para produção. */
