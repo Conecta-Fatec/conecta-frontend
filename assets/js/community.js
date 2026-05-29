@@ -656,7 +656,18 @@ async function publishCommunityPost() {
     if (btnElement) window.travarBotao(btnElement);
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/delete/`, { method: 'DELETE' });
-      if (response.ok) await loadCommunityDetails(true);
+      if (response.ok) {
+        const postCard = document.getElementById(`post-${postId}`);
+        if (postCard) {
+          // Efeito visual suave antes de remover da tela, fica bunitao
+          postCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          postCard.style.opacity = '0';
+          postCard.style.transform = 'scale(0.95)';
+          setTimeout(() => postCard.remove(), 300);
+        }
+      } else {
+        alert('Erro ao excluir o post da comunidade.');
+      }
     } finally {
       if (btnElement) window.destravarBotao(btnElement);
     }
