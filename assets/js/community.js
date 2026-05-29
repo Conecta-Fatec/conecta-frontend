@@ -537,7 +537,7 @@ async function loadCommunityDetails(silent = false) {
     return { response, data };
   }
 
-  async function publishCommunityPost() {
+async function publishCommunityPost() {
     const contentEl = document.getElementById('communityPostContent');
     const error = document.getElementById('communityPostError');
     const content = contentEl.value.trim();
@@ -548,10 +548,41 @@ async function loadCommunityDetails(silent = false) {
     window.travarBotao(publishBtn, true);
 
     try {
-      await createCommunityPost(content);
+      const { response, data } = await createCommunityPost(content);
+      
+      // Extraímos os dados ou usamos um fallback de segurança
+      const novoPost = data?.post || data?.data || data || {};
+      
+      // 2. Hidratamos os dados do post que faltam
+      novoPost.content = novoPost.content || content;
+      novoPost.author = currentUser;
+      novoPost.id = novoPost.id || Date.now();
+      novoPost.created_at = novoPost.created_at || new Date().toISOString();
+      
+      // Como estamos dentro da página da comunidade, forçamos essa informação
+      novoPost.community = currentCommunity;
+
+      // Geramos o HTML do novo post
+      const novoPostHTML = ConectaPosts.renderPostCard(novoPost, {
+        currentUser,
+        showCommunityLabel: false, // Oculta o selo "Feito em X" porque já estamos nela
+        allowCommentInput: currentIsMember,
+        canInteract: currentIsMember,
+      });
+
+      // Injetamos o post no topo
+      const postsContainer = document.getElementById('community-posts-container');
+      
+      // Remove o texto de "Nenhum post ainda" se este for o primeiro post
+      const emptyState = postsContainer.querySelector('.api-empty-state');
+      if (emptyState) emptyState.remove();
+
+      postsContainer.insertAdjacentHTML('afterbegin', novoPostHTML);
+
       contentEl.value = '';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).hide();
-      await loadCommunityDetails(true);
+      
+      // REMOVIDO: await loadCommunityDetails(true);
     } catch (err) {
       console.error(err);
       error.textContent = err.message || 'Erro de conexão com o servidor.';
