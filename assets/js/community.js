@@ -703,42 +703,61 @@ async function publishCommunityPost() {
     }
   };
 
-  window.enableCommentEdit = (commentId) => {
-    const textSpan = document.getElementById(`comment-text-content-${commentId}`);
-    if (!textSpan) return;
-    const originalText = textSpan.textContent || textSpan.dataset.raw || '';
-    textSpan.innerHTML = `
-      <span class="comment-edit-inline">
-        <input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200">
-        <button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId}, this)">Salvar</button>
-        <button class="btn btn-sm btn-secondary py-0 px-2" type="button" onclick="loadCommunityDetailsFromButton()">✕</button>
-      </span>`;
-    document.getElementById(`edit-comment-input-${commentId}`).value = originalText;
+  window.enablePostEdit = (postId) => {
+    const contentDiv = document.getElementById(`post-text-content-${postId}`);
+    if (!contentDiv) return;
+    const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.dataset.raw || '';
+    
+    // Armazena o texto com segurança antes de trocar pelo formulário
+    contentDiv.setAttribute('data-raw', originalText);
+    
+    contentDiv.innerHTML = `
+      <div class="mb-3 mt-2">
+        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
+        <div class="d-flex gap-2 mt-2">
+          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
+          <button class="btn btn-sm btn-secondary" type="button" onclick="cancelPostEdit(${postId})">Cancelar</button>
+        </div>
+      </div>`;
+    document.getElementById(`edit-post-input-${postId}`).value = originalText;
   };
 
-  window.saveCommentEdit = async (commentId, btnElement) => {
-    const content = document.getElementById(`edit-comment-input-${commentId}`)?.value.trim();
+  // Função nova para não recarregar a página da comunidade ao desistir
+  window.cancelPostEdit = (postId) => {
+    const contentDiv = document.getElementById(`post-text-content-${postId}`);
+    if (!contentDiv) return;
+    
+    const originalText = contentDiv.getAttribute('data-raw') || '';
+    contentDiv.innerHTML = `<p class="post-text">${escapeHTML(originalText)}</p>`;
+  };
+
+  window.savePostEdit = async (postId, btnElement) => {
+    const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
     if (!content) return;
     if (btnElement) window.travarBotao(btnElement, true);
+    
     try {
-      const response = await apiFetch(`/api/posts/comment/${commentId}/update/`, {
+      const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
         method: 'PATCH',
         body: JSON.stringify({ content }),
       });
-      if (response.ok) await loadCommunityDetails(true);
+      if (response.ok) {
+        const contentDiv = document.getElementById(`post-text-content-${postId}`);
+        if (contentDiv) {
+          contentDiv.setAttribute('data-raw', content);
+          contentDiv.innerHTML = `<p class="post-text">${escapeHTML(content)}</p>`;
+          
+          // Adiciona o selinho de editado se não tiver
+          const headerMain = document.querySelector(`#post-${postId} .post-header-main`);
+          if (headerMain && !headerMain.querySelector('.post-edited-label')) {
+            headerMain.insertAdjacentHTML('beforeend', '<small class="post-edited-label"> · editado</small>');
+          }
+        }
+      } else {
+        alert('Não foi possível salvar a edição.');
+      }
     } finally {
       if (btnElement) window.destravarBotao(btnElement, true);
-    }
-  };
-
-  window.deleteComment = async (commentId, btnElement) => {
-    if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
-    if (btnElement) window.travarBotao(btnElement);
-    try {
-      const response = await apiFetch(`/api/posts/comment/${commentId}/delete/`, { method: 'DELETE' });
-      if (response.ok) await loadCommunityDetails(true);
-    } finally {
-      if (btnElement) window.destravarBotao(btnElement);
     }
   };
 
