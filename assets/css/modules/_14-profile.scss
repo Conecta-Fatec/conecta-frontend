@@ -20,13 +20,17 @@
 .side-card,
 .profile-api-card {
   overflow: hidden;
-  border-radius: var(--radius-lg);
   color: var(--text-color);
 }
+
 
 .profile-hero-card {
   position: relative !important;
   padding: clamp(1.35rem, 3vw, 2.2rem) !important;
+  background: var(--surface-color);
+  border: var(--hairline) solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Sombra bem suave */
+  margin-bottom: 1.5rem; /* Espaço antes das postagens */
 }
 
 .profile-hero-layout {
@@ -45,13 +49,19 @@
 .profile-hero-layout > #profile-avatar,
 .profile-hero-layout > #public-avatar {
   grid-area: avatar;
-  border-radius: 5% !important;
+  
+  /* NOVAS ADIÇÕES: Circular com borda e sombra */
+  border-radius: 50% !important; 
+  border: 3px solid var(--surface-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  object-fit: cover; /* Garante que a imagem não achate */
+  aspect-ratio: 1 / 1; /* Força ser um quadrado perfeito antes de arredondar */
 }
 
-.profile-main-info {
-  grid-area: info;
-  min-width: 0;
-  padding-right: min(18%, 10rem);
+.profile-main-info h1 {
+  margin-bottom: 0.2rem !important;
+  font-weight: 800 !important; /* Deixa o nome bem forte */
+  letter-spacing: -0.02em;
 }
 
 .profile-main-info .feed-kicker {
@@ -66,11 +76,22 @@
   margin: 0.15rem 0 0.65rem !important;
 }
 
+.nickname-badge {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
 .profile-course-text,
 .profile-course {
-  margin: 0.25rem 0 !important;
-  color: var(--text-soft);
-  line-height: 1.5;
+  display: inline-block !important; /* Importante para o formato */
+  margin: 0.5rem 0 !important;
+  padding: 0.35rem 0.85rem !important;
+  background-color: var(--surface-muted); /* Fundo cinza/escuro claro */
+  border-radius: 50px !important; /* Formato de pílula */
+  color: var(--text-color);
+  font-size: 0.85rem !important;
+  font-weight: 500;
+  border: var(--hairline) solid var(--border-color);
 }
 
 .profile-stat-row,
@@ -114,6 +135,19 @@
   min-width: max-content !important;
   margin: 0 !important;
   z-index: 5;
+}
+
+.profile-hero-layout .btn, 
+#openEditProfileBtn, 
+#friendActionBtn {
+  transition: all 0.2s ease; /* Transição suave */
+}
+
+.profile-hero-layout .btn:hover, 
+#openEditProfileBtn:hover, 
+#friendActionBtn:hover {
+  transform: translateY(-2px); /* Efeito de "levantar" ao passar o mouse */
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 40%, transparent);
 }
 
 .profile-side-stack,
