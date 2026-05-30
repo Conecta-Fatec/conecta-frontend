@@ -1,13 +1,8 @@
-/* =========================================================
-   CONECTA FATEC: Funções Globais e Core da Aplicação
-   - Otimizado com processamento paralelo e contagem de comentários corrigida
-========================================================= */
-
+// Importando a URL base da API para facilitar manutenção e evitar hardcoding em múltiplos lugares
 const API_BASE_URL = 'https://conecta-fatec-api.onrender.com';
 
-// =========================================================
-// Utilitários de Controle de Interface (Prevenção de Duplo Clique)
-// =========================================================
+// Utilitários de Controle de Interface e Gerenciamento de Estado de Botões
+
 window.travarBotao = function(botao, mudarTexto = false) {
   if (!botao || botao.disabled) return false;
   
@@ -34,9 +29,9 @@ window.destravarBotao = function(botao, mudarTexto = false) {
   }
 };
 
-// =========================================================
+
 // Cache leve de imagens e pré-carregamento visual
-// =========================================================
+
 const IMAGE_CACHE_KEY = 'conecta_image_cache_v1';
 const IMAGE_CACHE_LIMIT = 80;
 const IMAGE_CACHE_STORAGE = 'conecta-image-cache-v1';
@@ -320,9 +315,8 @@ function updateSidebarUser(user) {
   });
 }
 
-/* =========================================================
-   Utilitário Global: Stale-While-Revalidate (SWR)
-========================================================= */
+
+// Utilitário Global: Stale-While-Revalidate (SWR)
 window.useSWR = async function(cacheKey, fetchCallback, renderCallback, options = {}) {
   const storage = options.storage === 'local' ? localStorage : sessionStorage;
   const silent = options.silent || false;
@@ -1393,10 +1387,8 @@ async function tryApiJSON(paths, options = {}) {
     throw new Error('Nenhum dos endpoints de busca encontrou os dados.');
   }
 }
-/* =========================================================
-   AUTO-ACTIVE MENU LATERAL
-   Detecta a página atual e acende o indicador na Sidebar
-========================================================= */
+
+// Detecta a página atual e acende o indicador na Sidebar
 document.addEventListener("DOMContentLoaded", () => {
   // Pega o nome do arquivo atual na URL (ex: feed.html)
   let currentPage = window.location.pathname.split("/").pop() || "feed.html";

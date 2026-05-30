@@ -27,7 +27,6 @@
 .profile-hero-card {
   position: relative !important;
   padding: clamp(1.35rem, 3vw, 2.2rem) !important;
-  border-radius: var(--radius-lg);
 }
 
 .profile-hero-layout {
@@ -46,6 +45,7 @@
 .profile-hero-layout > #profile-avatar,
 .profile-hero-layout > #public-avatar {
   grid-area: avatar;
+  border-radius: 5% !important;
 }
 
 .profile-main-info {

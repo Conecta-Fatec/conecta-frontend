@@ -27,17 +27,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => addInput?.focus(), 180);
   });
 
-  const state = {
+const state = {
     friends: [],
     explore: [],
     received: [],
     sent: [],
     query: '',
-    friendsVisible: 3,
-    exploreVisible: 3,
+    friendsVisible: 12, // de 3 para 12
+    exploreVisible: 12, // de 3 para 12
     totalUsers: null,
     requestMode: 'received',
   };
+
+  // Intersection Observer para Scroll Infinito ---
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Para de vigiar a div antiga
+        scrollObserver.unobserve(entry.target); 
+        
+        // Descobre se estamos na aba de amigos ou de explorar
+        const type = entry.target.dataset.infiniteScroll;
+        
+        // Adiciona mais 12 amigos e manda desenhar a tela novamente
+        if (type === 'mine') state.friendsVisible += 12;
+        if (type === 'explore') state.exploreVisible += 12;
+        
+        renderAll();
+      }
+    });
+  }, { rootMargin: '200px' }); // Dispara 200px ANTES de bater no fundo da tela
 
   function normalizeList(data, key) {
     if (Array.isArray(data)) return data;
@@ -116,15 +135,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('users-count').textContent = state.totalUsers ?? '—';
   }
 
-  function renderLimited(container, items, visible, renderer, emptyText, moreKey) {
+function renderLimited(container, items, visible, renderer, emptyText, moreKey) {
     if (!items.length) {
       container.innerHTML = `<div class="api-empty-state">${emptyText}</div>`;
       return;
     }
+    
+    // Desenha os cards na tela perfeitamente como você já fazia
     const shown = items.slice(0, visible);
     container.innerHTML = shown.map(renderer).join('');
+    
+    // Em vez de um botão, optei por uma linha invisível no final
     if (items.length > shown.length) {
-      container.insertAdjacentHTML('beforeend', `<div class="load-more-wrap"><button class="load-more-btn" type="button" data-friends-more="${moreKey}">Ver mais</button></div>`);
+      const triggerHTML = `<div data-infinite-scroll="${moreKey}" style="height: 1px; width: 100%;"></div>`;
+      container.insertAdjacentHTML('beforeend', triggerHTML);
+      
+      // Mandamos o "olheiro" vigiar essa nova linha invisível
+      const triggerElement = container.querySelector(`[data-infinite-scroll="${moreKey}"]`);
+      if (triggerElement) scrollObserver.observe(triggerElement);
     }
   }
 
