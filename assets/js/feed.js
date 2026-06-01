@@ -135,37 +135,42 @@ window.loadPosts = async function loadPosts(silent = false) {
       }
     );
   };
-
 async function publishFeedPost() {
     const content = postInput.value.trim();
-    if (!content) return;
+    const selectedGifInput = document.getElementById('selected-gif-url');
+    const gifUrl = selectedGifInput ? selectedGifInput.value : '';
+    const errorMsg = document.getElementById('post-error-msg'); // Pega nossa nova mensagem
+
+    // Esconde o erro toda vez que ele tenta publicar de novo
+    if (errorMsg) errorMsg.classList.add('d-none');
+
+    // Validação nova: Obriga a ter texto!
+    if (!content) {
+        if (errorMsg) {
+            errorMsg.textContent = "Você precisa escrever algo no post!";
+            errorMsg.classList.remove('d-none');
+        }
+        return; 
+    }
 
     if (!window.travarBotao(publishBtn, true)) return;
 
     try {
       const response = await apiFetch('/api/posts/feed/create/', {
         method: 'POST',
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content: content, gif_url: gifUrl }),
       });
-      if (!response.ok) throw new Error('Erro ao publicar.');
+      if (!response.ok) throw new Error('Erro ao publicar no servidor.');
       
-      // Lemos o que a API devolveu
       const dadosDaAPI = await response.json();
-      
-      // 1. Algumas APIs devolvem o objeto aninhado. Tentamos desempacotar:
       const novoPost = dadosDaAPI.post || dadosDaAPI.data || dadosDaAPI;
       
-      // 2. A MÁGICA AQUI: Se a API não devolver o texto, usamos o texto que acabamos de digitar!
       novoPost.content = novoPost.content || content; 
-      
-      // 3. Forçamos o autor a ser o usuário logado
+      novoPost.gif_url = novoPost.gif_url || gifUrl;
       novoPost.author = currentUser;
-      
-      // 4. Garantimos um ID e uma data caso a API não devolva, para o HTML não quebrar
       novoPost.id = novoPost.id || Date.now();
       novoPost.created_at = novoPost.created_at || new Date().toISOString();
 
-      // Geramos o HTML do card perfeitinho
       const novoPostHTML = ConectaPosts.renderPostCard(novoPost, { 
         currentUser, 
         showCommunityLabel: false,
@@ -173,16 +178,19 @@ async function publishFeedPost() {
         canInteract: true 
       });
       
-      // Injetamos no topo do feed
       postsContainer.insertAdjacentHTML('afterbegin', novoPostHTML);
 
-      // Limpamos o modal e fechamos
       postInput.value = '';
+      if (gifUrl) document.getElementById('btn-remove-gif').click(); 
       bootstrap.Modal.getInstance(document.getElementById('newPostModal'))?.hide();
       setActiveTab('general');
       
     } catch (error) {
-      alert('Erro ao publicar.');
+      // Se der erro de conexão, mostra na interface também
+      if (errorMsg) {
+          errorMsg.textContent = "Ops! Ocorreu um erro ao conectar com o servidor.";
+          errorMsg.classList.remove('d-none');
+      }
     } finally {
       window.destravarBotao(publishBtn, true);
     }
@@ -580,4 +588,97 @@ async function publishFeedPost() {
 
   loadSuggestedCommunities().catch(console.error);
 
+});
+
+// Cole a chave que você gerou no site do Giphy aqui:
+const GIPHY_API_KEY = '2zqiG8Ems0HGkwRQetEHW7cj7fodVumy'; 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnOpenGif = document.getElementById('btn-open-gif');
+  const gifContainer = document.getElementById('gif-search-container');
+  const gifSearchInput = document.getElementById('gif-search-input');
+  const gifResults = document.getElementById('gif-results');
+  const selectedGifInput = document.getElementById('selected-gif-url');
+  const gifPreviewContainer = document.getElementById('gif-preview-container');
+  const gifPreviewImg = document.getElementById('gif-preview-img');
+  const btnRemoveGif = document.getElementById('btn-remove-gif');
+
+  // 1. Abre/Fecha a caixa de pesquisa de GIFs
+  if(btnOpenGif) {
+      btnOpenGif.addEventListener('click', () => {
+          gifContainer.classList.toggle('d-none');
+          // Se abriu a caixa, já carrega os GIFs em alta (Trending)
+          if (!gifContainer.classList.contains('d-none')) {
+              loadGifs(''); 
+          }
+      });
+  }
+
+  // 2. Busca GIFs conforme o usuário digita
+  let searchTimeout;
+  if(gifSearchInput) {
+      gifSearchInput.addEventListener('input', (e) => {
+          clearTimeout(searchTimeout);
+          // Espera o usuário parar de digitar por 500ms para não travar a API
+          searchTimeout = setTimeout(() => {
+              loadGifs(e.target.value);
+          }, 500); 
+      });
+  }
+
+  // 3. Faz a requisição direto para o servidor do Giphy
+  async function loadGifs(query) {
+      gifResults.innerHTML = '<p class="text-muted small w-100 text-center mt-2">Carregando...</p>';
+      
+      const url = query.trim() === ''
+          ? `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`
+          : `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12`;
+
+      try {
+          const response = await fetch(url);
+          const data = await response.json();
+          renderGifs(data.data);
+      } catch (error) {
+          gifResults.innerHTML = '<p class="text-danger small w-100 text-center mt-2">Erro ao carregar GIFs.</p>';
+      }
+  }
+
+  // 4. Desenha as imagens na tela
+  function renderGifs(gifs) {
+      if (!gifs || gifs.length === 0) {
+          gifResults.innerHTML = '<p class="text-muted small w-100 text-center mt-2">Nenhum GIF encontrado.</p>';
+          return;
+      }
+
+      const html = gifs.map(gif => {
+          // Pegamos a versão leve para carregar a lista rápido
+          const gifUrl = gif.images.fixed_height_small.url;
+          // Pegamos a versão com qualidade boa para salvar no banco
+          const originalUrl = gif.images.downsized.url;
+
+          return `<img src="${gifUrl}" style="cursor:pointer; height: 80px; border-radius: 4px; object-fit: cover;"
+                       onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"
+                       onclick="selectGif('${originalUrl}')" alt="GIF">`;
+      }).join('');
+
+      gifResults.innerHTML = html;
+  }
+
+  // 5. O que acontece quando o usuário clica num GIF
+  window.selectGif = function(url) {
+      selectedGifInput.value = url; // Guarda a URL no input invisível
+      gifPreviewImg.src = url; // Mostra a imagem
+      gifPreviewContainer.classList.remove('d-none'); // Revela a área de pré-visualização
+      gifContainer.classList.add('d-none'); // Esconde a caixa de pesquisa
+      gifSearchInput.value = ''; // Limpa a barra de pesquisa
+  };
+
+  // 6. Botão de remover o GIF se o usuário desistir
+  if(btnRemoveGif) {
+      btnRemoveGif.addEventListener('click', () => {
+          selectedGifInput.value = '';
+          gifPreviewImg.src = '';
+          gifPreviewContainer.classList.add('d-none');
+      });
+  }
 });

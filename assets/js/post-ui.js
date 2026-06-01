@@ -314,7 +314,7 @@
     `;
   }
 
-  function renderPostCard(post = {}, options = {}) {
+function renderPostCard(post = {}, options = {}) {
     window.ConectaPosts.postCache.set(String(post.id), post);
 
     const author = options.author || post.author || {};
@@ -331,6 +331,17 @@
     const cardClick = canOpenCard ? `onclick="window.ConectaPosts.handlePostCardClick(event, ${post.id})"` : '';
     const shouldShowFullButton = options.showFullPostButton === true && !options.isSingleView;
 
+    const gifHtml = post.gif_url 
+      ? `<div class="post-gif-wrapper mt-2 mb-1">
+           <img src="${post.gif_url}" alt="GIF da publicação" class="img-fluid rounded" style="max-height: 200px; width: auto; object-fit: cover;">
+         </div>` 
+      : '';
+
+    // 2. PREPARA O TEXTO (Para não gerar espaço vazio se o cara mandar só GIF)
+    const textHtml = post.content 
+      ? `<p class="post-text">${escapeHTML(post.content)}</p>` 
+      : '';
+
     return `
       <article class="post-card ${canOpenCard ? 'post-card-clickable' : ''}" id="post-${post.id}" data-post-url="${escapeHTML(postLink)}" data-can-interact="${options.canInteract === false ? 'false' : 'true'}" ${cardClick}>
         <a href="${profileUrlFor(author)}" class="avatar-link" onclick="event.stopPropagation()">${avatarHTML(author)}</a>
@@ -344,7 +355,13 @@
             </div>
           </div>
           ${options.showCommunityLabel ? renderCommunityChip(post) : ''}
-          <div id="post-text-content-${post.id}" data-raw="${escapeHTML(post.content || '')}"><p class="post-text">${escapeHTML(post.content || '')}</p></div>
+          
+          <div id="post-text-content-${post.id}" data-raw="${escapeHTML(post.content || '')}">
+             ${textHtml}
+          </div>
+          
+          ${gifHtml} 
+          
           <div class="post-actions">${renderPostActions(post, isOwner, options)}</div>
           <div class="inline-comments-placeholder" id="inline-comments-${post.id}"></div>
           ${shouldShowFullButton ? `<a href="${postLink}" class="post-full-link" onclick="event.stopPropagation()">Ver post completo</a>` : ''}
