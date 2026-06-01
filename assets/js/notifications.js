@@ -65,19 +65,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const html = notifications.map(notif => {
-      // Tenta pegar o nome do usuário que gerou a notificação
       const senderName = notif.sender?.first_name 
         ? `${notif.sender.first_name} ${notif.sender.last_name}` 
         : notif.sender?.nickname || 'Alguém';
         
       const typeInfo = notificationTypes[notif.notification_type] || { icon: '🔔', text: 'interagiu com você.', color: '' };
       
-      // Se não foi lida, deixa o texto em negrito e mostra a bolinha azul
       const isReadClass = notif.is_read ? 'opacity-75' : 'fw-bold';
       const unreadDot = !notif.is_read ? '<div class="ms-3 bg-primary rounded-circle" style="width: 10px; height: 10px; flex-shrink: 0;"></div>' : '';
       
+      // Aqui passamos os dados extras (tipo, id do post e id do usuário) para a função de clique
       return `
-        <div class="d-flex align-items-center p-3 border-bottom ${isReadClass}" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'" onclick="markAsRead(${notif.id})">
+        <div class="d-flex align-items-center p-3 border-bottom ${isReadClass}" 
+             style="cursor: pointer; transition: background 0.2s;" 
+             onmouseover="this.style.background='var(--hover-bg)'" 
+             onmouseout="this.style.background='transparent'" 
+             onclick="clickNotification(${notif.id}, '${notif.notification_type}', ${notif.post || null}, ${notif.sender?.id || null})">
           <div class="me-3 fs-4 ${typeInfo.color}">${typeInfo.icon}</div>
           <div class="flex-grow-1">
             <span class="d-block"><strong style="color: var(--text-color);">${escapeHTML(senderName)}</strong> ${typeInfo.text}</span>
@@ -91,21 +94,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     container.innerHTML = html;
   }
 
-  // 4. Função global para marcar como lida ao clicar
-  window.markAsRead = async function(notifId) {
-    try {
-      // Faz o PATCH na API para mudar is_read para true
-      await apiFetch(`/api/notifications/${notifId}/read/`, {
-        method: 'PATCH'
-      });
-      
-      // Recarrega a lista para atualizar a cor e o número do sininho
-      loadNotifications();
-    } catch (error) {
-      console.error("Erro ao marcar como lido", error);
+  // 4. Nova função global que marca como lida E redireciona o usuário
+  window.clickNotification = function(notifId, type, postId, senderId) {
+    // 1. Manda a requisição para o backend marcar como lido em segundo plano
+    // (Não usamos "await" aqui para não atrasar o redirecionamento da tela)
+    apiFetch(`/api/notifications/${notifId}/read/`, { method: 'PATCH' })
+      .catch(error => console.error("Erro ao marcar como lido", error));
+
+    // 2. Decide para qual página o usuário vai dependendo da notificação
+    if (type === 'like' || type === 'comment') {
+        if (postId) {
+            // Ajuste este link para a página que exibe o seu post inteiro
+            window.location.href = `post.html?id=${postId}`; 
+        }
+    } else if (type === 'friend_request' || type === 'friend_accept') {
+        if (senderId) {
+            // Ajuste este link para a página de perfil público do usuário
+            window.location.href = `profile.html?id=${senderId}`;
+        }
     }
   };
-
-  // Inicia o carregamento quando entra na página
-  loadNotifications();
-});
