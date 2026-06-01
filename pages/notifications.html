@@ -68,13 +68,14 @@
       </svg>
       <span>Amizades</span>
     </a>
-    <a href="notifications.html" class="sidebar-link">
+  <a href="notifications.html" class="sidebar-link active">
       <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2"
         fill="none" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
       </svg>
       <span>Notificações</span>
+      <span id="notification-badge" class="badge bg-danger rounded-pill ms-auto d-none">0</span>
     </a>
     <a href="settings.html" class="sidebar-link">
       <svg class="nav-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
@@ -145,10 +146,16 @@
         </header>
 
         <section class="settings-layout">
-          <article class="settings-card empty-notification-card">
-            <h2>Sem notificações por enquanto</h2>
-            <p>Essa área foi criada para receber a implementação futura de notificações.</p>
-          </article>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0" style="color: var(--text-color);">Recentes</h2>
+            <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary d-none">
+              Marcar como lidas
+            </button>
+          </div>
+
+          <div id="notifications-container" class="settings-card">
+            <p class="text-center text-muted mt-4">Carregando notificações...</p>
+          </div>
         </section>
       </section>
     </div>
@@ -156,5 +163,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/notifications.js"></script>
 </body>
 </html>
