@@ -114,3 +114,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
   };
+
+  loadNotifications();
+});
