@@ -155,3 +155,780 @@
     box-shadow: none !important;
   }
 }
+
+
+/* =========================================================
+   Ajustes solicitados: minimalismo, escala visual, sidebar fixa,
+   posts completos no feed, OLED e remoção de saltos.
+========================================================= */
+:root,
+html.theme-light,
+body.theme-light {
+  --glass-blur: 0px;
+  --app-size-scale: 1;
+  --app-layout-scale: 1;
+  --sidebar-fluid-width: clamp(13.5rem, 17vw, 16.5rem);
+  --surface-color: rgba(255, 255, 255, 0.76);
+  --surface-muted: rgba(248, 250, 252, 0.66);
+  --post-surface: rgba(255, 255, 255, 0.60);
+  --avatar-sidebar: 50px;
+  --avatar-post: 50px;
+  --avatar-comment: 36px;
+  --avatar-card: 86px;
+  --avatar-side: 58px;
+  --avatar-profile: 148px;
+  --avatar-community-page: 148px;
+  --avatar-about: 56px;
+}
+
+html.theme-dark,
+body.theme-dark {
+  --glass-blur: 0px;
+  --surface-color: rgba(15, 23, 42, 0.76);
+  --surface-muted: rgba(15, 23, 42, 0.64);
+  --post-surface: rgba(15, 23, 42, 0.66);
+}
+
+html.theme-oled,
+body.theme-oled {
+  --glass-blur: 0px;
+  --surface-color: rgba(8, 10, 13, 0.92);
+  --surface-muted: rgba(16, 20, 25, 0.78);
+  --surface-hover: rgba(22, 27, 34, 0.88);
+  --post-surface: #0f1419;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+.glass-surface,
+:where(.login-container, .settings-card, .profile-card, .profile-section, .profile-api-card, .profile-hero-card, .side-card, .feed-create-card, .feed-control-card, .communities-summary-card, .community-create-box, .community-create-card, .community-card, .friend-card, .post-modal-content, .cookie-banner, .notification-home-btn, .mobile-offcanvas, .about-project-card, .about-resource-card, .doc-card, .sidebar, .mobile-topbar, .mobile-bottom-nav, .single-post-header, .user-dropdown-menu, .right-sidebar-feed-card) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.glass-surface,
+:where(.login-container, .settings-card, .profile-card, .profile-section, .profile-api-card, .profile-hero-card, .side-card, .feed-create-card, .feed-control-card, .communities-summary-card, .community-create-box, .community-create-card, .community-card, .friend-card, .post-modal-content, .cookie-banner, .notification-home-btn, .mobile-offcanvas, .about-project-card, .about-resource-card, .doc-card, .right-sidebar-feed-card) {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-color) 96%, transparent), color-mix(in srgb, var(--surface-color) 82%, transparent)) !important;
+}
+
+.sidebar,
+.mobile-topbar,
+.mobile-bottom-nav,
+.user-dropdown-menu {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 44%, transparent), color-mix(in srgb, var(--surface-solid) 28%, transparent)) !important;
+}
+
+@media (min-width: 48.01rem) {
+  .feed-layout {
+    grid-template-columns: var(--sidebar-fluid-width) minmax(0, 1fr) !important;
+  }
+
+  .desktop-sidebar,
+  .sidebar.desktop-sidebar,
+  .modern-sidebar.desktop-sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    align-self: start !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin;
+  }
+
+  .modern-sidebar .sidebar-logo,
+  .modern-nav .sidebar-link,
+  .modern-post-btn {
+    width: 90% !important;
+    max-width: 100% !important;
+  }
+}
+
+.modern-nav .sidebar-link,
+.user-menu-pill,
+.user-menu-pill .user-info-wrapper,
+.user-menu-pill .user-details,
+.post-card,
+.profile-post-card,
+.profile-post-item,
+.community-card,
+.friend-card,
+.right-sidebar-panel .side-community-item,
+.right-sidebar-panel .right-sidebar-game-card {
+  min-width: 0 !important;
+}
+
+.modern-nav .sidebar-link span,
+.user-menu-pill .user-details strong,
+.user-menu-pill .user-details span,
+.post-header-main,
+.post-author,
+.post-username,
+.post-date-link,
+.side-community-item strong,
+.side-community-item span,
+.right-sidebar-game-card strong,
+.right-sidebar-game-card span {
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+.feed-content,
+.communities-content,
+.friends-content,
+.community-page-content {
+  background: color-mix(in srgb, var(--surface-solid) 10%, transparent) !important;
+}
+
+.feed-content > .flex-grow-1 {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+html[data-font-size-mode="large"] .right-sidebar-panel {
+  width: clamp(17rem, 21vw, 19rem) !important;
+  padding: 1rem !important;
+}
+
+html[data-font-size-mode="xlarge"] .right-sidebar-panel,
+body[data-font-size-mode="xlarge"] .right-sidebar-panel {
+  display: none !important;
+}
+
+.post-card,
+.profile-post-card,
+.profile-post-item,
+#posts-container > .post-card,
+#feed-posts-container > .post-card,
+#general-posts-container > .post-card,
+#friends-posts-container > .post-card,
+#profile-posts-container > .post-card,
+#public-posts-container > .post-card,
+#community-posts-container > .post-card,
+#community-posts-list > .post-card {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  background-clip: padding-box !important;
+  overflow-wrap: anywhere !important;
+  isolation: isolate;
+}
+
+.post-gif-wrapper img,
+.post-card .img-fluid,
+.profile-post-card .img-fluid,
+.profile-post-item .img-fluid {
+  max-height: 200px !important;
+  max-width: 100% !important;
+}
+
+.community-card-tag,
+.about-section-label,
+.about-project-card .feed-kicker,
+.about-resource-card .feed-kicker,
+.about-page-layout .feed-kicker {
+  display: none !important;
+}
+
+.community-feed-control,
+.community-posts-section .community-feed-control,
+html.theme-oled .community-feed-control,
+body.theme-oled .community-feed-control {
+  margin: 0 !important;
+  padding: 0.95rem var(--page-pad) !important;
+  border-width: var(--hairline) 0 var(--hairline) !important;
+  border-style: solid !important;
+  border-color: var(--line-color) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.community-feed-control .feed-tabs {
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+#community-posts-container,
+#community-posts-list,
+html.theme-oled #community-posts-container,
+html.theme-oled #community-posts-list,
+body.theme-oled #community-posts-container,
+body.theme-oled #community-posts-list {
+  display: grid !important;
+  gap: var(--card-gap) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+#community-posts-container > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer),
+#community-posts-list > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer),
+html.theme-oled #community-posts-container > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer),
+html.theme-oled #community-posts-list > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer),
+body.theme-oled #community-posts-container > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer),
+body.theme-oled #community-posts-list > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.theme-oled :where(#posts-container, #feed-posts-container, #general-posts-container, #friends-posts-container, #profile-posts-container, #public-posts-container, #community-posts-container, #community-posts-list),
+body.theme-oled :where(#posts-container, #feed-posts-container, #general-posts-container, #friends-posts-container, #profile-posts-container, #public-posts-container, #community-posts-container, #community-posts-list) {
+  background: transparent !important;
+}
+
+html.theme-oled :where(.post-card, .profile-post-card, .profile-post-item),
+body.theme-oled :where(.post-card, .profile-post-card, .profile-post-item) {
+  background: var(--post-surface) !important;
+  border-color: var(--border-color) !important;
+  background-clip: padding-box !important;
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+html.theme-oled :where(#posts-container, #feed-posts-container, #general-posts-container, #friends-posts-container, #profile-posts-container, #public-posts-container, #community-posts-container, #community-posts-list) > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer),
+body.theme-oled :where(#posts-container, #feed-posts-container, #general-posts-container, #friends-posts-container, #profile-posts-container, #public-posts-container, #community-posts-container, #community-posts-list) > :not(.post-card):not(.profile-post-card):not(.profile-post-item):not(.feed-footer) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .modern-nav .sidebar-link.active,
+html body .modern-nav .sidebar-link:hover,
+html body .sidebar-link:hover,
+html body .profile-main-avatar:hover,
+html body .community-side.side-card:hover,
+html body .community-side.side-card .member-item:hover,
+html body .community-create-card:hover,
+html body .community-create-card:focus-visible,
+html body .right-sidebar-feed-card:hover,
+html body .right-sidebar-link:hover svg,
+html body .right-sidebar-link:focus-visible svg,
+html body .right-sidebar-icon-button:hover,
+html body .right-sidebar-icon-button:focus-visible,
+html body .right-sidebar-panel .suggested-community-item:hover,
+html body .right-sidebar-panel .right-sidebar-game-card:hover,
+html body .post-card:hover,
+html body .profile-post-card:hover,
+html body .profile-post-item:hover,
+html body .post-action-btn:hover,
+html body .comment-action:hover,
+html body .btn:hover,
+html body button:hover,
+html body button:active,
+html body a:hover,
+html body a:active {
+  transform: none !important;
+}
+
+:where(.btn, button, .sidebar-link, .logged-user, .community-card, .friend-card, .post-card, .profile-post-card, .profile-post-item, .right-sidebar-feed-card, .right-sidebar-game-card, .suggested-community-item) {
+  transition-property: background-color, border-color, color, opacity !important;
+}
+
+@media (max-width: 62rem) and (min-width: 48.01rem) {
+  .feed-layout {
+    grid-template-columns: var(--sidebar-fluid-width) minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 48rem) {
+  .community-feed-control {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .community-feed-control > .d-flex {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+
+  .community-feed-control .feed-tabs {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+
+  .community-feed-control .feed-tab {
+    flex: 1 1 0 !important;
+  }
+}
+
+
+/* Correção explícita para navegadores/iOS: sem multiplicação em calc(). */
+html[data-font-size-mode="small"],
+body[data-font-size-mode="small"] {
+  --avatar-sidebar: 40px;
+  --avatar-post: 40px;
+  --avatar-comment: 29px;
+  --avatar-card: 69px;
+  --avatar-side: 46px;
+  --avatar-profile: 118px;
+  --avatar-community-page: 118px;
+  --avatar-about: 45px;
+}
+
+html[data-font-size-mode="large"],
+body[data-font-size-mode="large"] {
+  --avatar-sidebar: 60px;
+  --avatar-post: 60px;
+  --avatar-comment: 43px;
+  --avatar-card: 103px;
+  --avatar-side: 70px;
+  --avatar-profile: 178px;
+  --avatar-community-page: 178px;
+  --avatar-about: 67px;
+}
+
+html[data-font-size-mode="xlarge"],
+body[data-font-size-mode="xlarge"] {
+  --avatar-sidebar: 70px;
+  --avatar-post: 70px;
+  --avatar-comment: 50px;
+  --avatar-card: 120px;
+  --avatar-side: 81px;
+  --avatar-profile: 207px;
+  --avatar-community-page: 207px;
+  --avatar-about: 78px;
+}
+
+html[data-font-size-mode="small"] :where(.post-gif-wrapper img, .post-card .img-fluid, .profile-post-card .img-fluid, .profile-post-item .img-fluid),
+body[data-font-size-mode="small"] :where(.post-gif-wrapper img, .post-card .img-fluid, .profile-post-card .img-fluid, .profile-post-item .img-fluid) {
+  max-height: 160px !important;
+}
+
+html[data-font-size-mode="large"] :where(.post-gif-wrapper img, .post-card .img-fluid, .profile-post-card .img-fluid, .profile-post-item .img-fluid),
+body[data-font-size-mode="large"] :where(.post-gif-wrapper img, .post-card .img-fluid, .profile-post-card .img-fluid, .profile-post-item .img-fluid) {
+  max-height: 240px !important;
+}
+
+html[data-font-size-mode="xlarge"] :where(.post-gif-wrapper img, .post-card .img-fluid, .profile-post-card .img-fluid, .profile-post-item .img-fluid),
+body[data-font-size-mode="xlarge"] :where(.post-gif-wrapper img, .post-card .img-fluid, .profile-post-card .img-fluid, .profile-post-item .img-fluid) {
+  max-height: 280px !important;
+}
+
+/* =========================================================
+   Correção v3: sidebar realmente fixa e sem rolagem interna,
+   escala legível, posts da comunidade/OLED contidos no card.
+========================================================= */
+@media (min-width: 48.01rem) {
+  .feed-layout {
+    grid-template-columns: var(--sidebar-fluid-width) minmax(0, 1fr) !important;
+  }
+
+  .feed-content,
+  .communities-content,
+  .friends-content,
+  .community-page-content {
+    grid-column: 2 / -1 !important;
+  }
+
+  .desktop-sidebar,
+  .sidebar.desktop-sidebar,
+  .modern-sidebar.desktop-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+    width: var(--sidebar-fluid-width) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .desktop-sidebar::-webkit-scrollbar,
+  .sidebar.desktop-sidebar::-webkit-scrollbar,
+  .modern-sidebar.desktop-sidebar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .modern-sidebar .sidebar-logo,
+  .modern-nav .sidebar-link,
+  .modern-post-btn,
+  .modern-sidebar-actions,
+  .user-menu-inline,
+  .user-menu-pill {
+    max-width: 100% !important;
+  }
+
+  .modern-nav .sidebar-link span,
+  .user-menu-pill .user-details,
+  .user-menu-pill .user-details strong,
+  .user-menu-pill .user-details span,
+  #sidebar-name,
+  #sidebar-username {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  .user-menu-pill .user-info-wrapper {
+    min-width: 0 !important;
+    max-width: calc(100% - 2.15rem) !important;
+  }
+}
+
+html[data-font-size-mode="large"],
+body[data-font-size-mode="large"] {
+  --sidebar-fluid-width: clamp(15rem, 20vw, 18rem);
+}
+
+html[data-font-size-mode="xlarge"],
+body[data-font-size-mode="xlarge"] {
+  --sidebar-fluid-width: clamp(16.5rem, 22vw, 20rem);
+}
+
+html[data-font-size-mode="xlarge"] .modern-sidebar,
+body[data-font-size-mode="xlarge"] .modern-sidebar {
+  gap: 0.85rem !important;
+  padding-block: 1rem !important;
+}
+
+html[data-font-size-mode="xlarge"] .modern-nav,
+body[data-font-size-mode="xlarge"] .modern-nav {
+  gap: 0.14rem !important;
+}
+
+html[data-font-size-mode="xlarge"] .modern-nav .sidebar-link,
+body[data-font-size-mode="xlarge"] .modern-nav .sidebar-link {
+  min-height: 2.35rem !important;
+  padding-block: 0.45rem !important;
+}
+
+html[data-font-size-mode="xlarge"] .modern-post-btn,
+body[data-font-size-mode="xlarge"] .modern-post-btn {
+  min-height: 2.75rem !important;
+  padding-block: 0.55rem !important;
+}
+
+.community-main #community-posts-container,
+.community-main #community-posts-list,
+.community-posts-section #community-posts-container,
+.community-posts-section #community-posts-list,
+html.theme-oled .community-main #community-posts-container,
+html.theme-oled .community-main #community-posts-list,
+body.theme-oled .community-main #community-posts-container,
+body.theme-oled .community-main #community-posts-list {
+  display: grid !important;
+  gap: var(--card-gap) !important;
+  padding: 0.95rem var(--page-pad) 2rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.community-main #community-posts-container > .post-card,
+.community-main #community-posts-list > .post-card,
+.community-posts-section #community-posts-container > .post-card,
+.community-posts-section #community-posts-list > .post-card,
+html.theme-oled .community-main #community-posts-container > .post-card,
+html.theme-oled .community-main #community-posts-list > .post-card,
+body.theme-oled .community-main #community-posts-container > .post-card,
+body.theme-oled .community-main #community-posts-list > .post-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  background: var(--post-surface) !important;
+  background-clip: padding-box !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+.community-main #community-posts-container > :not(.post-card),
+.community-main #community-posts-list > :not(.post-card),
+.community-posts-section #community-posts-container > :not(.post-card),
+.community-posts-section #community-posts-list > :not(.post-card),
+html.theme-oled .community-main #community-posts-container > :not(.post-card),
+html.theme-oled .community-main #community-posts-list > :not(.post-card),
+body.theme-oled .community-main #community-posts-container > :not(.post-card),
+body.theme-oled .community-main #community-posts-list > :not(.post-card) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html.theme-oled .community-posts-section,
+body.theme-oled .community-posts-section,
+html.theme-oled .community-main,
+body.theme-oled .community-main {
+  background: transparent !important;
+}
+
+/* =========================================================
+   Correção v4: sidebar direita fixa, nomes legíveis,
+   comunidades em 2 cards no extra grande e proteção de zoom.
+========================================================= */
+:root {
+  --right-sidebar-fixed-width: 21rem;
+}
+
+@media (max-width: 87.5rem) and (min-width: 78.01rem), (max-height: 50rem) and (min-width: 78.01rem) {
+  :root {
+    --right-sidebar-fixed-width: clamp(15.75rem, 23vw, 18rem);
+  }
+}
+
+@media (min-width: 78.01rem) {
+  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel),
+  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) {
+    padding-right: var(--right-sidebar-fixed-width) !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1,
+  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .right-sidebar-panel,
+  body:not([data-font-size-mode="xlarge"]) .right-sidebar-panel {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 28 !important;
+    display: flex !important;
+    width: var(--right-sidebar-fixed-width) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin;
+  }
+}
+
+@media (min-width: 48.01rem) {
+  .user-menu-inline {
+    width: 100% !important;
+    gap: 0.3rem !important;
+  }
+
+  .user-menu-pill {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding-left: 0.45rem !important;
+    padding-right: 0.35rem !important;
+  }
+
+  .user-options-btn {
+    margin-left: auto !important;
+  }
+
+  .user-menu-pill .user-info-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    gap: 0.65rem !important;
+  }
+
+  .user-menu-pill .user-details {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  #sidebar-name,
+  #sidebar-username {
+    display: block !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  #sidebar-name.is-long-sidebar-text,
+  #sidebar-username.is-long-sidebar-text {
+    width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}
+
+html[data-font-size-mode="xlarge"] .communities-grid,
+body[data-font-size-mode="xlarge"] .communities-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 48rem) {
+  html[data-font-size-mode="xlarge"] .communities-grid,
+  body[data-font-size-mode="xlarge"] .communities-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================================
+   Correção v5: sidebar direita sem fixação global,
+   cards do feed presos como atalhos e perfil unificado.
+========================================================= */
+:root {
+  --right-sidebar-first-card-space: 18.25rem;
+}
+
+html[data-font-size-mode="large"],
+body[data-font-size-mode="large"] {
+  --right-sidebar-first-card-space: 20rem;
+}
+
+@media (max-width: 87.5rem) and (min-width: 78.01rem), (max-height: 50rem) and (min-width: 78.01rem) {
+  :root {
+    --right-sidebar-first-card-space: 16.75rem;
+  }
+
+  html[data-font-size-mode="large"],
+  body[data-font-size-mode="large"] {
+    --right-sidebar-first-card-space: 18.25rem;
+  }
+}
+
+@media (min-width: 78.01rem) {
+  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel),
+  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) {
+    padding-right: 0 !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1,
+  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1 {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel,
+  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel,
+  html:not([data-font-size-mode="xlarge"]) .right-sidebar-panel,
+  body:not([data-font-size-mode="xlarge"]) .right-sidebar-panel {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: auto !important;
+    width: var(--right-sidebar-fixed-width, 21rem) !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+    scrollbar-width: auto !important;
+    align-self: stretch !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card,
+  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card {
+    position: sticky !important;
+    z-index: 12 !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card:first-of-type,
+  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card:first-of-type {
+    top: 1rem !important;
+  }
+
+  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-games-card,
+  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-games-card {
+    top: var(--right-sidebar-first-card-space) !important;
+  }
+
+  .community-page-layout > .community-side,
+  .profile-layout > .side-card,
+  .community-side.side-card {
+    position: static !important;
+    top: auto !important;
+  }
+}
+
+@media (max-width: 87.5rem) and (min-width: 78.01rem), (max-height: 50rem) and (min-width: 78.01rem) {
+  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel,
+  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel {
+    width: var(--right-sidebar-fixed-width, clamp(15.75rem, 23vw, 18rem)) !important;
+  }
+}
+
+@media (min-width: 48.01rem) {
+  .modern-sidebar-actions .user-menu-inline {
+    width: 100% !important;
+    padding: 0.12rem !important;
+    gap: 0 !important;
+    border-radius: 9999px !important;
+    background: transparent !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease !important;
+  }
+
+  .modern-sidebar-actions .user-menu-inline:hover,
+  .modern-sidebar-actions .user-menu-inline:focus-within,
+  .modern-sidebar-actions .user-menu-inline:has(.user-options-btn.show) {
+    background: var(--surface-hover) !important;
+  }
+
+  .modern-sidebar-actions .user-menu-inline:hover .user-menu-pill,
+  .modern-sidebar-actions .user-menu-inline:focus-within .user-menu-pill,
+  .modern-sidebar-actions .user-menu-inline:hover .user-options-btn,
+  .modern-sidebar-actions .user-menu-inline:focus-within .user-options-btn,
+  .modern-sidebar-actions .user-menu-inline:has(.user-options-btn.show) .user-menu-pill,
+  .modern-sidebar-actions .user-menu-inline:has(.user-options-btn.show) .user-options-btn {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .modern-sidebar-actions .user-menu-pill {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    border-radius: 9999px 0 0 9999px !important;
+  }
+
+  .modern-sidebar-actions .user-options-btn {
+    width: 2.45rem !important;
+    height: auto !important;
+    align-self: stretch !important;
+    flex: 0 0 2.45rem !important;
+    border-radius: 0 9999px 9999px 0 !important;
+  }
+
+  .modern-sidebar-actions .user-options-btn:hover,
+  .modern-sidebar-actions .user-options-btn:focus,
+  .modern-sidebar-actions .user-options-btn.show {
+    color: var(--primary-color) !important;
+  }
+
+  #sidebar-name:not(.is-long-sidebar-text),
+  #sidebar-username:not(.is-long-sidebar-text) {
+    width: auto !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+}
+

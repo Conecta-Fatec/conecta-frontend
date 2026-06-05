@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const friendsContainer = document.getElementById('public-friends-container');
 
   const state = {
-    communitiesVisible: 3,
-    friendsVisible: 3,
+    communitiesVisible: 5,
+    friendsVisible: 5,
     postsVisible: 5,
     postsBatchSize: 5,
     communities: [],
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (communities.length > shown.length) {
       communitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="publicMoreCommunities">Ver mais</button>');
       document.getElementById('publicMoreCommunities').addEventListener('click', () => {
-        state.communitiesVisible += 3;
+        state.communitiesVisible += 5;
         renderCommunities();
       });
     }
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (friends.length > shown.length) {
       friendsContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="publicMoreFriends">Ver mais</button>');
       document.getElementById('publicMoreFriends').addEventListener('click', () => {
-        state.friendsVisible += 3;
+        state.friendsVisible += 5;
         renderFriends();
       });
     }

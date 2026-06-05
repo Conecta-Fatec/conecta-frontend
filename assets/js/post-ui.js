@@ -350,7 +350,7 @@ function renderPostCard(post = {}, options = {}) {
             <div class="post-header-main">
               <a href="${profileUrlFor(author)}" class="post-author" onclick="event.stopPropagation()" title="${escapeHTML(fullName)}">${escapeHTML(shortName)}</a>
               <a href="${profileUrlFor(author)}" class="post-username text-decoration-none" onclick="event.stopPropagation()" title="@${escapeHTML(author.nickname || author.username || 'usuario')}">@${escapeHTML(nick)}</a>
-              ${when ? `<a href="${postLink}" class="post-date-link text-muted text-decoration-none" onclick="event.stopPropagation()" title="${escapeHTML(when)}"><span class="date-separator"> · </span><span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></a>` : ''}
+              ${when ? `<span class="post-date-text text-muted" title="${escapeHTML(when)}"><span class="date-separator"> · </span><span class="date-full">${escapeHTML(when)}</span><span class="date-short">${escapeHTML(whenCompact)}</span></span>` : ''}
               ${post.edited ? '<small class="post-edited-label"> · editado</small>' : ''}
             </div>
           </div>

@@ -14,14 +14,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const createBtn = document.getElementById('createCommunityBtn');
   const errorP = document.getElementById('communityError');
 
+  function getCommunityPageSize() {
+    const sizeMode = document.documentElement.dataset.fontSizeMode || document.body?.dataset.fontSizeMode || 'normal';
+    return sizeMode === 'xlarge' ? 2 : 3;
+  }
+
   const state = {
     myCommunities: [],
     otherCommunities: [],
     createdCount: 0,
     totalVisible: 0,
     query: '',
-    myVisible: 3,
-    exploreVisible: 3,
+    myVisible: getCommunityPageSize(),
+    exploreVisible: getCommunityPageSize(),
   };
 
   function normalizeCommunitiesData(data = {}) {
@@ -175,15 +180,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const moreButton = event.target.closest('[data-more]');
     if (!moreButton) return;
-    if (moreButton.dataset.more === 'my-communities') state.myVisible += 3;
-    if (moreButton.dataset.more === 'explore-communities') state.exploreVisible += 3;
+    const pageSize = getCommunityPageSize();
+    if (moreButton.dataset.more === 'my-communities') state.myVisible += pageSize;
+    if (moreButton.dataset.more === 'explore-communities') state.exploreVisible += pageSize;
     renderCommunities();
   });
 
   searchInput?.addEventListener('input', (event) => {
     state.query = event.target.value.trim().toLowerCase();
-    state.myVisible = 3;
-    state.exploreVisible = 3;
+    state.myVisible = getCommunityPageSize();
+    state.exploreVisible = getCommunityPageSize();
     renderCommunities();
   });
 

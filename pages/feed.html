@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="icon" href="../favicon.ico" sizes="any" />
   <link rel="icon" type="image/svg+xml" href="../assets/img/icon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/icon-32x32.png" />
@@ -38,7 +38,7 @@
 <aside class="sidebar desktop-sidebar modern-sidebar">
   <a href="about.html" class="sidebar-logo">
   <img id="sidebarLogo" class="sidebar-logo-svg" src="../assets/img/logo-light.svg"
-    data-logo-default="../assets/img/logo-light.svg" data-logo-light="../assets/img/logo-dark.svg" alt="Conecta Fatec" />
+    data-logo-default="../assets/img/logo-light.svg" data-logo-light="../assets/img/logo-light.svg" data-logo-dark="../assets/img/logo-dark.svg" alt="Conecta Fatec" />
   </a>
 
   <nav class="sidebar-nav modern-nav">
@@ -159,16 +159,6 @@
               <p>Acompanhe publicações e atualizações dos alunos.</p>
             </div>
             <div class="feed-header-actions">
-              <a href="notifications.html" class="notification-home-btn" aria-label="Notificações">
-                <span class="notification-home-btn-label">
-                  <span>Notificações</span>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9" />
-                    <path d="M10 21a2 2 0 0 0 4 0" />
-                  </svg>
-                </span>
-                <strong>0</strong>
-              </a>
 
               <button class="notification-home-btn minigames-home-btn d-xl-none" type="button"
                 data-bs-toggle="modal" data-bs-target="#miniGamesModal" aria-label="Mini games">
@@ -219,44 +209,15 @@
         </div>
 
         <aside class="right-sidebar-panel d-none d-xl-flex" aria-label="Sugestões e atalhos">
-          <section class="profile-api-card right-sidebar-feed-card">
-            <div class="side-card-header">
-              <h2>Comunidades</h2>
-              <button class="right-sidebar-icon-button" id="shuffleSuggestedCommunitiesBtn" type="button"
-                aria-label="Sortear novas comunidades" title="Sortear novas comunidades">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M16 3h5v5" />
-                  <path d="M4 20 21 3" />
-                  <path d="M21 16v5h-5" />
-                  <path d="M15 15l6 6" />
-                  <path d="M4 4l5 5" />
-                </svg>
-              </button>
-            </div>
-
-            <div id="right-sidebar-communities" class="right-sidebar-list profile-friends-list" aria-live="polite">
-              <div class="right-sidebar-skeleton-item placeholder-glow">
-                <span class="placeholder right-sidebar-skeleton-avatar"></span>
-                <span class="right-sidebar-skeleton-lines">
-                  <span class="placeholder col-8"></span>
-                  <span class="placeholder col-5"></span>
-                </span>
+          <section class="profile-api-card right-sidebar-feed-card right-sidebar-academic-card">
+            <h2>Acadêmico</h2>
+            <a href="https://siga.cps.sp.gov.br/sigaaluno/applogin.aspx" target="_blank"
+              class="side-community-item right-sidebar-academic-link" rel="noopener noreferrer">
+              <span class="right-sidebar-academic-icon" aria-hidden="true">🎓</span>
+              <div>
+                <strong>SIGA</strong>
+                <span>Portal do aluno</span>
               </div>
-              <div class="right-sidebar-skeleton-item placeholder-glow">
-                <span class="placeholder right-sidebar-skeleton-avatar"></span>
-                <span class="right-sidebar-skeleton-lines">
-                  <span class="placeholder col-7"></span>
-                  <span class="placeholder col-4"></span>
-                </span>
-              </div>
-            </div>
-
-            <a href="communities.html" class="right-sidebar-link">
-              <span>Ver todas as comunidades</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 12h14" />
-                <path d="m13 6 6 6-6 6" />
-              </svg>
             </a>
           </section>
 

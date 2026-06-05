@@ -1,0 +1,228 @@
+/* =========================================================
+   38. Correções finais: ícone novo, card Acadêmico e padrão real dos cards laterais
+========================================================= */
+
+/* O novo arquivo de marca é quadrado. Estas regras impedem corte em qualquer tema. */
+html body .modern-sidebar .sidebar-logo,
+html body .desktop-sidebar .sidebar-logo {
+  width: 4.35rem !important;
+  max-width: 4.35rem !important;
+  height: 4.35rem !important;
+  min-height: 4.35rem !important;
+  padding-left: 0.55rem !important;
+  margin-bottom: 0.65rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+
+html body .modern-sidebar .sidebar-logo .sidebar-logo-svg,
+html body .desktop-sidebar .sidebar-logo .sidebar-logo-svg,
+html body .sidebar-logo-svg,
+html body .sidebar-logo-img {
+  display: block !important;
+  width: 3.85rem !important;
+  min-width: 3.85rem !important;
+  max-width: 3.85rem !important;
+  height: 3.85rem !important;
+  min-height: 3.85rem !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  overflow: visible !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html body .login-card-logo {
+  display: block !important;
+  width: clamp(5.5rem, 14vw, 7rem) !important;
+  min-width: clamp(5.5rem, 14vw, 7rem) !important;
+  max-width: clamp(5.5rem, 14vw, 7rem) !important;
+  height: clamp(5.5rem, 14vw, 7rem) !important;
+  min-height: clamp(5.5rem, 14vw, 7rem) !important;
+  max-height: clamp(5.5rem, 14vw, 7rem) !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  overflow: visible !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html body .login-card-brand {
+  margin-bottom: 1rem !important;
+}
+
+/* Card Acadêmico do feed: segue exatamente a mesma base dos cards laterais. */
+html body .right-sidebar-panel .right-sidebar-academic-card {
+  padding: 1.125rem !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-color) !important;
+  color: var(--text-color) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+html body .right-sidebar-panel .right-sidebar-academic-card > h2,
+html body .right-sidebar-panel .right-sidebar-games-card > h2,
+html body .right-sidebar-panel .right-sidebar-feed-card > h2,
+html body .right-sidebar-panel .right-sidebar-feed-card .side-card-header h2 {
+  margin: 0 0 0.75rem !important;
+  color: var(--text-color) !important;
+  font-size: clamp(1rem, 1.25vw, 1.16rem) !important;
+  font-weight: var(--weight-strong) !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
+}
+
+/* Padrão único e com especificidade suficiente para vencer as regras antigas do feed. */
+html body .right-sidebar-panel .side-community-item,
+html body .right-sidebar-panel .suggested-community-item,
+html body .right-sidebar-panel .right-sidebar-game-card,
+html body .right-sidebar-panel .right-sidebar-academic-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.85rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 4.65rem !important;
+  margin: 0 !important;
+  padding: 0.82rem 0 !important;
+  border: 0 !important;
+  border-bottom: var(--hairline) solid var(--line-color) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-color) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  transform: none !important;
+}
+
+html body .right-sidebar-panel .side-community-item:last-child,
+html body .right-sidebar-panel .suggested-community-item:last-child,
+html body .right-sidebar-panel .right-sidebar-game-card:last-child,
+html body .right-sidebar-panel .right-sidebar-academic-link:last-child {
+  border-bottom: 0 !important;
+}
+
+html body .right-sidebar-panel .side-community-item:hover,
+html body .right-sidebar-panel .side-community-item:focus-visible,
+html body .right-sidebar-panel .suggested-community-item:hover,
+html body .right-sidebar-panel .suggested-community-item:focus-visible,
+html body .right-sidebar-panel .right-sidebar-game-card:hover,
+html body .right-sidebar-panel .right-sidebar-game-card:focus-visible,
+html body .right-sidebar-panel .right-sidebar-academic-link:hover,
+html body .right-sidebar-panel .right-sidebar-academic-link:focus-visible {
+  margin-inline: -0.55rem !important;
+  padding-inline: 0.55rem !important;
+  border-radius: 1rem !important;
+  background: var(--surface-hover) !important;
+  color: var(--text-color) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html body .right-sidebar-panel .side-community-item > div,
+html body .right-sidebar-panel .suggested-community-item > div,
+html body .right-sidebar-panel .right-sidebar-game-card > div,
+html body .right-sidebar-panel .right-sidebar-academic-link > div {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+html body .right-sidebar-panel .side-community-item strong,
+html body .right-sidebar-panel .suggested-community-item strong,
+html body .right-sidebar-panel .right-sidebar-game-card strong,
+html body .right-sidebar-panel .right-sidebar-academic-link strong {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--text-color) !important;
+  font-weight: var(--weight-strong) !important;
+  line-height: 1.24 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .right-sidebar-panel .side-community-item span,
+html body .right-sidebar-panel .suggested-community-item span,
+html body .right-sidebar-panel .right-sidebar-game-card span:not(.right-sidebar-game-icon),
+html body .right-sidebar-panel .right-sidebar-academic-link div span {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--text-muted) !important;
+  font-size: 0.84rem !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .right-sidebar-panel .right-sidebar-game-icon,
+html body .right-sidebar-panel .right-sidebar-academic-icon {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 3.55rem !important;
+  min-width: 3.55rem !important;
+  height: 3.55rem !important;
+  flex: 0 0 3.55rem !important;
+  border-radius: 0.95rem !important;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-strong)) !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.025em !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+html body .right-sidebar-panel .right-sidebar-game-icon {
+  font-size: 1.12rem !important;
+  letter-spacing: normal !important;
+}
+
+/* A data continua sendo texto simples: sem link, sem negrito e sem ação de clique. */
+html body .post-header-main .post-date-text,
+html body .post-header-main .post-date-link {
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+}
+
+html body .post-header-main .post-date-text {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 48rem) {
+  html body .modern-sidebar .sidebar-logo,
+  html body .desktop-sidebar .sidebar-logo {
+    width: 3.45rem !important;
+    max-width: 3.45rem !important;
+    height: 3.45rem !important;
+    min-height: 3.45rem !important;
+    padding-left: 0 !important;
+  }
+
+  html body .modern-sidebar .sidebar-logo .sidebar-logo-svg,
+  html body .desktop-sidebar .sidebar-logo .sidebar-logo-svg,
+  html body .sidebar-logo-svg,
+  html body .sidebar-logo-img {
+    width: 3.25rem !important;
+    min-width: 3.25rem !important;
+    max-width: 3.25rem !important;
+    height: 3.25rem !important;
+    min-height: 3.25rem !important;
+  }
+
+  html body .login-card-logo {
+    width: 5.25rem !important;
+    min-width: 5.25rem !important;
+    max-width: 5.25rem !important;
+    height: 5.25rem !important;
+    min-height: 5.25rem !important;
+    max-height: 5.25rem !important;
+  }
+}

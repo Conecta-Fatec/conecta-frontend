@@ -32,8 +32,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     friendsTab?.classList.toggle('active', mode === 'friends');
   }
 
+  function postsPayload(data = {}) {
+    if (!data || typeof data !== 'object') return data;
+    if (data.posts && typeof data.posts === 'object' && !Array.isArray(data.posts)) return data.posts;
+    if (data.feed && typeof data.feed === 'object' && !Array.isArray(data.feed)) return data.feed;
+    if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) return data.data;
+    return data;
+  }
+
   function normalizePostsPayload(data) {
-    return normalizeArray(data, 'posts', 'results', 'feed', 'items');
+    const payload = postsPayload(data);
+    return normalizeArray(payload, 'results', 'items', 'posts', 'feed', 'data');
+  }
+
+
+  function nextPagePath(nextUrl, currentPath) {
+    if (!nextUrl) return '';
+    const next = String(nextUrl).trim();
+    if (!next) return '';
+
+    try {
+      if (next.startsWith('http://') || next.startsWith('https://')) {
+        const url = new URL(next);
+        return `${url.pathname}${url.search}`;
+      }
+
+      if (next.startsWith('/')) return next;
+      if (next.startsWith('?')) return `${String(currentPath).split('?')[0]}${next}`;
+      return next;
+    } catch (error) {
+      console.warn('Não foi possível interpretar a próxima página do feed:', error);
+      return '';
+    }
+  }
+
+  function nextFromPayload(data) {
+    const payload = postsPayload(data);
+    if (!payload || typeof payload !== 'object') return '';
+    return payload.next || payload.next_page || payload.links?.next || payload.pagination?.next || '';
+  }
+
+  async function fetchAllFeedPages(initialPath) {
+    const allPosts = [];
+    const seenPages = new Set();
+    const seenPosts = new Set();
+    let currentPath = initialPath;
+
+    for (let page = 0; currentPath && page < 50; page += 1) {
+      if (seenPages.has(currentPath)) break;
+      seenPages.add(currentPath);
+
+      const data = await apiJSON(currentPath);
+      normalizePostsPayload(data).forEach((post) => {
+        const key = String(post.id ?? post.pk ?? `${post.author?.nickname || ''}-${post.created_at || ''}-${post.content || ''}`);
+        if (!seenPosts.has(key)) {
+          seenPosts.add(key);
+          allPosts.push(post);
+        }
+      });
+
+      currentPath = nextPagePath(nextFromPayload(data), currentPath);
+    }
+
+    return allPosts;
   }
 
   function isCommunityPost(post = {}) {
@@ -67,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function fetchFriendsPostsWithFallback() {
     const [allPosts, friendsIndex] = await Promise.all([
-      apiJSON('/api/posts/feed/').then(normalizePostsPayload),
+      fetchAllFeedPages('/api/posts/feed/'),
       loadFriendsIndex(),
     ]);
 
@@ -76,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function fetchPosts(mode) {
     if (mode === 'friends') return fetchFriendsPostsWithFallback();
-    return normalizePostsPayload(await apiJSON('/api/posts/feed/')).filter((post) => !isCommunityPost(post));
+    return (await fetchAllFeedPages('/api/posts/feed/')).filter((post) => !isCommunityPost(post));
   }
 
   function scrollToHighlightedPost() {
@@ -424,7 +485,10 @@ async function publishFeedPost() {
   // ==========================================
   const suggestedCommunitiesContainer = document.getElementById('right-sidebar-communities');
   const shuffleSuggestedCommunitiesBtn = document.getElementById('shuffleSuggestedCommunitiesBtn');
+  const SIDE_LIST_BATCH_SIZE = 5;
   let suggestedCommunitiesPool = [];
+  let suggestedCommunitiesOrder = [];
+  let suggestedCommunitiesVisible = SIDE_LIST_BATCH_SIZE;
 
   function suggestedSidebarSkeletonHTML() {
     return `
@@ -476,10 +540,6 @@ async function publishFeedPost() {
     shuffleSuggestedCommunitiesBtn.classList.toggle('is-loading', isLoading);
   }
 
-  function suggestedCommunitiesLimit() {
-    return window.matchMedia('(max-width: 87.5rem), (max-height: 50rem)').matches ? 2 : 3;
-  }
-
   function debounceSidebarRender(callback, delay = 180) {
     let timeoutId;
     return (...args) => {
@@ -488,12 +548,26 @@ async function publishFeedPost() {
     };
   }
 
-  function renderSuggestedCommunities(communities = suggestedCommunitiesPool) {
+  function renderSuggestedCommunities(communities = suggestedCommunitiesPool, options = {}) {
     if (!suggestedCommunitiesContainer) return;
 
-    const suggested = pickRandomCommunities(communities, suggestedCommunitiesLimit());
+    const unique = uniqueCommunities(communities);
+    if (options.resetOrder || suggestedCommunitiesOrder.length === 0) {
+      suggestedCommunitiesOrder = shuffleArray(unique);
+    } else {
+      const validKeys = new Set(unique.map((comm) => String(comm.slug || comm.id || comm.name)));
+      suggestedCommunitiesOrder = suggestedCommunitiesOrder.filter((comm) => validKeys.has(String(comm.slug || comm.id || comm.name)));
+      unique.forEach((comm) => {
+        const key = String(comm.slug || comm.id || comm.name);
+        if (!suggestedCommunitiesOrder.some((item) => String(item.slug || item.id || item.name) === key)) {
+          suggestedCommunitiesOrder.push(comm);
+        }
+      });
+    }
 
-    if (!suggested.length) {
+    const shown = suggestedCommunitiesOrder.slice(0, suggestedCommunitiesVisible);
+
+    if (!shown.length) {
       suggestedCommunitiesContainer.innerHTML = `
         <div class="right-sidebar-empty-state">
           <strong>Nenhuma sugestão agora.</strong>
@@ -503,7 +577,7 @@ async function publishFeedPost() {
       return;
     }
 
-    suggestedCommunitiesContainer.innerHTML = suggested.map((comm) => {
+    suggestedCommunitiesContainer.innerHTML = shown.map((comm) => {
       const avatar = communityAvatarHTML(comm, 'side-community-avatar suggested-community-avatar');
       const membersCount = getCommunityMemberCount(comm);
 
@@ -517,6 +591,14 @@ async function publishFeedPost() {
         </a>
       `;
     }).join('');
+
+    if (suggestedCommunitiesOrder.length > shown.length) {
+      suggestedCommunitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact side-list-more-btn" id="rightSidebarMoreCommunities">Ver mais</button>');
+      document.getElementById('rightSidebarMoreCommunities')?.addEventListener('click', () => {
+        suggestedCommunitiesVisible += SIDE_LIST_BATCH_SIZE;
+        renderSuggestedCommunities(suggestedCommunitiesPool);
+      });
+    }
   }
 
   function normalizeSuggestedCommunitiesPayload(data = {}) {
@@ -562,8 +644,9 @@ async function publishFeedPost() {
       }
 
       suggestedCommunitiesPool = communities;
+      suggestedCommunitiesVisible = SIDE_LIST_BATCH_SIZE;
       sessionStorage.setItem(cacheKey, JSON.stringify(communities));
-      renderSuggestedCommunities(suggestedCommunitiesPool);
+      renderSuggestedCommunities(suggestedCommunitiesPool, { resetOrder: true });
     } catch (error) {
       if (!suggestedCommunitiesPool.length) {
         suggestedCommunitiesContainer.innerHTML = `
@@ -579,7 +662,8 @@ async function publishFeedPost() {
   }
 
   shuffleSuggestedCommunitiesBtn?.addEventListener('click', () => {
-    renderSuggestedCommunities(suggestedCommunitiesPool);
+    suggestedCommunitiesVisible = SIDE_LIST_BATCH_SIZE;
+    renderSuggestedCommunities(suggestedCommunitiesPool, { resetOrder: true });
   });
 
   window.addEventListener('resize', debounceSidebarRender(() => {

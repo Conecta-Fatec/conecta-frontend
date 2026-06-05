@@ -27,17 +27,17 @@
   };
 
   const ROOT_FONT_SIZES = {
-    small: '87.5%',
+    small: '80%',
     normal: '100%',
-    large: '112.5%',
-    xlarge: '125%',
+    large: '120%',
+    xlarge: '140%',
   };
 
   const FONT_SCALES = {
-    small: '0.875',
+    small: '0.8',
     normal: '1',
-    large: '1.125',
-    xlarge: '1.25',
+    large: '1.2',
+    xlarge: '1.4',
   };
 
   const CONTROL_SCALES = {
@@ -62,6 +62,11 @@
     return FONT_SIZES[saved] || FONT_SIZES.normal;
   }
 
+  function readFontSizeMode() {
+    const saved = localStorage.getItem(KEYS.fontSize);
+    return Object.prototype.hasOwnProperty.call(FONT_SIZES, saved) ? saved : 'normal';
+  }
+
   function readFontScale() {
     const saved = localStorage.getItem(KEYS.fontSize);
     return FONT_SCALES[saved] || FONT_SCALES.normal;
@@ -77,35 +82,67 @@
     return ROOT_FONT_SIZES[saved] || ROOT_FONT_SIZES.normal;
   }
 
+
+
+  function getBrowserZoomRatio() {
+    const visualScale = window.visualViewport?.scale || 1;
+    const viewportRatio = window.outerWidth && window.innerWidth ? window.outerWidth / window.innerWidth : 1;
+    const safeViewportRatio = viewportRatio > 1.08 && viewportRatio < 2.4 ? viewportRatio : 1;
+    return Math.max(visualScale, safeViewportRatio, 1);
+  }
+
+  function getZoomSuggestedFontSizeMode() {
+    const ratio = getBrowserZoomRatio();
+    if (ratio >= 1.45) return 'xlarge';
+    if (ratio >= 1.20) return 'large';
+    return '';
+  }
+
+  function getEffectiveFontSizeMode() {
+    const saved = readFontSizeMode();
+    const zoomMode = getZoomSuggestedFontSizeMode();
+    if (!zoomMode) return saved;
+    const order = { small: 0, normal: 1, large: 2, xlarge: 3 };
+    return order[zoomMode] > order[saved] ? zoomMode : saved;
+  }
+
   function applyRootPreferences() {
     const theme = readTheme();
     const root = document.documentElement;
+    const effectiveSizeMode = getEffectiveFontSizeMode();
 
     root.classList.remove('theme-light', 'theme-dark', 'theme-oled');
     root.classList.add(`theme-${theme}`);
     // Escala visual gradual
-    root.style.setProperty('font-size', readRootFontSize());
+    root.style.setProperty('font-size', ROOT_FONT_SIZES[effectiveSizeMode] || ROOT_FONT_SIZES.normal);
     root.style.setProperty('--app-font-family', readFontFamily());
-    root.style.setProperty('--app-font-size', readFontSize());
+    root.style.setProperty('--app-font-size', FONT_SIZES[effectiveSizeMode] || FONT_SIZES.normal);
     root.style.setProperty('--app-text-scale', '1');
-    root.style.setProperty('--app-control-scale', readControlScale());
+    root.style.setProperty('--app-size-scale', FONT_SCALES[effectiveSizeMode] || FONT_SCALES.normal);
+    root.style.setProperty('--app-control-scale', CONTROL_SCALES[effectiveSizeMode] || CONTROL_SCALES.normal);
     root.dataset.theme = theme;
+    root.dataset.fontSizeMode = effectiveSizeMode;
+    root.dataset.savedFontSizeMode = readFontSizeMode();
   }
 
   function applyBodyPreferences() {
     if (!document.body) return;
 
     const theme = readTheme();
+    const effectiveSizeMode = getEffectiveFontSizeMode();
     document.body.classList.remove('theme-light', 'theme-dark', 'theme-oled');
     document.body.classList.add(`theme-${theme}`);
     document.body.classList.toggle('reduce-transparency', localStorage.getItem(KEYS.reduceTransparency) === 'true');
     document.body.classList.toggle('animations-disabled', localStorage.getItem(KEYS.animations) === 'disabled');
     document.body.classList.toggle('animations-enabled', localStorage.getItem(KEYS.animations) !== 'disabled');
     document.body.style.setProperty('--app-font-family', readFontFamily());
-    document.body.style.setProperty('--app-font-size', readFontSize());
+    document.body.style.setProperty('--app-font-size', FONT_SIZES[effectiveSizeMode] || FONT_SIZES.normal);
     document.body.style.setProperty('--app-text-scale', '1');
-    document.body.style.setProperty('--app-control-scale', readControlScale());
+    document.body.style.setProperty('--app-size-scale', FONT_SCALES[effectiveSizeMode] || FONT_SCALES.normal);
+    document.body.style.setProperty('--app-control-scale', CONTROL_SCALES[effectiveSizeMode] || CONTROL_SCALES.normal);
     document.body.dataset.theme = theme;
+    document.body.dataset.fontSizeMode = effectiveSizeMode;
+    document.body.dataset.savedFontSizeMode = readFontSizeMode();
   }
 
   applyRootPreferences();

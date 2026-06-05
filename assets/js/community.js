@@ -37,7 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const communityGeneralTab = document.getElementById('community-general-tab');
   const communityFriendsTab = document.getElementById('community-friends-tab');
 
+  const SIDE_LIST_BATCH_SIZE = 5;
   let communityPostsCache = [];
+  let communityMembersVisible = SIDE_LIST_BATCH_SIZE;
   let currentIsMember = false;
   let currentPostMode = 'general';
   let cachedFriends = { ids: new Set(), nicknames: new Set() };
@@ -67,13 +69,77 @@ document.addEventListener('DOMContentLoaded', async () => {
     return Number.isFinite(time) ? time : Number.POSITIVE_INFINITY;
   }
 
+
+  function nextPagePath(nextUrl, currentPath) {
+    if (!nextUrl) return '';
+    const next = String(nextUrl).trim();
+    if (!next) return '';
+
+    try {
+      if (next.startsWith('http://') || next.startsWith('https://')) {
+        const url = new URL(next);
+        return `${url.pathname}${url.search}`;
+      }
+      if (next.startsWith('/')) return next;
+      if (next.startsWith('?')) return `${String(currentPath).split('?')[0]}${next}`;
+      return next;
+    } catch (error) {
+      console.warn('Não foi possível interpretar a próxima página da comunidade:', error);
+      return '';
+    }
+  }
+
+  function postsPayloadFromCommunityData(data = {}) {
+    if (!data || typeof data !== 'object') return data;
+    if (data.posts && typeof data.posts === 'object' && !Array.isArray(data.posts)) return data.posts;
+    if (data.feed && typeof data.feed === 'object' && !Array.isArray(data.feed)) return data.feed;
+    if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) return data.data;
+    return data;
+  }
+
+  function nextCommunityPostsPath(data = {}) {
+    const payload = postsPayloadFromCommunityData(data);
+    return payload.next || payload.next_page || payload.links?.next || payload.pagination?.next || '';
+  }
+
+  async function hydrateAllCommunityPosts(data = {}) {
+    const firstPayload = postsPayloadFromCommunityData(data);
+    const allPosts = [...normalizeArray(firstPayload, 'results', 'items', 'posts', 'feed', 'data')];
+    const seenPosts = new Set(allPosts.map((post) => String(post.id ?? post.pk ?? `${post.author?.nickname || ''}-${post.created_at || ''}-${post.content || ''}`)));
+    const seenPages = new Set();
+    let currentPath = nextPagePath(nextCommunityPostsPath(data), `/api/posts/communities/${currentSlug}/`);
+
+    for (let page = 0; currentPath && page < 50; page += 1) {
+      if (seenPages.has(currentPath)) break;
+      seenPages.add(currentPath);
+
+      const pageData = await apiJSON(currentPath);
+      const pagePayload = postsPayloadFromCommunityData(pageData);
+      normalizeArray(pagePayload, 'results', 'items', 'posts', 'feed', 'data').forEach((post) => {
+        const key = String(post.id ?? post.pk ?? `${post.author?.nickname || ''}-${post.created_at || ''}-${post.content || ''}`);
+        if (!seenPosts.has(key)) {
+          seenPosts.add(key);
+          allPosts.push(post);
+        }
+      });
+
+      currentPath = nextPagePath(nextCommunityPostsPath(pageData), currentPath);
+    }
+
+    if (Array.isArray(data.posts)) return { ...data, posts: allPosts };
+    if (data.posts && typeof data.posts === 'object') return { ...data, posts: { ...firstPayload, results: allPosts, items: allPosts, next: null } };
+    if (data.feed && typeof data.feed === 'object') return { ...data, feed: { ...firstPayload, results: allPosts, items: allPosts, next: null }, posts: allPosts };
+    if (data.data && typeof data.data === 'object') return { ...data, data: { ...firstPayload, results: allPosts, items: allPosts, next: null }, posts: allPosts };
+    return { ...data, posts: allPosts };
+  }
+
   function normalizeCommunityDetails(data = {}) {
     const community = normalizeCommunity(data.community || data, data.members_count);
     community.is_creator = Boolean(community.is_creator || data.is_creator);
     const members = normalizeArray(data.members, 'results').length
       ? normalizeArray(data.members, 'results')
       : normalizeArray(community.members, 'results');
-    const posts = normalizeArray(data.posts, 'results', 'items');
+    const posts = normalizeArray(postsPayloadFromCommunityData(data), 'results', 'items', 'posts', 'feed', 'data');
     const isMember = Boolean(data.is_member || community.is_member || community.member || community.is_creator || data.is_creator);
     return {
       community,
@@ -176,7 +242,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    membersContainer.innerHTML = sorted.map((member) => {
+    const shown = sorted.slice(0, communityMembersVisible);
+
+    membersContainer.innerHTML = shown.map((member) => {
       const memberUser = userProfileSource(member);
       const name = userDisplayName(memberUser);
       const nickname = memberUser.nickname || memberUser.username || 'usuario';
@@ -191,6 +259,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         </a>
       `;
     }).join('');
+
+    if (sorted.length > shown.length) {
+      membersContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact side-list-more-btn" id="communityMoreMembers">Ver mais</button>');
+      document.getElementById('communityMoreMembers')?.addEventListener('click', () => {
+        communityMembersVisible += SIDE_LIST_BATCH_SIZE;
+        renderMembers(members, community);
+      });
+    }
   }
 
   function setActiveCommunityTab(mode) {
@@ -360,7 +436,7 @@ async function loadCommunityDetails(silent = false) {
           if (membersContainer) membersContainer.innerHTML = '';
           throw new Error('Comunidade não encontrada');
         }
-        return data;
+        return await hydrateAllCommunityPosts(data);
       },
       // 2. Render: Atualiza o ecrã com as informações estruturadas
       (data) => {

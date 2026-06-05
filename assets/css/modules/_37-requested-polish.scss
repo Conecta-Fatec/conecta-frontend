@@ -1,0 +1,316 @@
+/* =========================================================
+   37. Ajustes solicitados: transparência, logos, cards laterais e data dos posts
+   Escopo restrito aos pontos pedidos.
+========================================================= */
+:root,
+html.theme-light,
+body.theme-light {
+  --surface-color: rgba(255, 255, 255, 0.94);
+  --surface-muted: rgba(248, 250, 252, 0.92);
+  --surface-hover: rgba(37, 99, 235, 0.10);
+  --post-surface: rgba(255, 255, 255, 0.92);
+}
+
+html.theme-dark,
+body.theme-dark {
+  --surface-color: rgba(15, 23, 42, 0.94);
+  --surface-muted: rgba(15, 23, 42, 0.90);
+  --surface-hover: rgba(96, 165, 250, 0.12);
+  --post-surface: rgba(15, 23, 42, 0.90);
+}
+
+html.theme-oled,
+body.theme-oled {
+  --surface-color: #080a0d;
+  --surface-muted: #101419;
+  --surface-hover: #161b22;
+  --post-surface: #0f1419;
+}
+
+/* Login e modais: menos vidro/transparência e mais leitura. */
+.login-page {
+  --surface-color: rgba(255, 255, 255, 0.95);
+  --surface-solid: rgba(255, 255, 255, 0.98);
+  --surface-muted: rgba(248, 250, 252, 0.94);
+}
+
+.login-container {
+  background: rgba(255, 255, 255, 0.93) !important;
+  border-color: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(0.75rem) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(0.75rem) saturate(1.08) !important;
+}
+
+.login-page .custom-input,
+.login-page .form-control {
+  background: rgba(255, 255, 255, 0.88) !important;
+}
+
+.login-page .custom-input:focus,
+.login-page .form-control:focus {
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+.post-modal-content,
+.modal-content.post-modal-content,
+#newPostModal .post-modal-content,
+#newCommunityPostModal .post-modal-content,
+#editProfileModal .post-modal-content,
+#editCommunityModal .post-modal-content,
+.minigames-modal-content {
+  background: var(--surface-solid) !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  box-shadow: 0 1.15rem 3rem rgba(15, 23, 42, 0.18) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.post-modal-header,
+.post-modal-body,
+.post-modal-footer,
+#newCommunityPostModal .modal-header,
+#newCommunityPostModal .modal-body,
+#newCommunityPostModal .modal-footer {
+  background: transparent !important;
+  color: var(--text-color) !important;
+}
+
+/* Logos: mantém a imagem certa para cada tema e evita filtros herdados. */
+.sidebar-logo-svg,
+.login-card-logo {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html.theme-light .sidebar-logo-svg,
+body.theme-light .sidebar-logo-svg {
+  color-scheme: light;
+}
+
+html.theme-dark .sidebar-logo-svg,
+html.theme-oled .sidebar-logo-svg,
+body.theme-dark .sidebar-logo-svg,
+body.theme-oled .sidebar-logo-svg {
+  color-scheme: dark;
+}
+
+/* Cards laterais padronizados pelo mesmo desenho do card de participantes. */
+:where(
+  .right-sidebar-feed-card,
+  .community-side.side-card,
+  .profile-side-stack .profile-api-card
+) {
+  overflow: hidden !important;
+  padding: 1.125rem !important;
+  border: var(--hairline) solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-color) !important;
+  color: var(--text-color) !important;
+  box-shadow: none !important;
+}
+
+:where(
+  .right-sidebar-feed-card,
+  .community-side.side-card,
+  .profile-side-stack .profile-api-card
+):hover {
+  border-color: var(--border-color) !important;
+  background: var(--surface-color) !important;
+  transform: none !important;
+}
+
+:where(
+  .right-sidebar-feed-card > h2,
+  .right-sidebar-feed-card .side-card-header h2,
+  .community-side.side-card > h2,
+  .profile-side-stack .profile-api-card > h2,
+  .profile-side-stack .profile-api-card .h5
+) {
+  margin: 0 0 0.75rem !important;
+  color: var(--text-color) !important;
+  font-size: clamp(1rem, 1.25vw, 1.16rem) !important;
+  font-weight: var(--weight-strong) !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
+}
+
+.right-sidebar-feed-card .side-card-header {
+  margin-bottom: 0.75rem !important;
+}
+
+:where(
+  #right-sidebar-communities,
+  .right-sidebar-game-grid,
+  #community-members-container,
+  #profile-communities-container,
+  #profile-friends-container,
+  #public-communities-container,
+  #public-friends-container
+) {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  width: 100%;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-item,
+  .right-sidebar-panel .right-sidebar-game-card,
+  .community-side.side-card .member-item,
+  .profile-side-stack .side-community-item,
+  .profile-side-stack .side-friend-item
+) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.85rem !important;
+  width: 100% !important;
+  min-height: 4.65rem !important;
+  margin: 0 !important;
+  padding: 0.82rem 0 !important;
+  border: 0 !important;
+  border-bottom: var(--hairline) solid var(--line-color) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-color) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  transform: none !important;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-item:last-of-type,
+  .right-sidebar-panel .right-sidebar-game-card:last-of-type,
+  .community-side.side-card .member-item:last-of-type,
+  .profile-side-stack .side-community-item:last-of-type,
+  .profile-side-stack .side-friend-item:last-of-type
+) {
+  border-bottom: 0 !important;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-item:hover,
+  .right-sidebar-panel .right-sidebar-game-card:hover,
+  .community-side.side-card .member-item:hover,
+  .profile-side-stack .side-community-item:hover,
+  .profile-side-stack .side-friend-item:hover
+) {
+  margin-inline: -0.55rem !important;
+  padding-inline: 0.55rem !important;
+  border-radius: 1rem !important;
+  background: var(--surface-hover) !important;
+  color: var(--text-color) !important;
+  transform: none !important;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-item > div,
+  .right-sidebar-panel .right-sidebar-game-card > div,
+  .community-side.side-card .member-item > div,
+  .profile-side-stack .side-community-item > div,
+  .profile-side-stack .side-friend-item > div
+) {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-item strong,
+  .right-sidebar-panel .right-sidebar-game-card strong,
+  .community-side.side-card .member-item strong,
+  .profile-side-stack .side-community-item strong,
+  .profile-side-stack .side-friend-item strong
+) {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--text-color) !important;
+  font-weight: var(--weight-strong) !important;
+  line-height: 1.24 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-item span,
+  .right-sidebar-panel .right-sidebar-game-card span:not(.right-sidebar-game-icon),
+  .community-side.side-card .member-item span,
+  .profile-side-stack .side-community-item span,
+  .profile-side-stack .side-friend-item span
+) {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--text-muted) !important;
+  font-size: 0.84rem !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+:where(
+  .right-sidebar-panel .suggested-community-avatar,
+  .profile-side-stack .side-community-avatar
+) {
+  width: 3.55rem !important;
+  height: 3.55rem !important;
+  min-width: 3.55rem !important;
+  flex: 0 0 3.55rem !important;
+  border-radius: 0.95rem !important;
+}
+
+:where(
+  .community-side.side-card .side-community-avatar,
+  .profile-side-stack .side-friend-avatar
+) {
+  width: 3.55rem !important;
+  height: 3.55rem !important;
+  min-width: 3.55rem !important;
+  flex: 0 0 3.55rem !important;
+  border-radius: var(--radius-pill) !important;
+}
+
+.right-sidebar-game-icon {
+  width: 3.55rem !important;
+  height: 3.55rem !important;
+  min-width: 3.55rem !important;
+  flex: 0 0 3.55rem !important;
+  border-radius: 0.95rem !important;
+}
+
+:where(.side-list-more-btn, .profile-side-stack .load-more-btn.compact, .community-side.side-card .load-more-btn.compact) {
+  width: 100% !important;
+  margin: 0.75rem 0 0 !important;
+}
+
+/* Datas dos posts do feed/comunidade viram texto simples. */
+.post-header-main .post-date-text {
+  flex: 0 0 auto;
+  color: var(--text-muted) !important;
+  font-size: 0.9rem;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  cursor: default;
+  pointer-events: none;
+}
+
+.post-header-main .post-date-link {
+  font-weight: 400 !important;
+}
+
+@media (max-width: 48rem) {
+  .post-header-main .post-date-text {
+    position: absolute;
+    top: 0.78rem;
+    right: 0.78rem;
+    z-index: 2;
+    max-width: 3rem;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+  }
+
+  .post-header-main .post-date-text .date-separator {
+    display: none !important;
+  }
+}

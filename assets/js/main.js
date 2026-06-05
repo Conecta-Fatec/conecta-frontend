@@ -296,12 +296,21 @@ function updateSidebarUser(user) {
   const nickname = user.nickname || 'usuario';
   const initials = getInitials(name || nickname);
 
+  function syncSidebarText(el, value, countValue = value) {
+    if (!el) return;
+    const cleanValue = String(value || '').trim();
+    const cleanCount = String(countValue || '').replace(/^@/, '').trim();
+    el.textContent = cleanValue;
+    el.title = cleanValue;
+    el.classList.toggle('is-long-sidebar-text', cleanCount.length > 15);
+  }
+
   document.querySelectorAll('#sidebar-name').forEach((el) => {
-    el.textContent = name;
+    syncSidebarText(el, name);
   });
 
   document.querySelectorAll('#sidebar-username').forEach((el) => {
-    el.textContent = `@${nickname}`;
+    syncSidebarText(el, `@${nickname}`, nickname);
   });
 
   document.querySelectorAll('#sidebar-avatar, #modal-avatar, #post-input-avatar').forEach((el) => {
@@ -397,17 +406,17 @@ const FONT_SIZES = {
 };
 
 const ROOT_FONT_SIZES = {
-  small: '87.5%',
+  small: '80%',
   normal: '100%',
-  large: '112.5%',
-  xlarge: '125%',
+  large: '120%',
+  xlarge: '140%',
 };
 
 const FONT_SCALES = {
-  small: '0.875',
+  small: '0.8',
   normal: '1',
-  large: '1.125',
-  xlarge: '1.25',
+  large: '1.2',
+  xlarge: '1.4',
 };
 
 const CONTROL_SCALES = {
@@ -416,6 +425,54 @@ const CONTROL_SCALES = {
   large: '1',
   xlarge: '1',
 };
+
+
+
+function getBrowserZoomRatio() {
+  const visualScale = window.visualViewport?.scale || 1;
+  const viewportRatio = window.outerWidth && window.innerWidth ? window.outerWidth / window.innerWidth : 1;
+  const safeViewportRatio = viewportRatio > 1.08 && viewportRatio < 2.4 ? viewportRatio : 1;
+  return Math.max(visualScale, safeViewportRatio, 1);
+}
+
+function getZoomSuggestedFontSizeMode() {
+  const ratio = getBrowserZoomRatio();
+  if (ratio >= 1.45) return 'xlarge';
+  if (ratio >= 1.20) return 'large';
+  return '';
+}
+
+function getEffectiveFontSizeMode(mode = getFontSizeMode()) {
+  const zoomMode = getZoomSuggestedFontSizeMode();
+  if (!zoomMode) return mode;
+  const order = { small: 0, normal: 1, large: 2, xlarge: 3 };
+  return order[zoomMode] > order[mode] ? zoomMode : mode;
+}
+
+function setupZoomGuard() {
+  const preventZoom = (event) => {
+    if (event.ctrlKey || event.metaKey) event.preventDefault();
+  };
+
+  document.addEventListener('wheel', preventZoom, { passive: false });
+  document.addEventListener('gesturestart', (event) => event.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', (event) => event.preventDefault(), { passive: false });
+  document.addEventListener('touchmove', (event) => {
+    if (event.touches && event.touches.length > 1) event.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('keydown', (event) => {
+    const key = String(event.key || '').toLowerCase();
+    const isZoomShortcut = (event.ctrlKey || event.metaKey) && ['+', '=', '-', '_', '0'].includes(key);
+    if (isZoomShortcut) event.preventDefault();
+  });
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(applyFontPreferences, 120);
+  });
+}
 
 function getThemeMode() {
   const saved = localStorage.getItem(PREFERENCE_KEYS.theme);
@@ -476,21 +533,29 @@ function getControlScale() {
 
 function applyFontPreferences() {
   const familyMode = getFontFamilyMode();
-  const sizeMode = getFontSizeMode();
+  const savedSizeMode = getFontSizeMode();
+  const sizeMode = getEffectiveFontSizeMode(savedSizeMode);
   const fontFamily = FONT_FAMILIES[familyMode];
   const fontScale = FONT_SIZES[sizeMode];
 
-  // Escala visual gradual
-  document.documentElement.style.setProperty('font-size', getRootFontSize());
+  // Escala visual gradual. Se o navegador já estiver em 125%/150%,
+  // o site assume visualmente Grande/Extra Grande sem gravar essa mudança nas configurações.
+  document.documentElement.style.setProperty('font-size', ROOT_FONT_SIZES[sizeMode] || ROOT_FONT_SIZES.normal);
   document.documentElement.style.setProperty('--app-font-family', fontFamily);
   document.documentElement.style.setProperty('--app-font-size', fontScale);
   document.documentElement.style.setProperty('--app-text-scale', '1');
-  document.documentElement.style.setProperty('--app-control-scale', getControlScale());
+  document.documentElement.style.setProperty('--app-size-scale', FONT_SCALES[sizeMode] || FONT_SCALES.normal);
+  document.documentElement.style.setProperty('--app-control-scale', CONTROL_SCALES[sizeMode] || CONTROL_SCALES.normal);
+  document.documentElement.dataset.fontSizeMode = sizeMode;
+  document.documentElement.dataset.savedFontSizeMode = savedSizeMode;
   if (body) {
     body.style.setProperty('--app-font-family', fontFamily);
     body.style.setProperty('--app-font-size', fontScale);
     body.style.setProperty('--app-text-scale', '1');
-    body.style.setProperty('--app-control-scale', getControlScale());
+    body.style.setProperty('--app-size-scale', FONT_SCALES[sizeMode] || FONT_SCALES.normal);
+    body.style.setProperty('--app-control-scale', CONTROL_SCALES[sizeMode] || CONTROL_SCALES.normal);
+    body.dataset.fontSizeMode = sizeMode;
+    body.dataset.savedFontSizeMode = savedSizeMode;
   }
 
   updatePreferenceControls();
@@ -671,6 +736,8 @@ applyFontPreferences();
 applyAnimationsPreference(); // Aplica a regra de animação no boot do JS
 
 document.addEventListener('DOMContentLoaded', () => {
+  setupZoomGuard();
+
   document.querySelectorAll('[data-logout], #logoutBtn').forEach((button) => {
     button.addEventListener('click', logout);
   });
@@ -1427,7 +1494,10 @@ function updateSidebarLogo() {
     "light";
 
   const isDarkTheme = theme === "dark" || theme === "oled";
-  const nextSrc = isDarkTheme ? logo.dataset.logoLight : logo.dataset.logoDefault;
+  const lightLogo = logo.dataset.logoLight || logo.dataset.logoDefault || "../assets/img/logo-light.svg";
+  const darkLogo = logo.dataset.logoDark || "../assets/img/logo-dark.svg";
+  const nextSrc = isDarkTheme ? darkLogo : lightLogo;
+
   if (nextSrc && logo.getAttribute("src") !== nextSrc) logo.src = nextSrc;
 }
 

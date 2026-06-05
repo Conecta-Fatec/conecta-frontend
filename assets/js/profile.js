@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveProfileBtn = document.getElementById('saveProfileBtn');
 
   const state = {
-    communitiesVisible: 3,
-    friendsVisible: 3,
+    communitiesVisible: 5,
+    friendsVisible: 5,
     postsVisible: 5,
     communities: [],
     friends: [],
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (communities.length > shown.length) {
       communitiesContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="profileMoreCommunities">Ver mais</button>');
-      document.getElementById('profileMoreCommunities').addEventListener('click', () => { state.communitiesVisible += 3; renderCommunities(); });
+      document.getElementById('profileMoreCommunities').addEventListener('click', () => { state.communitiesVisible += 5; renderCommunities(); });
     }
   }
 
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (friends.length > shown.length) {
       friendsContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact" id="profileMoreFriends">Ver mais</button>');
-      document.getElementById('profileMoreFriends').addEventListener('click', () => { state.friendsVisible += 3; renderFriends(); });
+      document.getElementById('profileMoreFriends').addEventListener('click', () => { state.friendsVisible += 5; renderFriends(); });
     }
   }
 
