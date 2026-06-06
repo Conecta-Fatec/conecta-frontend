@@ -367,7 +367,7 @@ body:has(.login-page) {
 
 .register-rules-check a:hover,
 .cookie-banner a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .register-step-hint {
@@ -404,7 +404,7 @@ body:has(.login-page) {
 }
 
 .register-text-btn:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 #registerModal .modal-cancel-btn {

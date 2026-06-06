@@ -250,11 +250,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const nickname = memberUser.nickname || memberUser.username || 'usuario';
 
       return `
-        <a href="${profileUrlFor(memberUser)}" class="side-community-item member-item ${member.__creator ? 'member-creator' : ''}">
-          ${avatarHTML(memberUser, 'side-community-avatar')}
+        <a href="${profileUrlFor(memberUser)}" class="side-community-item member-item">
+          ${avatarHTML(memberUser, 'side-friend-avatar')}
           <div>
-            <strong>${escapeHTML(name)} ${member.__creator ? '<span class="creator-crown" title="Criador da comunidade">♛</span>' : ''}</strong>
-            <span>@${escapeHTML(nickname)}${member.__creator ? ' · criador' : ''}</span>
+            <strong>${escapeHTML(name)}</strong>
+            <span>@${escapeHTML(nickname)}</span>
           </div>
         </a>
       `;

@@ -91,62 +91,6 @@
   }
 }
 
-/* Cards da sidebar direita do feed: imagens maiores e preenchendo toda a área. */
-.right-sidebar-panel .suggested-community-item,
-.right-sidebar-panel .right-sidebar-game-card {
-  align-items: center !important;
-  min-height: 4.75rem;
-  padding: 0.72rem !important;
-  border: var(--hairline) solid var(--line-color) !important;
-  border-radius: 1rem !important;
-  background: color-mix(in srgb, var(--surface-solid) 26%, transparent);
-}
-
-.right-sidebar-panel .suggested-community-item:hover,
-.right-sidebar-panel .right-sidebar-game-card:hover {
-  background: var(--surface-hover) !important;
-  border-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color)) !important;
-  transform: translateY(-0.04rem) !important;
-}
-
-.right-sidebar-panel .suggested-community-avatar {
-  width: clamp(3.45rem, 4.4vw, 4.1rem) !important;
-  height: clamp(3.45rem, 4.4vw, 4.1rem) !important;
-  min-width: clamp(3.45rem, 4.4vw, 4.1rem) !important;
-  flex-basis: clamp(3.45rem, 4.4vw, 4.1rem) !important;
-  border-radius: 0.9rem !important;
-}
-
-.right-sidebar-panel .suggested-community-avatar img,
-.right-sidebar-panel .suggested-community-avatar.has-image img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  object-position: center !important;
-}
-
-.right-sidebar-panel .right-sidebar-game-icon {
-  display: inline-grid !important;
-  place-items: center !important;
-  line-height: 1 !important;
-  text-align: center !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-
-.right-sidebar-panel .right-sidebar-game-card > div,
-.right-sidebar-panel .suggested-community-item > div {
-  min-width: 0 !important;
-}
-
-@media (max-width: 87.5rem) and (min-width: 75rem), (max-height: 50rem) and (min-width: 75rem) {
-  .right-sidebar-panel .suggested-community-avatar {
-    width: 3.25rem !important;
-    height: 3.25rem !important;
-    min-width: 3.25rem !important;
-    flex-basis: 3.25rem !important;
-  }
-}
 
 /* No mobile, o botão "Mini games" segue o estilo limpo do atalho de notificações. */
 @media (max-width: 48rem) {
@@ -204,14 +148,14 @@ body {
 }
 
 .glass-surface,
-:where(.login-container, .settings-card, .profile-card, .profile-section, .profile-api-card, .profile-hero-card, .side-card, .feed-create-card, .feed-control-card, .communities-summary-card, .community-create-box, .community-create-card, .community-card, .friend-card, .post-modal-content, .cookie-banner, .notification-home-btn, .mobile-offcanvas, .about-project-card, .about-resource-card, .doc-card, .sidebar, .mobile-topbar, .mobile-bottom-nav, .single-post-header, .user-dropdown-menu, .right-sidebar-feed-card) {
+:where(.login-container, .settings-card, .profile-card, .profile-section, .profile-api-card, .profile-hero-card, .side-card, .feed-create-card, .feed-control-card, .communities-summary-card, .community-create-box, .community-create-card, .community-card, .friend-card, .post-modal-content, .cookie-banner, .notification-home-btn, .mobile-offcanvas, .about-project-card, .about-resource-card, .doc-card, .sidebar, .mobile-topbar, .mobile-bottom-nav, .single-post-header, .user-dropdown-menu) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
 }
 
 .glass-surface,
-:where(.login-container, .settings-card, .profile-card, .profile-section, .profile-api-card, .profile-hero-card, .side-card, .feed-create-card, .feed-control-card, .communities-summary-card, .community-create-box, .community-create-card, .community-card, .friend-card, .post-modal-content, .cookie-banner, .notification-home-btn, .mobile-offcanvas, .about-project-card, .about-resource-card, .doc-card, .right-sidebar-feed-card) {
+:where(.login-container, .settings-card, .profile-card, .profile-section, .profile-api-card, .profile-hero-card, .side-card, .feed-create-card, .feed-control-card, .communities-summary-card, .community-create-box, .community-create-card, .community-card, .friend-card, .post-modal-content, .cookie-banner, .notification-home-btn, .mobile-offcanvas, .about-project-card, .about-resource-card, .doc-card) {
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-color) 96%, transparent), color-mix(in srgb, var(--surface-color) 82%, transparent)) !important;
 }
 
@@ -258,9 +202,7 @@ body {
 .profile-post-card,
 .profile-post-item,
 .community-card,
-.friend-card,
-.right-sidebar-panel .side-community-item,
-.right-sidebar-panel .right-sidebar-game-card {
+.friend-card {
   min-width: 0 !important;
 }
 
@@ -272,9 +214,7 @@ body {
 .post-username,
 .post-date-link,
 .side-community-item strong,
-.side-community-item span,
-.right-sidebar-game-card strong,
-.right-sidebar-game-card span {
+.side-community-item span {
   max-width: 100% !important;
   overflow-wrap: anywhere !important;
 }
@@ -291,15 +231,6 @@ body {
   width: 100% !important;
 }
 
-html[data-font-size-mode="large"] .right-sidebar-panel {
-  width: clamp(17rem, 21vw, 19rem) !important;
-  padding: 1rem !important;
-}
-
-html[data-font-size-mode="xlarge"] .right-sidebar-panel,
-body[data-font-size-mode="xlarge"] .right-sidebar-panel {
-  display: none !important;
-}
 
 .post-card,
 .profile-post-card,
@@ -409,13 +340,6 @@ html body .community-side.side-card:hover,
 html body .community-side.side-card .member-item:hover,
 html body .community-create-card:hover,
 html body .community-create-card:focus-visible,
-html body .right-sidebar-feed-card:hover,
-html body .right-sidebar-link:hover svg,
-html body .right-sidebar-link:focus-visible svg,
-html body .right-sidebar-icon-button:hover,
-html body .right-sidebar-icon-button:focus-visible,
-html body .right-sidebar-panel .suggested-community-item:hover,
-html body .right-sidebar-panel .right-sidebar-game-card:hover,
 html body .post-card:hover,
 html body .profile-post-card:hover,
 html body .profile-post-item:hover,
@@ -429,7 +353,7 @@ html body a:active {
   transform: none !important;
 }
 
-:where(.btn, button, .sidebar-link, .logged-user, .community-card, .friend-card, .post-card, .profile-post-card, .profile-post-item, .right-sidebar-feed-card, .right-sidebar-game-card, .suggested-community-item) {
+:where(.btn, button, .sidebar-link, .logged-user, .community-card, .friend-card, .post-card, .profile-post-card, .profile-post-item) {
   transition-property: background-color, border-color, color, opacity !important;
 }
 
@@ -674,52 +598,6 @@ body.theme-oled .community-main {
   background: transparent !important;
 }
 
-/* =========================================================
-   Correção v4: sidebar direita fixa, nomes legíveis,
-   comunidades em 2 cards no extra grande e proteção de zoom.
-========================================================= */
-:root {
-  --right-sidebar-fixed-width: 21rem;
-}
-
-@media (max-width: 87.5rem) and (min-width: 78.01rem), (max-height: 50rem) and (min-width: 78.01rem) {
-  :root {
-    --right-sidebar-fixed-width: clamp(15.75rem, 23vw, 18rem);
-  }
-}
-
-@media (min-width: 78.01rem) {
-  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel),
-  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) {
-    padding-right: var(--right-sidebar-fixed-width) !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1,
-  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1 {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .right-sidebar-panel,
-  body:not([data-font-size-mode="xlarge"]) .right-sidebar-panel {
-    position: fixed !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 28 !important;
-    display: flex !important;
-    width: var(--right-sidebar-fixed-width) !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    max-height: 100vh !important;
-    max-height: 100dvh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    overscroll-behavior: contain !important;
-    scrollbar-width: thin;
-  }
-}
 
 @media (min-width: 48.01rem) {
   .user-menu-inline {
@@ -787,95 +665,6 @@ body[data-font-size-mode="xlarge"] .communities-grid {
   }
 }
 
-/* =========================================================
-   Correção v5: sidebar direita sem fixação global,
-   cards do feed presos como atalhos e perfil unificado.
-========================================================= */
-:root {
-  --right-sidebar-first-card-space: 18.25rem;
-}
-
-html[data-font-size-mode="large"],
-body[data-font-size-mode="large"] {
-  --right-sidebar-first-card-space: 20rem;
-}
-
-@media (max-width: 87.5rem) and (min-width: 78.01rem), (max-height: 50rem) and (min-width: 78.01rem) {
-  :root {
-    --right-sidebar-first-card-space: 16.75rem;
-  }
-
-  html[data-font-size-mode="large"],
-  body[data-font-size-mode="large"] {
-    --right-sidebar-first-card-space: 18.25rem;
-  }
-}
-
-@media (min-width: 78.01rem) {
-  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel),
-  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) {
-    padding-right: 0 !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1,
-  body:not([data-font-size-mode="xlarge"]) .feed-content:has(.right-sidebar-panel) > .flex-grow-1 {
-    width: auto !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel,
-  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel,
-  html:not([data-font-size-mode="xlarge"]) .right-sidebar-panel,
-  body:not([data-font-size-mode="xlarge"]) .right-sidebar-panel {
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    z-index: auto !important;
-    width: var(--right-sidebar-fixed-width, 21rem) !important;
-    height: auto !important;
-    min-height: 100vh !important;
-    min-height: 100dvh !important;
-    max-height: none !important;
-    overflow: visible !important;
-    overscroll-behavior: auto !important;
-    scrollbar-width: auto !important;
-    align-self: stretch !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card,
-  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card {
-    position: sticky !important;
-    z-index: 12 !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card:first-of-type,
-  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-feed-card:first-of-type {
-    top: 1rem !important;
-  }
-
-  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-games-card,
-  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel .right-sidebar-games-card {
-    top: var(--right-sidebar-first-card-space) !important;
-  }
-
-  .community-page-layout > .community-side,
-  .profile-layout > .side-card,
-  .community-side.side-card {
-    position: static !important;
-    top: auto !important;
-  }
-}
-
-@media (max-width: 87.5rem) and (min-width: 78.01rem), (max-height: 50rem) and (min-width: 78.01rem) {
-  html:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel,
-  body:not([data-font-size-mode="xlarge"]) .feed-content > .right-sidebar-panel {
-    width: var(--right-sidebar-fixed-width, clamp(15.75rem, 23vw, 18rem)) !important;
-  }
-}
 
 @media (min-width: 48.01rem) {
   .modern-sidebar-actions .user-menu-inline {

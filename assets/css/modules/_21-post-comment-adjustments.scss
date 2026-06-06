@@ -170,7 +170,7 @@
 .tw-username:hover,
 .tw-reply-target:hover {
   color: var(--primary-color) !important;
-  text-decoration: underline !important;
+  text-decoration: none !important;
 }
 
 .tw-username,
@@ -286,7 +286,7 @@
 
 .tk-replies-btn:hover {
   color: var(--primary-color);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 #postInteractionModal .post-modal-content {
