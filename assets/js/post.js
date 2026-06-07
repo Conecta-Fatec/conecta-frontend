@@ -34,28 +34,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const endpoints = [];
 
 
-    for (const endpoint of endpoints) {
-      try {
-        const response = await apiFetch(endpoint);
-        if (response.ok) return await response.json();
-      } catch (error) {}
+async function fetchPostData(id) {
+    try {
+      // Agora o frontend bate direto na nossa nova rota (PostDetailAPIView)
+      const response = await apiFetch(`/api/posts/post/${id}/`);
+      
+      if (response.ok) {
+        // O backend já devolve o post prontinho, sem precisar procurar em lista nenhuma!
+        const postData = await response.json();
+        return postData;
+      }
+    } catch (error) {
+      console.error('Erro na requisição do post único:', error);
     }
 
-    try {
-      const response = await apiFetch(slug ? `/api/posts/communities/${slug}/` : '/api/posts/feed/');
-      if (response.ok) {
-        const data = await response.json();
-        const posts = slug
-          ? normalizeArray(data.posts, 'results', 'items')
-          : normalizeArray(data, 'posts', 'results', 'feed', 'items');
-        const found = posts.find((post) => String(post.id) === String(id));
-        if (found) return found;
-      }
-    } catch (error) {}
-
+    // Se o backend devolver 404, aí sim o post foi apagado de verdade
     throw new Error('Publicação não encontrada ou excluída.');
   }
-
+  
   function renderMoreCommentsButton(totalComments) {
     const remaining = totalComments - rootCommentsVisible;
     if (remaining <= 0) return '';
