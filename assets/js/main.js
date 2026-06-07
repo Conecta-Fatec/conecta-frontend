@@ -1679,7 +1679,6 @@ logoThemeObserver.observe(document.body, {
   attributes: true,
   attributeFilter: ["data-theme", "class"],
 });
-
 /* =========================================================
    Notificações Globais (Atualização Automática)
 ========================================================= */
@@ -1687,7 +1686,7 @@ async function updateGlobalNotifications() {
     if (!localStorage.getItem('access_token')) return;
 
     try {
-        // Tenta buscar as notificações da sua API (ajuste a rota se necessário)
+        // Tenta buscar as notificações da sua API
         const response = await apiFetch('/api/notifications/'); 
         
         if (response.ok) {
@@ -1701,24 +1700,27 @@ async function updateGlobalNotifications() {
                 unreadCount = data.results.filter(n => !n.is_read).length;
             }
 
-            // Atualiza o balãozinho em todas as telas que tiverem o ID
-            const badge = document.getElementById('global-notif-badge');
+            // Seleciona TODOS os balões de notificação da tela (o do PC e o do Mobile)
+            const badges = document.querySelectorAll('.global-notif-badge');
             
-            if (badge) {
+            badges.forEach(badge => {
                 if (unreadCount > 0) {
                     badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
                     badge.style.display = 'inline-block'; 
                 } else {
                     badge.style.display = 'none';
                 }
-            }
+            });
         }
     } catch (error) {
         console.error("Erro ao buscar contador de notificações:", error);
     }
 }
 
-// Quando a página terminar de carregar, ele roda a função
+// Quando a página terminar de carregar, ele roda a primeira vez e liga o cronômetro
 document.addEventListener('DOMContentLoaded', () => {
     updateGlobalNotifications();
+    
+    // Atualiza a cada 30 segundos (30000 milissegundos) nos bastidores
+    setInterval(updateGlobalNotifications, 30000); 
 });
