@@ -39,9 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     posts: [],
   };
 
-  const modernEmptyState = (text, icon) => `
+  const modernEmptyState = (text) => `
     <div class="api-empty-state text-center py-4" style="border: 1px dashed var(--line-color); background: transparent;">
-      <span class="d-block fs-2 mb-2 opacity-75">${icon}</span>
       <span class="text-muted fw-medium">${text}</span>
     </div>
   `;
@@ -324,15 +323,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderFriends();
   }
 
+  function refreshProfileAfterFriendAction(nextStatus, friendsDelta = 0) {
+    if (!publicUser) return;
+
+    const currentCount = Number(publicUser.friends_count || 0);
+    publicUser = {
+      ...publicUser,
+      friendship_status: nextStatus,
+      friends_count: Math.max(0, currentCount + friendsDelta),
+    };
+
+    if (friendsCountEl) friendsCountEl.textContent = `${publicUser.friends_count || 0} amigo(s)`;
+
+    window.destravarBotao(actionBtn, true);
+    if (rejectActionBtn) window.destravarBotao(rejectActionBtn, true);
+    configureFriendButton(publicUser);
+
+    sessionStorage.removeItem(`@conecta:cache_profileuser_${nickname}`);
+    loadPublicProfile(true).catch(console.error);
+  }
+
   function configureFriendButton(user) {
     if (!actionBtn) return;
 
     actionBtn.style.display = 'inline-flex';
     actionBtn.disabled = false;
+    window.destravarBotao(actionBtn, true);
 
     if (rejectActionBtn) {
       rejectActionBtn.style.display = 'none';
       rejectActionBtn.disabled = false;
+      window.destravarBotao(rejectActionBtn, true);
       rejectActionBtn.onclick = null;
       rejectActionBtn.textContent = 'Recusar amizade';
       rejectActionBtn.className = 'btn btn-outline-danger';
@@ -352,9 +373,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!confirm(`Remover @${user.nickname} dos seus amigos?`)) return;
         window.travarBotao(actionBtn, true);
         actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Removendo...';
-        const response = await apiFetch(`/api/users/friend/${user.nickname}/remove/`, { method: 'POST' });
-        if (response.ok) loadPublicProfile(true);
-        else window.destravarBotao(actionBtn, true);
+        try {
+          const response = await apiFetch(`/api/users/friend/${user.nickname}/remove/`, { method: 'POST' });
+          if (response.ok) refreshProfileAfterFriendAction('none', -1);
+          else window.destravarBotao(actionBtn, true);
+        } catch (error) {
+          console.error(error);
+          window.destravarBotao(actionBtn, true);
+        }
       };
       return;
     }
@@ -365,9 +391,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       actionBtn.onclick = async () => {
         window.travarBotao(actionBtn, true);
         actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Cancelando...';
-        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/cancel/`, { method: 'POST' });
-        if (response.ok) loadPublicProfile(true);
-        else window.destravarBotao(actionBtn, true);
+        try {
+          const response = await apiFetch(`/api/users/friend-request/${user.nickname}/cancel/`, { method: 'POST' });
+          if (response.ok) refreshProfileAfterFriendAction('none');
+          else window.destravarBotao(actionBtn, true);
+        } catch (error) {
+          console.error(error);
+          window.destravarBotao(actionBtn, true);
+        }
       };
       return;
     }
@@ -379,9 +410,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.travarBotao(actionBtn, true);
         if (rejectActionBtn) window.travarBotao(rejectActionBtn, true);
         actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Aceitando...';
-        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/accept/`, { method: 'POST' });
-        if (response.ok) loadPublicProfile(true);
-        else {
+        try {
+          const response = await apiFetch(`/api/users/friend-request/${user.nickname}/accept/`, { method: 'POST' });
+          if (response.ok) refreshProfileAfterFriendAction('friends', 1);
+          else {
+            window.destravarBotao(actionBtn, true);
+            if (rejectActionBtn) window.destravarBotao(rejectActionBtn, true);
+          }
+        } catch (error) {
+          console.error(error);
           window.destravarBotao(actionBtn, true);
           if (rejectActionBtn) window.destravarBotao(rejectActionBtn, true);
         }
@@ -393,9 +430,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           window.travarBotao(rejectActionBtn, true);
           window.travarBotao(actionBtn, true);
           rejectActionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Recusando...';
-          const response = await apiFetch(`/api/users/friend-request/${user.nickname}/reject/`, { method: 'POST' });
-          if (response.ok) loadPublicProfile(true);
-          else {
+          try {
+            const response = await apiFetch(`/api/users/friend-request/${user.nickname}/reject/`, { method: 'POST' });
+            if (response.ok) refreshProfileAfterFriendAction('none');
+            else {
+              window.destravarBotao(rejectActionBtn, true);
+              window.destravarBotao(actionBtn, true);
+            }
+          } catch (error) {
+            console.error(error);
             window.destravarBotao(rejectActionBtn, true);
             window.destravarBotao(actionBtn, true);
           }
@@ -409,9 +452,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     actionBtn.onclick = async () => {
       window.travarBotao(actionBtn, true);
       actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enviando...';
-      const response = await apiFetch(`/api/users/friend-request/${user.nickname}/send/`, { method: 'POST' });
-      if (response.ok) loadPublicProfile(true);
-      else window.destravarBotao(actionBtn, true);
+      try {
+        const response = await apiFetch(`/api/users/friend-request/${user.nickname}/send/`, { method: 'POST' });
+        if (response.ok) refreshProfileAfterFriendAction('request_sent');
+        else window.destravarBotao(actionBtn, true);
+      } catch (error) {
+        console.error(error);
+        window.destravarBotao(actionBtn, true);
+      }
     };
   }
 
@@ -449,7 +497,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       cacheKey,
       // 1. Fetcher: Procura o perfil do outro utilizador na API
       async () => {
-        const response = await apiFetch(`/api/users/profile/${encodeURIComponent(nickname)}/`);
+        const response = await apiFetch(`/api/users/profile/${encodeURIComponent(nickname)}/`, { cache: 'no-store' });
         const data = await response.json().catch(() => null);
 
         if (!response.ok) {

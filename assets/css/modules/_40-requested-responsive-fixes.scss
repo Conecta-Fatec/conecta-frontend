@@ -1,0 +1,130 @@
+/* =========================================================
+   40. Ajustes pontuais solicitados: zoom extra grande,
+   perfil do menu em zoom grande, exclusão dentro do modal
+   e estados vazios do perfil público.
+========================================================= */
+
+/* No zoom Extra Grande, o feed fica sem a sidebar direita de atalhos. */
+html[data-font-size-mode="xlarge"] body .feed-page .feed-content > .right-sidebar-panel,
+body[data-font-size-mode="xlarge"] .feed-page .feed-content > .right-sidebar-panel {
+  display: none !important;
+}
+
+html[data-font-size-mode="xlarge"] body .feed-page .feed-content:has(> .right-sidebar-panel) > .flex-grow-1,
+body[data-font-size-mode="xlarge"] .feed-page .feed-content:has(> .right-sidebar-panel) > .flex-grow-1 {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
+}
+
+/* Em zoom Grande/Extra Grande, o rodapé do perfil não pode ser cortado no menu. */
+@media (min-width: 48.01rem) {
+  html[data-font-size-mode="large"] .desktop-sidebar,
+  html[data-font-size-mode="large"] .sidebar.desktop-sidebar,
+  html[data-font-size-mode="large"] .modern-sidebar.desktop-sidebar,
+  body[data-font-size-mode="large"] .desktop-sidebar,
+  body[data-font-size-mode="large"] .sidebar.desktop-sidebar,
+  body[data-font-size-mode="large"] .modern-sidebar.desktop-sidebar,
+  html[data-font-size-mode="xlarge"] .desktop-sidebar,
+  html[data-font-size-mode="xlarge"] .sidebar.desktop-sidebar,
+  html[data-font-size-mode="xlarge"] .modern-sidebar.desktop-sidebar,
+  body[data-font-size-mode="xlarge"] .desktop-sidebar,
+  body[data-font-size-mode="xlarge"] .sidebar.desktop-sidebar,
+  body[data-font-size-mode="xlarge"] .modern-sidebar.desktop-sidebar {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    padding-bottom: max(0.9rem, env(safe-area-inset-bottom)) !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-sidebar,
+  body[data-font-size-mode="large"] .modern-sidebar {
+    gap: 0.5rem !important;
+    padding-top: 0.85rem !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-nav,
+  body[data-font-size-mode="large"] .modern-nav {
+    gap: 0.1rem !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-nav .sidebar-link,
+  body[data-font-size-mode="large"] .modern-nav .sidebar-link {
+    min-height: 2.55rem !important;
+    padding-block: 0.48rem !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-post-btn,
+  body[data-font-size-mode="large"] .modern-post-btn {
+    min-height: 2.7rem !important;
+    margin-top: 0.65rem !important;
+    padding-block: 0.5rem !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-sidebar-actions,
+  body[data-font-size-mode="large"] .modern-sidebar-actions {
+    padding-bottom: 0.35rem !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-sidebar-actions .user-menu-inline,
+  body[data-font-size-mode="large"] .modern-sidebar-actions .user-menu-inline {
+    align-items: stretch !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html[data-font-size-mode="large"] .modern-sidebar-actions .user-menu-pill,
+  body[data-font-size-mode="large"] .modern-sidebar-actions .user-menu-pill {
+    min-width: 0 !important;
+    padding: 0.44rem 0.28rem 0.44rem 0.42rem !important;
+  }
+
+  html[data-font-size-mode="large"] .user-menu-pill .user-info-wrapper,
+  body[data-font-size-mode="large"] .user-menu-pill .user-info-wrapper {
+    gap: 0.5rem !important;
+  }
+
+  html[data-font-size-mode="large"] #sidebar-avatar,
+  body[data-font-size-mode="large"] #sidebar-avatar {
+    width: 2.6rem !important;
+    min-width: 2.6rem !important;
+    max-width: 2.6rem !important;
+    height: 2.6rem !important;
+    min-height: 2.6rem !important;
+    max-height: 2.6rem !important;
+    flex: 0 0 2.6rem !important;
+    font-size: 0.82rem !important;
+  }
+}
+
+/* Excluir comunidade agora fica dentro do modal de edição. */
+.edit-community-footer {
+  gap: 0.5rem !important;
+}
+
+.modal-delete-community-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.55rem;
+  height: 2.55rem;
+  margin-right: auto !important;
+  border: var(--hairline) solid color-mix(in srgb, var(--danger-color) 48%, var(--border-color));
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--danger-soft) 72%, transparent);
+  color: var(--danger-color);
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.modal-delete-community-btn:hover,
+.modal-delete-community-btn:focus-visible {
+  border-color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 16%, var(--danger-soft));
+  color: var(--danger-color);
+  outline: none;
+}
+
+.modal-delete-community-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}

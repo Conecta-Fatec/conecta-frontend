@@ -170,10 +170,11 @@ html body .dropdown-item:hover {
   text-decoration-line: none !important;
 }
 
-/* Sidebar direita do feed: a coluna inteira fica fixa e sem rolagem interna. */
+/* Sidebar direita do feed: volta a ficar presa no fluxo da página, como na versão estável.
+   Usar sticky evita o sumiço causado pelo fixed e preserva o layout responsivo. */
 @media (min-width: 75rem) {
   html body .feed-page .feed-content:has(> .right-sidebar-panel) {
-    padding-right: var(--right-sidebar-fixed-width) !important;
+    padding-right: 0 !important;
   }
 
   html body .feed-page .feed-content:has(> .right-sidebar-panel) > .flex-grow-1 {
@@ -184,23 +185,35 @@ html body .dropdown-item:hover {
   }
 
   html body .feed-page .feed-content > .right-sidebar-panel {
-    position: fixed !important;
-    inset-block: 0 auto !important;
-    inset-inline: auto 0 !important;
-    z-index: 28 !important;
+    position: sticky !important;
+    inset: auto !important;
+    top: 0 !important;
+    z-index: 20 !important;
     display: flex !important;
+    flex: 0 0 var(--right-sidebar-fixed-width) !important;
     flex-direction: column !important;
     gap: var(--right-sidebar-fixed-gap) !important;
     width: var(--right-sidebar-fixed-width) !important;
-    height: auto !important;
-    min-height: 100vh !important;
-    min-height: 100dvh !important;
-    max-height: none !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    align-self: flex-start !important;
     padding: 1rem !important;
-    overflow: visible !important;
-    overscroll-behavior: auto !important;
-    scrollbar-width: auto !important;
-    align-self: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-width: thin !important;
+    border-left: var(--hairline) solid var(--line-color) !important;
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--primary-soft) 55%, transparent), transparent 36%),
+      color-mix(in srgb, var(--bg-color) 96%, transparent) !important;
+  }
+
+  html.theme-oled body .feed-page .feed-content > .right-sidebar-panel,
+  body.theme-oled .feed-page .feed-content > .right-sidebar-panel {
+    background: #000 !important;
   }
 
   html body .feed-page .feed-content > .right-sidebar-panel .right-sidebar-feed-card {
@@ -223,6 +236,27 @@ html body .dropdown-item:hover {
     max-height: none !important;
     overflow: visible !important;
   }
+}
+
+
+/* Perfil: a área principal de publicações não recebe superfície própria.
+   Os cards dos posts continuam com fundo/borda; só o bloco externo fica transparente em todos os temas. */
+html body .profile-page-layout .profile-api-grid > .profile-api-card {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.theme-light body .profile-page-layout .profile-api-grid > .profile-api-card,
+html.theme-dark body .profile-page-layout .profile-api-grid > .profile-api-card,
+html.theme-oled body .profile-page-layout .profile-api-grid > .profile-api-card,
+body.theme-light .profile-page-layout .profile-api-grid > .profile-api-card,
+body.theme-dark .profile-page-layout .profile-api-grid > .profile-api-card,
+body.theme-oled .profile-page-layout .profile-api-grid > .profile-api-card {
+  background: transparent !important;
+  border-color: transparent !important;
 }
 
 /* Cards laterais: mesmo visual dos cards de Comunidades/Amigos no perfil. */
