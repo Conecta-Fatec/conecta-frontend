@@ -405,14 +405,25 @@ async function publishFeedPost() {
       const response = await apiFetch(`/api/posts/post/${postId}/like/`, { method: 'POST' });
       if (!response.ok) return;
       const data = await response.json().catch(() => null);
+      
+      const liked = !!data?.liked;
       const svg = btnElement.querySelector('svg');
-      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      
+      // Aplica o azul no texto/botão
+      btnElement.classList.toggle('text-primary-custom', liked);
+      btnElement.style.color = liked ? 'var(--primary-color)' : '';
+      
+      // Aplica o azul no coração (preenchimento e borda)
+      if (svg) {
+          svg.style.fill = liked ? 'var(--primary-color)' : 'none';
+          svg.style.stroke = liked ? 'var(--primary-color)' : 'currentColor';
+      }
+      
       btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
     } finally {
       if (btnElement) window.destravarBotao(btnElement, false);
     }
-  };
+};
 
   window.addComment = async function(postId) {
     window.openPostCommentBox(null, postId);
@@ -422,17 +433,27 @@ async function publishFeedPost() {
     if (btnElement && !window.travarBotao(btnElement, false)) return;
 
     try {
-      const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
-      if (!response.ok) return;
-      const data = await response.json().catch(() => null);
-      const svg = btnElement.querySelector('svg');
-      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
-      btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
+        const response = await apiFetch(`/api/posts/comment/${commentId}/like/`, { method: 'POST' });
+        if (!response.ok) return;
+        const data = await response.json().catch(() => null);
+        
+        const liked = !!data?.liked;
+        const svg = btnElement.querySelector('svg');
+        
+        // Aplica o azul no texto e no botão
+        btnElement.classList.toggle('text-primary-custom', liked);
+        btnElement.style.color = liked ? 'var(--primary-color)' : '';
+
+        if (svg) {
+            svg.style.fill = liked ? 'var(--primary-color)' : 'none';
+            svg.style.stroke = liked ? 'var(--primary-color)' : 'currentColor';
+        }
+        
+        btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
     } finally {
-      if (btnElement) window.destravarBotao(btnElement, false);
+        if (btnElement) window.destravarBotao(btnElement, false);
     }
-  };
+};
 
   window.toggleReplyInput = function(commentId) {
     const box = document.getElementById(`reply-box-${commentId}`);

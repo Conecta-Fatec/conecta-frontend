@@ -1679,3 +1679,46 @@ logoThemeObserver.observe(document.body, {
   attributes: true,
   attributeFilter: ["data-theme", "class"],
 });
+
+/* =========================================================
+   Notificações Globais (Atualização Automática)
+========================================================= */
+async function updateGlobalNotifications() {
+    if (!localStorage.getItem('access_token')) return;
+
+    try {
+        // Tenta buscar as notificações da sua API (ajuste a rota se necessário)
+        const response = await apiFetch('/api/notifications/'); 
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Verifica a estrutura da resposta e conta as não lidas
+            let unreadCount = 0;
+            if (Array.isArray(data)) {
+                unreadCount = data.filter(n => !n.is_read).length;
+            } else if (data && Array.isArray(data.results)) {
+                unreadCount = data.results.filter(n => !n.is_read).length;
+            }
+
+            // Atualiza o balãozinho em todas as telas que tiverem o ID
+            const badge = document.getElementById('global-notif-badge');
+            
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                    badge.style.display = 'inline-block'; 
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Erro ao buscar contador de notificações:", error);
+    }
+}
+
+// Quando a página terminar de carregar, ele roda a função
+document.addEventListener('DOMContentLoaded', () => {
+    updateGlobalNotifications();
+});

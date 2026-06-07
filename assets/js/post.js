@@ -133,9 +133,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const svg = btnElement.querySelector('svg');
 
       btnElement.classList.toggle('liked', liked);
-      btnElement.classList.toggle('text-primary-custom', liked);
-      if (svg) svg.style.fill = liked ? 'currentColor' : 'none';
-
+      btnElement.style.color = liked ? 'var(--primary-color)' : ''; 
+      if (svg) {
+        svg.style.fill = liked ? 'var(--primary-color)' : 'none';
+        svg.style.stroke = liked ? 'var(--primary-color)' : 'currentColor';
+      }
       const count = btnElement.querySelector('.like-count');
       if (count) count.textContent = data?.total_likes ?? data?.likes_count ?? 0;
     } finally {
@@ -191,10 +193,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const svg = btnElement.querySelector('svg');
 
       btnElement.classList.toggle('liked', liked);
-      btnElement.classList.toggle('text-primary-custom', liked);
+      btnElement.style.color = liked ? 'var(--primary-color)' : ''; 
+      
       if (svg) {
-        svg.style.fill = liked ? 'currentColor' : 'none';
-        svg.style.stroke = liked ? 'none' : 'currentColor';
+        svg.style.fill = liked ? 'var(--primary-color)' : 'none';
+        svg.style.stroke = liked ? 'var(--primary-color)' : 'currentColor';
       }
 
       const count = btnElement.querySelector('.comment-like-count');

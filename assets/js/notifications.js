@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Mapeamento visual para os tipos de notificação que criamos no backend
   const notificationTypes = {
-    'like': { icon: '❤️', text: 'curtiu sua publicação.', color: 'text-danger' },
+    'like': { icon: '💙', text: 'curtiu sua publicação.', color: 'text-danger' },
     'comment': { icon: '💬', text: 'comentou na sua publicação.', color: 'text-primary' },
     'friend_request': { icon: '👋', text: 'enviou uma solicitação de amizade.', color: 'text-success' },
     'friend_accept': { icon: '🤝', text: 'aceitou seu pedido de amizade.', color: 'text-info' }
