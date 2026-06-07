@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // --- CONFIGURAÇÕES DO GIPHY ---
+  const GIPHY_API_KEY = "2zqiG8Ems0HGkwRQetEHW7cj7fodVumy"; // Coloque sua chave real do Giphy aqui
+  let gifSearchTimer = null;
+
   let currentUser = null;
   let currentCommunity = null;
   let currentSlug = slug;
@@ -36,6 +40,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const communityHero = document.querySelector('.community-page-hero');
   const communityGeneralTab = document.getElementById('community-general-tab');
   const communityFriendsTab = document.getElementById('community-friends-tab');
+
+  // Elementos da Interface do GIF
+  const btnOpenGif = document.getElementById('btn-open-gif');
+  const gifSearchContainer = document.getElementById('gif-search-container');
+  const gifSearchInput = document.getElementById('gif-search-input');
+  const gifResults = document.getElementById('gif-results');
+  const gifPreviewContainer = document.getElementById('gif-preview-container');
+  const gifPreviewImg = document.getElementById('gif-preview-img');
+  const btnRemoveGif = document.getElementById('btn-remove-gif');
+  const selectedGifUrlInput = document.getElementById('selected-gif-url');
 
   const SIDE_LIST_BATCH_SIZE = 5;
   let communityPostsCache = [];
@@ -68,7 +82,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const time = raw ? new Date(raw).getTime() : Number.POSITIVE_INFINITY;
     return Number.isFinite(time) ? time : Number.POSITIVE_INFINITY;
   }
-
 
   function nextPagePath(nextUrl, currentPath) {
     if (!nextUrl) return '';
@@ -261,11 +274,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
 
     if (sorted.length > shown.length) {
-      membersContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact side-list-more-btn" id="communityMoreMembers">Ver mais</button>');
-      document.getElementById('communityMoreMembers')?.addEventListener('click', () => {
-        communityMembersVisible += SIDE_LIST_BATCH_SIZE;
-        renderMembers(members, community);
-      });
+      if (!document.getElementById('communityMoreMembers')) {
+        membersContainer.insertAdjacentHTML('beforeend', '<button type="button" class="load-more-btn compact side-list-more-btn" id="communityMoreMembers">Ver mais</button>');
+        document.getElementById('communityMoreMembers')?.addEventListener('click', () => {
+          communityMembersVisible += SIDE_LIST_BATCH_SIZE;
+          renderMembers(members, community);
+        });
+      }
     }
   }
 
@@ -371,14 +386,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     if (communityMobilePostFab) {
-  if (isMember) {
-    communityMobilePostFab.removeAttribute("hidden");
-    communityMobilePostFab.setAttribute("aria-hidden", "false");
-  } else {
-    communityMobilePostFab.setAttribute("hidden", "");
-    communityMobilePostFab.setAttribute("aria-hidden", "true");
-  }
-}
+      if (isMember) {
+        communityMobilePostFab.removeAttribute("hidden");
+        communityMobilePostFab.setAttribute("aria-hidden", "false");
+      } else {
+        communityMobilePostFab.setAttribute("hidden", "");
+        communityMobilePostFab.setAttribute("aria-hidden", "true");
+      }
+    }
 
     if (communityMobilePostFab) {
       communityMobilePostFab.style.display = isMember ? 'flex' : 'none';
@@ -399,6 +414,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => postEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
+  " economico estrategico "
   function renderPosts(posts = [], isMember) {
     if (!postsContainer) return;
     if (!posts.length) {
@@ -419,12 +435,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrollToHighlightedPost();
   }
 
-async function loadCommunityDetails(silent = false) {
+  async function loadCommunityDetails(silent = false) {
     const cacheKey = `@conecta:cache_community_${currentSlug}`;
 
     await window.useSWR(
       cacheKey,
-      // 1. Fetcher: Procura os dados na API e faz o tratamento básico de erros
       async () => {
         const response = await apiFetch(`/api/posts/communities/${currentSlug}/`);
         const data = await response.json().catch(() => null);
@@ -438,11 +453,9 @@ async function loadCommunityDetails(silent = false) {
         }
         return await hydrateAllCommunityPosts(data);
       },
-      // 2. Render: Atualiza o ecrã com as informações estruturadas
       (data) => {
         renderCommunityDetails(data || {});
       },
-      // 3. Opções: Configuração de armazenamento e Skeletons
       {
         silent: silent,
         storage: 'session',
@@ -461,6 +474,7 @@ async function loadCommunityDetails(silent = false) {
       }
     );
   }
+
   async function joinCommunity() {
     const response = await apiFetch(`/api/posts/communities/${currentSlug}/join/`, { method: 'POST' });
     if (response.ok) await loadCommunityDetails(true);
@@ -596,8 +610,73 @@ async function loadCommunityDetails(silent = false) {
     }
   });
 
-  async function createCommunityPost(content) {
+  // --- MOTOR DE BUSCA E INTERAÇÕES DO GIPHY ---
+  btnOpenGif?.addEventListener('click', () => {
+    gifSearchContainer.classList.toggle('d-none');
+    if (!gifSearchContainer.classList.contains('d-none')) {
+      gifSearchInput.focus();
+      searchGifs(''); // Busca os trending GIFs automaticamente ao abrir
+    }
+  });
+
+  gifSearchInput?.addEventListener('input', (e) => {
+    clearTimeout(gifSearchTimer);
+    gifSearchTimer = setTimeout(() => searchGifs(e.target.value.trim()), 500);
+  });
+
+  async function searchGifs(termo) {
+    if (!gifResults) return;
+    gifResults.innerHTML = '<p class="text-muted small w-100 text-center py-2">Buscando GIFs no Giphy...</p>';
+    
+    const url = termo 
+      ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(termo)}&limit=12&lang=pt`
+      : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12&lang=pt`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      gifResults.innerHTML = '';
+      
+      if (data.data && data.data.length > 0) {
+        data.data.forEach(gif => {
+          const img = document.createElement('img');
+          img.src = gif.images.fixed_height_small.url;
+          img.className = 'rounded';
+          img.style.height = '75px';
+          img.style.objectFit = 'cover';
+          img.style.cursor = 'pointer';
+          
+          img.addEventListener('click', () => {
+            selectedGifUrlInput.value = gif.images.original.url;
+            gifPreviewImg.src = gif.images.original.url;
+            gifPreviewContainer.classList.remove('d-none');
+            gifSearchContainer.classList.add('d-none');
+            btnOpenGif.style.display = 'none';
+          });
+          gifResults.appendChild(img);
+        });
+      } else {
+        gifResults.innerHTML = '<p class="text-muted small w-100 text-center py-2">Nenhum GIF encontrado.</p>';
+      }
+    } catch {
+      gifResults.innerHTML = '<p class="text-danger small w-100 text-center py-2">Erro ao carregar GIFs.</p>';
+    }
+  }
+
+  btnRemoveGif?.addEventListener('click', () => {
+    selectedGifUrlInput.value = '';
+    gifPreviewImg.src = '';
+    gifPreviewContainer.classList.add('d-none');
+    if (btnOpenGif) btnOpenGif.style.display = 'inline-flex';
+  });
+
+  // --- CRIAÇÃO E ENVIO DE POSTAGEM (SUPORTA TEXTO + GIF) ---
+  async function createCommunityPost(content, gifUrl = null) {
     const payloadWithCommunity = buildCommunityPostPayload(content, currentCommunity || { slug: currentSlug });
+    
+    if (gifUrl) {
+      payloadWithCommunity.gif_url = gifUrl;
+    }
     
     let response = await apiFetch(`/api/posts/communities/${currentSlug}/post/create/`, {
       method: 'POST',
@@ -617,54 +696,55 @@ async function loadCommunityDetails(silent = false) {
     return { response, data };
   }
 
-async function publishCommunityPost() {
+  async function publishCommunityPost() {
     const contentEl = document.getElementById('communityPostContent');
     const error = document.getElementById('communityPostError');
     const content = contentEl.value.trim();
+    const gifUrl = selectedGifUrlInput ? selectedGifUrlInput.value : '';
 
     error.style.display = 'none';
-    if (!content) return;
-    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(contentEl, error, 'post')) return;
+    if (!content && !gifUrl) return;
+    if (content && window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(contentEl, error, 'post')) return;
 
     window.travarBotao(publishBtn, true);
 
     try {
-      const { response, data } = await createCommunityPost(content);
+      const { response, data } = await createCommunityPost(content, gifUrl);
       
-      // Extraímos os dados ou usamos um fallback de segurança
       const novoPost = data?.post || data?.data || data || {};
       
-      // 2. Hidratamos os dados do post que faltam
       novoPost.content = novoPost.content || content;
       novoPost.author = currentUser;
       novoPost.id = novoPost.id || Date.now();
       novoPost.created_at = novoPost.created_at || new Date().toISOString();
-      
-      // Como estamos dentro da página da comunidade, forçamos essa informação
       novoPost.community = currentCommunity;
+      if (gifUrl) novoPost.gif_url = gifUrl;
 
-      // Geramos o HTML do novo post
       const novoPostHTML = ConectaPosts.renderPostCard(novoPost, {
         currentUser,
-        showCommunityLabel: false, // Oculta o selo "Feito em X" porque já estamos nela
+        showCommunityLabel: false,
         allowCommentInput: currentIsMember,
         canInteract: currentIsMember,
       });
 
-      // Injetamos o post no topo
       const postsContainer = document.getElementById('community-posts-container');
       
-      // Remove o texto de "Nenhum post ainda" se este for o primeiro post
       const emptyState = postsContainer.querySelector('.api-empty-state');
       if (emptyState) emptyState.remove();
 
       postsContainer.insertAdjacentHTML('afterbegin', novoPostHTML);
 
+      // Limpa os campos de digitação e dá reset na UI de GIFs
       contentEl.value = '';
+      if (selectedGifUrlInput) selectedGifUrlInput.value = '';
+      if (gifPreviewContainer) gifPreviewContainer.classList.add('d-none');
+      if (btnOpenGif) btnOpenGif.style.display = 'inline-flex';
+      if (gifSearchContainer) gifSearchContainer.classList.add('d-none');
+      if (gifSearchInput) gifSearchInput.value = '';
+      
       if (contentEl.__conectaCounterUpdate) contentEl.__conectaCounterUpdate();
       bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).hide();
       
-      // REMOVIDO: await loadCommunityDetails(true);
     } catch (err) {
       console.error(err);
       error.textContent = err.message || 'Erro de conexão com o servidor.';
@@ -696,7 +776,7 @@ async function publishCommunityPost() {
     }
   });
 
-  // Ações de Interação (Like, Comment, Edit)
+  // --- INTERAÇÕES AZUIS (LIKE OFICIAL CONECTA FATEC) ---
   window.toggleLike = async (postId, btnElement = null) => {
     if (btnElement && !window.travarBotao(btnElement, false)) return;
     try {
@@ -704,9 +784,16 @@ async function publishCommunityPost() {
       if (!response.ok) return;
       if (!btnElement) return loadCommunityDetails(true);
       const data = await response.json().catch(() => null);
+      
+      const liked = !!data?.liked;
       const svg = btnElement.querySelector('svg');
-      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      btnElement.classList.toggle('text-primary-custom', liked);
+      btnElement.style.color = liked ? 'var(--primary-color)' : '';
+      
+      if (svg) {
+        svg.style.fill = liked ? 'var(--primary-color)' : 'none';
+        svg.style.stroke = liked ? 'var(--primary-color)' : 'currentColor';
+      }
       btnElement.querySelector('.like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
     } finally {
       if (btnElement) window.destravarBotao(btnElement, false);
@@ -724,9 +811,16 @@ async function publishCommunityPost() {
       if (!response.ok) return;
       if (!btnElement) return loadCommunityDetails(true);
       const data = await response.json().catch(() => null);
+      
+      const liked = !!data?.liked;
       const svg = btnElement.querySelector('svg');
-      btnElement.classList.toggle('text-primary-custom', !!data?.liked);
-      if (svg) svg.style.fill = data?.liked ? 'currentColor' : 'none';
+      btnElement.classList.toggle('text-primary-custom', liked);
+      btnElement.style.color = liked ? 'var(--primary-color)' : '';
+      
+      if (svg) {
+        svg.style.fill = liked ? 'var(--primary-color)' : 'none';
+        svg.style.stroke = liked ? 'var(--primary-color)' : 'currentColor';
+      }
       btnElement.querySelector('.comment-like-count').textContent = data?.total_likes ?? data?.likes_count ?? 0;
     } finally {
       if (btnElement) window.destravarBotao(btnElement, false);
@@ -741,7 +835,6 @@ async function publishCommunityPost() {
       if (response.ok) {
         const postCard = document.getElementById(`post-${postId}`);
         if (postCard) {
-          // Efeito visual suave antes de remover da tela, fica bunitao
           postCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
           postCard.style.opacity = '0';
           postCard.style.transform = 'scale(0.95)';
@@ -759,42 +852,7 @@ async function publishCommunityPost() {
     const contentDiv = document.getElementById(`post-text-content-${postId}`);
     if (!contentDiv) return;
     const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.dataset.raw || '';
-    contentDiv.innerHTML = `
-      <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" data-character-limit="200"></textarea>
-        <div class="d-flex gap-2 mt-2">
-          <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
-          <button class="btn btn-sm btn-secondary" type="button" onclick="loadCommunityDetailsFromButton()">Cancelar</button>
-        </div>
-      </div>`;
-    const editInput = document.getElementById(`edit-post-input-${postId}`);
-    editInput.value = originalText;
-    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editInput, 200);
-  };
-
-  window.savePostEdit = async (postId, btnElement) => {
-    const editInput = document.getElementById(`edit-post-input-${postId}`);
-    const content = editInput?.value.trim();
-    if (!content) return;
-    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editInput, null, 'post')) { alert('O post pode ter no máximo 200 caracteres.'); return; }
-    if (btnElement) window.travarBotao(btnElement, true);
-    try {
-      const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ content }),
-      });
-      if (response.ok) await loadCommunityDetails(true);
-    } finally {
-      if (btnElement) window.destravarBotao(btnElement, true);
-    }
-  };
-
-  window.enablePostEdit = (postId) => {
-    const contentDiv = document.getElementById(`post-text-content-${postId}`);
-    if (!contentDiv) return;
-    const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.dataset.raw || '';
     
-    // Armazena o texto com segurança antes de trocar pelo formulário
     contentDiv.setAttribute('data-raw', originalText);
     
     contentDiv.innerHTML = `
@@ -810,7 +868,6 @@ async function publishCommunityPost() {
     if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editInput, 200);
   };
 
-  // Função nova para não recarregar a página da comunidade ao desistir
   window.cancelPostEdit = (postId) => {
     const contentDiv = document.getElementById(`post-text-content-${postId}`);
     if (!contentDiv) return;
@@ -820,7 +877,7 @@ async function publishCommunityPost() {
   };
 
   window.savePostEdit = async (postId, btnElement) => {
-    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    const editInput = document.getElementById('edit-post-input-' + postId);
     const content = editInput?.value.trim();
     if (!content) return;
     if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editInput, null, 'post')) { alert('O post pode ter no máximo 200 caracteres.'); return; }
@@ -837,7 +894,6 @@ async function publishCommunityPost() {
           contentDiv.setAttribute('data-raw', content);
           contentDiv.innerHTML = `<p class="post-text">${escapeHTML(content)}</p>`;
           
-          // Adiciona o selinho de editado se não tiver
           const headerMain = document.querySelector(`#post-${postId} .post-header-main`);
           if (headerMain && !headerMain.querySelector('.post-edited-label')) {
             headerMain.insertAdjacentHTML('beforeend', '<small class="post-edited-label"> · editado</small>');
