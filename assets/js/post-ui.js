@@ -234,11 +234,20 @@
     return `<a href="community.html?slug=${encodeURIComponent(slug)}" class="post-community-chip" onclick="event.stopPropagation()">Feito em ${escapeHTML(name)}</a>`;
   }
 
+  function pageUrlFor(relativePath = '') {
+    const cleanPath = String(relativePath || '').replace(/^\.\//, '');
+    if (window.location.protocol === 'file:') {
+      return `http://127.0.0.1:5500/pages/${cleanPath}`;
+    }
+    return cleanPath;
+  }
+
   function postLinkFor(post = {}) {
     const pageSlug = new URLSearchParams(window.location.search).get('slug');
     const commObj = post.community || post.community_data || null;
     const commSlug = commObj?.slug || post.community_slug || pageSlug || '';
-    return commSlug ? `post.html?id=${post.id}&comm=${encodeURIComponent(commSlug)}` : `post.html?id=${post.id}`;
+    const href = commSlug ? `post.html?id=${post.id}&comm=${encodeURIComponent(commSlug)}` : `post.html?id=${post.id}`;
+    return pageUrlFor(href);
   }
 
   function renderPostActions(post = {}, isOwner = false, options = {}) {
@@ -448,7 +457,7 @@ function renderPostCard(post = {}, options = {}) {
           <div class="modal-body post-modal-body">
             <div class="create-post-modal-area">
               <div class="user-avatar" id="postInteractionAvatar">U</div>
-              <textarea id="postInteractionContent" rows="5" maxlength="280" placeholder="Comente este post."></textarea>
+              <textarea id="postInteractionContent" rows="5" data-character-limit="200" placeholder="Comente este post."></textarea>
             </div>
             <p class="text-danger small mt-3 mb-0" id="postInteractionError" style="display:none;"></p>
           </div>
@@ -501,12 +510,24 @@ function renderPostCard(post = {}, options = {}) {
     fillInteractionAvatar();
 
     const updateSubmitState = () => {
-      submitBtn.disabled = textarea.value.trim().length === 0;
+      const hasText = textarea.value.trim().length > 0;
+      const isValid = !window.ConectaCharCounter || window.ConectaCharCounter.isValid(textarea);
+      submitBtn.disabled = !hasText || !isValid;
+      if (errorEl && hasText && isValid && errorEl.dataset.counterError === 'true') {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+        delete errorEl.dataset.counterError;
+      }
     };
 
     const submit = async () => {
       const content = textarea.value.trim();
       if (!content) return;
+      if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(textarea, errorEl, 'comentário')) {
+        errorEl.dataset.counterError = 'true';
+        updateSubmitState();
+        return;
+      }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando...';
@@ -533,7 +554,11 @@ function renderPostCard(post = {}, options = {}) {
       }
     };
 
-    textarea.oninput = updateSubmitState;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(textarea, 200);
+    textarea.oninput = () => {
+      if (textarea.__conectaCounterUpdate) textarea.__conectaCounterUpdate();
+      updateSubmitState();
+    };
     textarea.onkeydown = (event) => {
       if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
         event.preventDefault();

@@ -275,7 +275,9 @@ async function loadProfile(silent = false) {
     document.getElementById('editLastName').value = currentUser.last_name || '';
     document.getElementById('editNickname').value = currentUser.nickname || '';
     setCourseValue(currentUser.course || '');
-    document.getElementById('editBio').value = currentUser.bio || '';
+    const editBio = document.getElementById('editBio');
+    editBio.value = currentUser.bio || '';
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editBio, 150);
     document.getElementById('editProfileError').style.display = 'none';
 
     // Prepara e limpa o Cropper
@@ -338,9 +340,11 @@ async function loadProfile(silent = false) {
     formData.append('last_name', document.getElementById('editLastName').value.trim());
     formData.append('nickname', document.getElementById('editNickname').value.trim());
     formData.append('course', document.getElementById('editCourse').value);
-    formData.append('bio', document.getElementById('editBio').value.trim());
+    const editBio = document.getElementById('editBio');
+    formData.append('bio', editBio.value.trim());
 
     error.style.display = 'none';
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editBio, error, 'bio')) return;
     saveProfileBtn.disabled = true;
     saveProfileBtn.textContent = 'Salvando...';
 

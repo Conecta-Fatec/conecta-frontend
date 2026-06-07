@@ -474,7 +474,9 @@ async function loadCommunityDetails(silent = false) {
 
   function openEditCommunityModal() {
     document.getElementById('editCommunityName').value = currentCommunity.name || '';
-    document.getElementById('editCommunityBio').value = currentCommunity.description || '';
+    const editCommunityBio = document.getElementById('editCommunityBio');
+    editCommunityBio.value = currentCommunity.description || '';
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editCommunityBio, 150);
     document.getElementById('editCommunityError').style.display = 'none';
 
     if (commCropper) { commCropper.destroy(); commCropper = null; }
@@ -525,10 +527,12 @@ async function loadCommunityDetails(silent = false) {
 
   saveCommunityBtn?.addEventListener('click', async () => {
     const name = document.getElementById('editCommunityName').value.trim();
-    const description = document.getElementById('editCommunityBio').value.trim();
+    const editCommunityBio = document.getElementById('editCommunityBio');
+    const description = editCommunityBio.value.trim();
     const error = document.getElementById('editCommunityError');
 
     error.style.display = 'none';
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editCommunityBio, error, 'descrição')) return;
     window.travarBotao(saveCommunityBtn, true);
 
     try {
@@ -620,6 +624,7 @@ async function publishCommunityPost() {
 
     error.style.display = 'none';
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(contentEl, error, 'post')) return;
 
     window.travarBotao(publishBtn, true);
 
@@ -656,6 +661,7 @@ async function publishCommunityPost() {
       postsContainer.insertAdjacentHTML('afterbegin', novoPostHTML);
 
       contentEl.value = '';
+      if (contentEl.__conectaCounterUpdate) contentEl.__conectaCounterUpdate();
       bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityPostModal')).hide();
       
       // REMOVIDO: await loadCommunityDetails(true);
@@ -755,18 +761,22 @@ async function publishCommunityPost() {
     const originalText = contentDiv.querySelector('.post-text')?.textContent || contentDiv.dataset.raw || '';
     contentDiv.innerHTML = `
       <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
+        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" data-character-limit="200"></textarea>
         <div class="d-flex gap-2 mt-2">
           <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
           <button class="btn btn-sm btn-secondary" type="button" onclick="loadCommunityDetailsFromButton()">Cancelar</button>
         </div>
       </div>`;
-    document.getElementById(`edit-post-input-${postId}`).value = originalText;
+    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    editInput.value = originalText;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editInput, 200);
   };
 
   window.savePostEdit = async (postId, btnElement) => {
-    const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
+    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    const content = editInput?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editInput, null, 'post')) { alert('O post pode ter no máximo 200 caracteres.'); return; }
     if (btnElement) window.travarBotao(btnElement, true);
     try {
       const response = await apiFetch(`/api/posts/post/${postId}/update/`, {
@@ -789,13 +799,15 @@ async function publishCommunityPost() {
     
     contentDiv.innerHTML = `
       <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
+        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" data-character-limit="200"></textarea>
         <div class="d-flex gap-2 mt-2">
           <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
           <button class="btn btn-sm btn-secondary" type="button" onclick="cancelPostEdit(${postId})">Cancelar</button>
         </div>
       </div>`;
-    document.getElementById(`edit-post-input-${postId}`).value = originalText;
+    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    editInput.value = originalText;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editInput, 200);
   };
 
   // Função nova para não recarregar a página da comunidade ao desistir
@@ -808,8 +820,10 @@ async function publishCommunityPost() {
   };
 
   window.savePostEdit = async (postId, btnElement) => {
-    const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
+    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    const content = editInput?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editInput, null, 'post')) { alert('O post pode ter no máximo 200 caracteres.'); return; }
     if (btnElement) window.travarBotao(btnElement, true);
     
     try {
@@ -847,6 +861,7 @@ async function publishCommunityPost() {
     const input = document.getElementById(`reply-input-${commentId}`);
     const content = input?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(input, null, 'resposta')) { alert('A resposta pode ter no máximo 200 caracteres.'); return; }
     if (btnElement) window.travarBotao(btnElement, true);
     try {
       const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, {

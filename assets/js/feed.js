@@ -214,6 +214,10 @@ async function publishFeedPost() {
         return; 
     }
 
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(postInput, errorMsg, 'post')) {
+        return;
+    }
+
     if (!window.travarBotao(publishBtn, true)) return;
 
     try {
@@ -242,6 +246,7 @@ async function publishFeedPost() {
       postsContainer.insertAdjacentHTML('afterbegin', novoPostHTML);
 
       postInput.value = '';
+      if (postInput.__conectaCounterUpdate) postInput.__conectaCounterUpdate();
       if (gifUrl) document.getElementById('btn-remove-gif').click(); 
       bootstrap.Modal.getInstance(document.getElementById('newPostModal'))?.hide();
       setActiveTab('general');
@@ -310,14 +315,16 @@ async function publishFeedPost() {
     // Troca o parágrafo pela caixa de texto. Repare que o Cancelar agora chama cancelPostEdit
     contentDiv.innerHTML = `
       <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
+        <textarea id="edit-post-input-${postId}" class="form-control custom-input w-100" rows="3" data-character-limit="200"></textarea>
         <div class="d-flex gap-2 mt-2">
           <button class="btn btn-sm btn-primary" type="button" onclick="savePostEdit(${postId}, this)">Salvar</button>
           <button class="btn btn-sm btn-secondary" type="button" onclick="cancelPostEdit(${postId})">Cancelar</button>
         </div>
       </div>
     `;
-    document.getElementById(`edit-post-input-${postId}`).value = originalText;
+    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    editInput.value = originalText;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editInput, 200);
   };
 
   // Função nova para não recarregar o feed se o utilizador desistir de editar
@@ -330,8 +337,10 @@ async function publishFeedPost() {
   };
 
   window.savePostEdit = async function(postId, btnElement) {
-    const content = document.getElementById(`edit-post-input-${postId}`)?.value.trim();
+    const editInput = document.getElementById(`edit-post-input-${postId}`);
+    const content = editInput?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editInput, null, 'post')) { alert('O post pode ter no máximo 200 caracteres.'); return; }
     if (btnElement && !window.travarBotao(btnElement, true)) return;
 
     try {
@@ -366,13 +375,17 @@ async function publishFeedPost() {
     const textSpan = document.getElementById(`comment-text-content-${commentId}`);
     if (!textSpan) return;
     const originalText = textSpan.textContent || textSpan.getAttribute('data-raw') || '';
-    textSpan.innerHTML = `<span class="comment-edit-inline"><input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" maxlength="200"><button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId}, this)">Salvar</button><button class="btn btn-sm btn-secondary py-0 px-2" type="button" onclick="loadPosts(true)">✕</button></span>`;
-    document.getElementById(`edit-comment-input-${commentId}`).value = originalText;
+    textSpan.innerHTML = `<span class="comment-edit-inline"><input type="text" id="edit-comment-input-${commentId}" class="form-control form-control-sm custom-input" data-character-limit="200"><button class="btn btn-sm btn-primary py-0 px-2" type="button" onclick="saveCommentEdit(${commentId}, this)">Salvar</button><button class="btn btn-sm btn-secondary py-0 px-2" type="button" onclick="loadPosts(true)">✕</button></span>`;
+    const editCommentInput = document.getElementById(`edit-comment-input-${commentId}`);
+    editCommentInput.value = originalText;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editCommentInput, 200);
   };
 
   window.saveCommentEdit = async function(commentId, btnElement) {
-    const content = document.getElementById(`edit-comment-input-${commentId}`)?.value.trim();
+    const editCommentInput = document.getElementById(`edit-comment-input-${commentId}`);
+    const content = editCommentInput?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editCommentInput, null, 'comentário')) { alert('O comentário pode ter no máximo 200 caracteres.'); return; }
     if (btnElement && !window.travarBotao(btnElement, true)) return;
 
     try {
@@ -431,12 +444,14 @@ async function publishFeedPost() {
     const input = document.getElementById(`reply-input-${commentId}`);
     const content = input?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(input, null, 'resposta')) { alert('A resposta pode ter no máximo 200 caracteres.'); return; }
     if (btnElement && !window.travarBotao(btnElement, true)) return;
 
     try {
       const response = await apiFetch(`/api/posts/comment/${commentId}/reply/`, { method: 'POST', body: JSON.stringify({ content }) });
       if (response.ok) { 
         input.value = ''; 
+        if (input.__conectaCounterUpdate) input.__conectaCounterUpdate();
         await loadPosts(true); 
       } else { 
         alert('Erro ao responder.'); 

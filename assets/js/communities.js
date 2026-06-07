@@ -196,12 +196,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (createBtn) {
     createBtn.addEventListener('click', async () => {
       const name = document.getElementById('communityName').value.trim();
-      const description = document.getElementById('communityBio').value.trim();
+      const communityBio = document.getElementById('communityBio');
+      const description = communityBio.value.trim();
       const photo = document.getElementById('communityPhoto')?.files?.[0];
 
       errorP.style.display = 'none';
 
       if (!name) { errorP.textContent = 'O nome da comunidade é obrigatório.'; errorP.style.display = 'block'; return; }
+      if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(communityBio, errorP, 'descrição')) return;
 
       window.travarBotao(createBtn, true);
 
@@ -218,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!response.ok) { errorP.textContent = getApiError(data, 'Erro ao criar comunidade.'); errorP.style.display = 'block'; return; }
 
-        document.getElementById('communityName').value = ''; document.getElementById('communityBio').value = '';
+        document.getElementById('communityName').value = ''; communityBio.value = ''; if (communityBio.__conectaCounterUpdate) communityBio.__conectaCounterUpdate();
         if (document.getElementById('communityPhoto')) document.getElementById('communityPhoto').value = '';
 
         bootstrap.Modal.getOrCreateInstance(document.getElementById('newCommunityModal')).hide();

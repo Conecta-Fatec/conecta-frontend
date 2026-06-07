@@ -155,19 +155,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const text = container.querySelector('.post-text')?.textContent || container.dataset.raw || '';
     container.innerHTML = `
       <div class="mb-3 mt-2">
-        <textarea id="edit-post-input-${id}" class="form-control custom-input w-100" rows="3" maxlength="280"></textarea>
+        <textarea id="edit-post-input-${id}" class="form-control custom-input w-100" rows="3" data-character-limit="200"></textarea>
         <div class="d-flex gap-2 mt-2">
           <button class="btn btn-sm btn-primary" onclick="savePostEdit(${id}, this)" type="button">Salvar</button>
           <button class="btn btn-sm btn-secondary" onclick="loadSinglePost(true)" type="button">Cancelar</button>
         </div>
       </div>
     `;
-    document.getElementById(`edit-post-input-${id}`).value = text;
+    const editInput = document.getElementById(`edit-post-input-${id}`);
+    editInput.value = text;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editInput, 200);
   };
 
   window.savePostEdit = async function(id, btnElement) {
-    const content = document.getElementById(`edit-post-input-${id}`)?.value.trim();
+    const editInput = document.getElementById(`edit-post-input-${id}`);
+    const content = editInput?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editInput, null, 'post')) { alert('O post pode ter no máximo 200 caracteres.'); return; }
     if (btnElement && !window.travarBotao(btnElement, true)) return;
 
     try {
@@ -223,17 +227,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const text = container.querySelector('.tw-text')?.textContent || container.dataset.raw || '';
     container.innerHTML = `
       <div class="comment-edit-inline mt-2">
-        <input type="text" id="edit-comment-input-${id}" class="form-control form-control-sm custom-input" maxlength="200">
+        <input type="text" id="edit-comment-input-${id}" class="form-control form-control-sm custom-input" data-character-limit="200">
         <button class="btn btn-sm btn-primary" onclick="saveCommentEdit(${id}, this)" type="button">Salvar</button>
         <button class="btn btn-sm btn-secondary" onclick="loadSinglePost(true)" type="button">Cancelar</button>
       </div>
     `;
-    document.getElementById(`edit-comment-input-${id}`).value = text;
+    const editCommentInput = document.getElementById(`edit-comment-input-${id}`);
+    editCommentInput.value = text;
+    if (window.ConectaCharCounter) window.ConectaCharCounter.attach(editCommentInput, 200);
   };
 
   window.saveCommentEdit = async function(id, btnElement) {
-    const content = document.getElementById(`edit-comment-input-${id}`)?.value.trim();
+    const editCommentInput = document.getElementById(`edit-comment-input-${id}`);
+    const content = editCommentInput?.value.trim();
     if (!content) return;
+    if (window.ConectaCharCounter && !window.ConectaCharCounter.validateOrShow(editCommentInput, null, 'comentário')) { alert('O comentário pode ter no máximo 200 caracteres.'); return; }
     if (btnElement && !window.travarBotao(btnElement, true)) return;
 
     try {

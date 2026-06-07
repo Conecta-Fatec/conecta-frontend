@@ -1,0 +1,92 @@
+/* =========================================================
+   42. Contadores de caracteres
+========================================================= */
+.character-counter-field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.character-counter-field textarea,
+.character-counter-field input {
+  width: 100%;
+}
+
+.character-counter-field textarea.has-character-counter-input,
+.character-counter-field input.has-character-counter-input {
+  padding-right: 3.9rem !important;
+  padding-bottom: 1.8rem !important;
+}
+
+.character-counter-field-input input.has-character-counter-input {
+  padding-bottom: 0.72rem !important;
+  padding-right: 4.3rem !important;
+}
+
+.character-counter {
+  position: absolute;
+  right: 0.72rem;
+  bottom: 0.5rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  padding: 0.08rem 0.28rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  pointer-events: none;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.character-counter-field-input .character-counter {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
+.character-counter.is-over {
+  background: color-mix(in srgb, var(--danger-soft) 78%, transparent);
+  color: var(--danger-color);
+  font-weight: var(--weight-strong);
+}
+
+.is-character-over-limit {
+  border-color: var(--danger-color) !important;
+}
+
+.create-post-modal-area .character-counter-field {
+  flex: 1 1 auto;
+}
+
+.comment-edit-inline .character-counter-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.community-form-area .character-counter-field {
+  width: 100%;
+}
+
+#postContent.has-character-counter-input,
+#postInteractionContent.has-character-counter-input,
+#communityPostContent.has-character-counter-input {
+  min-height: 9.375rem;
+}
+
+@media (max-width: 48rem) {
+  .character-counter {
+    right: 0.62rem;
+    bottom: 0.46rem;
+    font-size: 0.7rem;
+  }
+
+  .character-counter-field textarea.has-character-counter-input,
+  .character-counter-field input.has-character-counter-input {
+    padding-right: 3.6rem !important;
+  }
+}

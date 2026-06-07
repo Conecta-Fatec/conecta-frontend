@@ -1285,6 +1285,171 @@ function userLinkHTML(user = {}, label = null, className = '') {
   return `<a href="${profileUrlFor(user)}" class="${className}">${escapeHTML(text)}</a>`;
 }
 
+
+
+/* =========================================================
+   Contadores de caracteres para posts, comentários e bios
+========================================================= */
+(function () {
+  const DEFAULT_LIMITS = {
+    post: 200,
+    bio: 150,
+  };
+
+  const POST_ID_PATTERNS = [
+    /^postContent$/,
+    /^communityPostContent$/,
+    /^postInteractionContent$/,
+    /^edit-post-input-/,
+    /^edit-comment-input-/,
+    /^reply-input-/,
+  ];
+
+  const BIO_ID_PATTERNS = [
+    /^editBio$/,
+    /^communityBio$/,
+    /^editCommunityBio$/,
+  ];
+
+  function toNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? number : null;
+  }
+
+  function detectLimit(control) {
+    if (!control) return null;
+    const explicit = toNumber(control.dataset.characterLimit || control.dataset.charLimit);
+    if (explicit) return explicit;
+
+    const id = control.id || '';
+    if (BIO_ID_PATTERNS.some((pattern) => pattern.test(id))) return DEFAULT_LIMITS.bio;
+    if (POST_ID_PATTERNS.some((pattern) => pattern.test(id))) return DEFAULT_LIMITS.post;
+
+    const name = String(control.getAttribute('name') || '').toLowerCase();
+    const placeholder = String(control.getAttribute('placeholder') || '').toLowerCase();
+    if (name.includes('bio') || name.includes('description') || placeholder.includes('objetivo deste grupo')) return DEFAULT_LIMITS.bio;
+    if (placeholder.includes('pensando') || placeholder.includes('comente') || placeholder.includes('resposta') || placeholder.includes('compartilhar')) return DEFAULT_LIMITS.post;
+
+    return null;
+  }
+
+  function reserveSpace(control) {
+    if (!control) return;
+    control.classList.add('has-character-counter-input');
+    const style = window.getComputedStyle(control);
+    const currentBottom = parseFloat(style.paddingBottom || '0');
+    if (Number.isFinite(currentBottom) && currentBottom < 30) {
+      control.style.paddingBottom = '2rem';
+    }
+  }
+
+  function wrapControl(control) {
+    if (!control || control.closest('.character-counter-field')) {
+      return control?.closest('.character-counter-field') || null;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'character-counter-field';
+    control.parentNode.insertBefore(wrapper, control);
+    wrapper.appendChild(control);
+    return wrapper;
+  }
+
+  function updateCounter(control, counter, limit) {
+    const length = control.value.length;
+    const isOver = length > limit;
+    counter.textContent = `${length}/${limit}`;
+    counter.classList.toggle('is-over', isOver);
+    control.classList.toggle('is-character-over-limit', isOver);
+    control.dataset.characterOverLimit = isOver ? 'true' : 'false';
+  }
+
+  function attach(control, forcedLimit = null) {
+    if (!control || !(control instanceof HTMLElement)) return null;
+    if (!['TEXTAREA', 'INPUT'].includes(control.tagName)) return null;
+    if (control.tagName === 'INPUT' && !['text', 'search', ''].includes((control.getAttribute('type') || 'text').toLowerCase())) return null;
+
+    const limit = forcedLimit || detectLimit(control);
+    if (!limit) return null;
+
+    control.dataset.characterLimit = String(limit);
+    control.removeAttribute('maxlength');
+
+    const wrapper = wrapControl(control);
+    if (!wrapper) return null;
+    wrapper.dataset.characterLimit = String(limit);
+    wrapper.classList.toggle('character-counter-field-input', control.tagName === 'INPUT');
+
+    let counter = wrapper.querySelector(':scope > .character-counter');
+    if (!counter) {
+      counter = document.createElement('span');
+      counter.className = 'character-counter';
+      counter.setAttribute('aria-live', 'polite');
+      wrapper.appendChild(counter);
+    }
+
+    reserveSpace(control);
+    const update = () => updateCounter(control, counter, limit);
+    control.removeEventListener('input', control.__conectaCounterUpdate || (() => {}));
+    control.__conectaCounterUpdate = update;
+    control.addEventListener('input', update);
+    update();
+    return counter;
+  }
+
+  function refresh(root = document) {
+    const scope = root instanceof Element || root === document ? root : document;
+    scope.querySelectorAll('textarea, input[type="text"], input:not([type])').forEach((control) => attach(control));
+  }
+
+  function isValid(control) {
+    if (!control) return true;
+    const limit = detectLimit(control);
+    return !limit || control.value.trim().length <= limit;
+  }
+
+  function limitFor(control) {
+    return detectLimit(control);
+  }
+
+  function validateOrShow(control, errorElement = null, label = 'texto') {
+    if (!control) return true;
+    const limit = detectLimit(control);
+    if (!limit) return true;
+    const length = control.value.trim().length;
+    const valid = length <= limit;
+    if (!valid && errorElement) {
+      errorElement.textContent = `O ${label} pode ter no máximo ${limit} caracteres.`;
+      errorElement.classList?.remove('d-none');
+      errorElement.style.display = 'block';
+    }
+    return valid;
+  }
+
+  window.ConectaCharCounter = {
+    attach,
+    refresh,
+    isValid,
+    limitFor,
+    validateOrShow,
+    limits: { ...DEFAULT_LIMITS },
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    refresh();
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof Element)) return;
+          if (node.matches?.('textarea, input[type="text"], input:not([type])')) attach(node);
+          refresh(node);
+        });
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+})();
+
 function normalizeArray(data, ...keys) {
   if (Array.isArray(data)) return data;
   if (!data || typeof data !== 'object') return [];

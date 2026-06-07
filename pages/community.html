@@ -224,7 +224,7 @@
         </div>
         <div class="modal-body">
           <textarea id="communityPostContent" class="form-control border-0 community-modal-textarea" rows="4"
-            maxlength="200" placeholder="O que deseja compartilhar?"
+            data-character-limit="200" placeholder="O que deseja compartilhar?"
             style="resize:none;outline:none;box-shadow:none;border-radius:12px;padding:16px;"></textarea>
           <p id="communityPostError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
@@ -273,7 +273,7 @@
             <input type="text" id="editCommunityName" maxlength="50" class="form-control mb-2" />
 
             <label for="editCommunityBio">Descrição</label>
-            <textarea id="editCommunityBio" rows="4" maxlength="150" class="form-control"></textarea>
+            <textarea id="editCommunityBio" rows="4" data-character-limit="150" class="form-control"></textarea>
           </div>
           <p id="editCommunityError" class="text-danger mt-2 small" style="display:none;"></p>
         </div>
