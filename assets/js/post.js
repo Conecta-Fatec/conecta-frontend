@@ -30,11 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error(error);
   }
 
-  async function fetchPostData(id, slug) {
-    const endpoints = [];
-
-
-async function fetchPostData(id) {
+  // --- FUNÇÃO NOVA E LIMPA AQUI ---
+  async function fetchPostData(id) {
     try {
       // Agora o frontend bate direto na nossa nova rota (PostDetailAPIView)
       const response = await apiFetch(`/api/posts/post/${id}/`);
@@ -51,7 +48,8 @@ async function fetchPostData(id) {
     // Se o backend devolver 404, aí sim o post foi apagado de verdade
     throw new Error('Publicação não encontrada ou excluída.');
   }
-  
+  // --- FIM DA FUNÇÃO NOVA ---
+
   function renderMoreCommentsButton(totalComments) {
     const remaining = totalComments - rootCommentsVisible;
     if (remaining <= 0) return '';
@@ -65,6 +63,7 @@ async function fetchPostData(id) {
     `;
   }
 
+// ... o resto do seu código (window.loadMoreRootComments, window.loadSinglePost, etc) continua igualzinho para baixo!
   window.loadMoreRootComments = function() {
     rootCommentsVisible += 5;
     window.loadSinglePost(true);
