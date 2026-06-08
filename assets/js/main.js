@@ -1150,7 +1150,19 @@ if (registerForm) {
   });
 
   document.getElementById('registerForgotPasswordBtn')?.addEventListener('click', () => {
-    setRegisterMessage('error', 'A recuperação de senha ainda não está conectada no frontend. Use o login se já souber sua senha.');
+    const email = getRegisterInput('regEmail')?.value.trim().toLowerCase() || '';
+    document.querySelector('#registerModal .btn-close')?.click();
+
+    window.setTimeout(() => {
+      const resetEmail = document.getElementById('resetEmail');
+      if (resetEmail && email) resetEmail.value = email;
+
+      const modal = document.getElementById('passwordResetModal');
+      if (modal && window.bootstrap) {
+        bootstrap.Modal.getOrCreateInstance(modal).show();
+        resetEmail?.focus();
+      }
+    }, 250);
   });
 
   document.getElementById('regVerificationCode')?.addEventListener('input', (event) => {
@@ -1160,6 +1172,334 @@ if (registerForm) {
   document.getElementById('registerModal')?.addEventListener('hidden.bs.modal', resetRegisterFlow);
   resetRegisterFlow();
 }
+
+
+const PASSWORD_RESET_STEP = {
+  EMAIL: 'email',
+  CODE: 'code',
+  PASSWORD: 'password',
+};
+
+const PASSWORD_RESET_STEP_LABELS = {
+  [PASSWORD_RESET_STEP.EMAIL]: 'Enviar código',
+  [PASSWORD_RESET_STEP.CODE]: 'Verificar código',
+  [PASSWORD_RESET_STEP.PASSWORD]: 'Alterar senha',
+};
+
+const PASSWORD_RESET_STEP_TITLES = {
+  [PASSWORD_RESET_STEP.EMAIL]: 'Recuperar Senha',
+  [PASSWORD_RESET_STEP.CODE]: 'Confirmar Código',
+  [PASSWORD_RESET_STEP.PASSWORD]: 'Nova Senha',
+};
+
+const passwordResetState = {
+  step: PASSWORD_RESET_STEP.EMAIL,
+  email: '',
+  verificationId: '',
+  passwordResetToken: '',
+  isLoading: false,
+};
+
+const passwordResetForm = document.getElementById('passwordResetForm');
+
+function getPasswordResetInput(id) {
+  return document.getElementById(id);
+}
+
+function setPasswordResetMessage(type, message) {
+  const error = document.getElementById('passwordResetError');
+  const success = document.getElementById('passwordResetSuccess');
+  if (!error || !success) return;
+
+  error.style.display = 'none';
+  success.style.display = 'none';
+  error.textContent = '';
+  success.textContent = '';
+
+  if (!message) return;
+
+  const target = type === 'success' ? success : error;
+  target.textContent = message;
+  target.style.display = 'block';
+}
+
+function updatePasswordResetStepInputs() {
+  document.querySelectorAll('[data-reset-step]').forEach((panel) => {
+    const isActive = panel.dataset.resetStep === passwordResetState.step;
+    panel.hidden = !isActive;
+    panel.querySelectorAll('input, textarea, select, button').forEach((control) => {
+      if (control.id === 'resetVerifiedEmail') return;
+      control.disabled = !isActive || passwordResetState.isLoading;
+    });
+  });
+}
+
+function syncPasswordResetSubmitState() {
+  const button = document.getElementById('resetSubmitBtn');
+  if (!button) return;
+
+  button.disabled = passwordResetState.isLoading;
+  button.textContent = passwordResetState.isLoading
+    ? 'Processando...'
+    : PASSWORD_RESET_STEP_LABELS[passwordResetState.step];
+}
+
+function setPasswordResetStep(step, options = {}) {
+  passwordResetState.step = step;
+
+  document.querySelectorAll('[data-reset-step-dot]').forEach((dot) => {
+    const dotStep = dot.dataset.resetStepDot;
+    dot.classList.toggle('active', dotStep === step);
+    dot.classList.toggle('completed',
+      (step === PASSWORD_RESET_STEP.CODE && dotStep === PASSWORD_RESET_STEP.EMAIL) ||
+      (step === PASSWORD_RESET_STEP.PASSWORD && dotStep !== PASSWORD_RESET_STEP.PASSWORD)
+    );
+  });
+
+  const title = document.getElementById('passwordResetModalLabel');
+  if (title) title.textContent = PASSWORD_RESET_STEP_TITLES[step];
+
+  const backButton = document.getElementById('resetBackBtn');
+  if (backButton) backButton.style.display = step === PASSWORD_RESET_STEP.EMAIL ? 'none' : 'inline-flex';
+
+  const emailPreview = document.getElementById('resetEmailPreview');
+  if (emailPreview) emailPreview.textContent = passwordResetState.email;
+
+  const verifiedEmail = document.getElementById('resetVerifiedEmail');
+  if (verifiedEmail) verifiedEmail.value = passwordResetState.email;
+
+  updatePasswordResetStepInputs();
+  syncPasswordResetSubmitState();
+
+  if (!options.keepMessage) setPasswordResetMessage('', '');
+}
+
+function setPasswordResetLoading(isLoading) {
+  passwordResetState.isLoading = isLoading;
+  updatePasswordResetStepInputs();
+  syncPasswordResetSubmitState();
+}
+
+function resetPasswordResetFlow(options = {}) {
+  const currentEmail = options.keepEmail
+    ? (getPasswordResetInput('resetEmail')?.value.trim().toLowerCase() || '')
+    : '';
+
+  passwordResetState.step = PASSWORD_RESET_STEP.EMAIL;
+  passwordResetState.email = '';
+  passwordResetState.verificationId = '';
+  passwordResetState.passwordResetToken = '';
+  passwordResetState.isLoading = false;
+
+  passwordResetForm?.reset();
+
+  const verifiedEmail = document.getElementById('resetVerifiedEmail');
+  if (verifiedEmail) verifiedEmail.value = '';
+
+  if (currentEmail) {
+    const emailInput = getPasswordResetInput('resetEmail');
+    if (emailInput) emailInput.value = currentEmail;
+  }
+
+  setPasswordResetStep(PASSWORD_RESET_STEP.EMAIL);
+}
+
+async function startPasswordResetVerification() {
+  const emailInput = getPasswordResetInput('resetEmail');
+  const email = emailInput?.value.trim().toLowerCase() || '';
+
+  if (!email) {
+    setPasswordResetMessage('error', 'Digite seu email institucional para continuar.');
+    return;
+  }
+
+  setPasswordResetLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/email-verification/password-reset/start/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+      setPasswordResetMessage('error', getApiError(data, 'Não foi possível enviar o código.'));
+      return;
+    }
+
+    passwordResetState.email = email;
+    passwordResetState.verificationId = data?.verification_id || '';
+    passwordResetState.passwordResetToken = '';
+
+    setPasswordResetStep(PASSWORD_RESET_STEP.CODE, { keepMessage: true });
+    setPasswordResetMessage('success', data?.message || 'Código enviado para o email institucional.');
+    getPasswordResetInput('resetVerificationCode')?.focus();
+  } catch (error) {
+    console.error('Erro ao iniciar recuperação de senha:', error);
+    setPasswordResetMessage('error', 'Erro de conexão com o servidor.');
+  } finally {
+    setPasswordResetLoading(false);
+  }
+}
+
+async function confirmPasswordResetVerification() {
+  const codeInput = getPasswordResetInput('resetVerificationCode');
+  const code = codeInput?.value.trim() || '';
+
+  if (!passwordResetState.verificationId) {
+    setPasswordResetMessage('error', 'Solicite um novo código para continuar.');
+    setPasswordResetStep(PASSWORD_RESET_STEP.EMAIL);
+    return;
+  }
+
+  if (!/^\d{6}$/.test(code)) {
+    setPasswordResetMessage('error', 'Digite o código de 6 dígitos enviado para o email.');
+    return;
+  }
+
+  setPasswordResetLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/email-verification/password-reset/confirm/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        verification_id: passwordResetState.verificationId,
+        code,
+      }),
+    });
+
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+      const attempts = Number.isInteger(data?.attempts_left)
+        ? ` Tentativas restantes: ${data.attempts_left}.`
+        : '';
+      setPasswordResetMessage('error', `${getApiError(data, 'Código inválido.')}${attempts}`);
+      return;
+    }
+
+    passwordResetState.email = data?.email || passwordResetState.email;
+    passwordResetState.passwordResetToken = data?.password_reset_token || '';
+
+    setPasswordResetStep(PASSWORD_RESET_STEP.PASSWORD, { keepMessage: true });
+    setPasswordResetMessage('success', data?.message || 'Código verificado com sucesso.');
+    getPasswordResetInput('resetPassword')?.focus();
+  } catch (error) {
+    console.error('Erro ao confirmar código de recuperação:', error);
+    setPasswordResetMessage('error', 'Erro de conexão com o servidor.');
+  } finally {
+    setPasswordResetLoading(false);
+  }
+}
+
+async function finishPasswordReset() {
+  const password = getPasswordResetInput('resetPassword')?.value || '';
+  const passwordConfirm = getPasswordResetInput('resetPasswordConfirm')?.value || '';
+
+  setPasswordResetMessage('', '');
+
+  if (!passwordResetState.passwordResetToken) {
+    setPasswordResetMessage('error', 'Confirme o código antes de alterar a senha.');
+    setPasswordResetStep(PASSWORD_RESET_STEP.EMAIL);
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    setPasswordResetMessage('error', 'As senhas não coincidem. Tente novamente.');
+    return;
+  }
+
+  setPasswordResetLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/password-reset/confirm/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        password_reset_token: passwordResetState.passwordResetToken,
+        password,
+        confirm_password: passwordConfirm,
+      }),
+    });
+
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+      setPasswordResetMessage('error', getApiError(data, 'Não foi possível alterar a senha.'));
+      return;
+    }
+
+    setPasswordResetMessage('success', data?.message || 'Senha alterada com sucesso. Faça login novamente.');
+
+    window.setTimeout(() => {
+      document.querySelector('#passwordResetModal .btn-close')?.click();
+      document.getElementById('username')?.focus();
+    }, 1400);
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    setPasswordResetMessage('error', 'Erro de conexão com o servidor.');
+  } finally {
+    setPasswordResetLoading(false);
+  }
+}
+
+if (passwordResetForm) {
+  passwordResetForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    if (passwordResetState.step === PASSWORD_RESET_STEP.EMAIL) {
+      await startPasswordResetVerification();
+      return;
+    }
+
+    if (passwordResetState.step === PASSWORD_RESET_STEP.CODE) {
+      await confirmPasswordResetVerification();
+      return;
+    }
+
+    await finishPasswordReset();
+  });
+
+  document.getElementById('resetBackBtn')?.addEventListener('click', () => {
+    if (passwordResetState.step === PASSWORD_RESET_STEP.PASSWORD) {
+      setPasswordResetStep(PASSWORD_RESET_STEP.CODE);
+      return;
+    }
+
+    setPasswordResetStep(PASSWORD_RESET_STEP.EMAIL);
+  });
+
+  document.getElementById('resetChangeEmailBtn')?.addEventListener('click', () => {
+    passwordResetState.email = '';
+    passwordResetState.verificationId = '';
+    passwordResetState.passwordResetToken = '';
+    getPasswordResetInput('resetVerificationCode').value = '';
+    setPasswordResetStep(PASSWORD_RESET_STEP.EMAIL);
+    getPasswordResetInput('resetEmail')?.focus();
+  });
+
+  document.getElementById('resetVerificationCode')?.addEventListener('input', (event) => {
+    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 6);
+  });
+
+  document.getElementById('passwordResetModal')?.addEventListener('show.bs.modal', () => {
+    resetPasswordResetFlow({ keepEmail: true });
+  });
+
+  document.getElementById('passwordResetModal')?.addEventListener('shown.bs.modal', () => {
+    getPasswordResetInput('resetEmail')?.focus();
+  });
+
+  document.getElementById('passwordResetModal')?.addEventListener('hidden.bs.modal', () => {
+    resetPasswordResetFlow();
+  });
+
+  resetPasswordResetFlow();
+}
+
 
 function toApiUrl(url) {
   if (!url) return '';
