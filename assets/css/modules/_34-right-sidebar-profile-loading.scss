@@ -143,6 +143,7 @@
   padding: 1.5rem;
   position: sticky;
   top: 0;
+  align-self: start;
   overflow-y: auto;
   overscroll-behavior: contain;
   border-left: var(--hairline) solid var(--line-color);
